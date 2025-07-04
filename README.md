@@ -54,7 +54,6 @@ The Event Management System is a full-stack web application built with the **MER
 Follow these steps to clone the repository, install dependencies, and run both the backend and frontend servers.
 
 ### 📂 Clone the repository
-
 ✅ **How this works:**  
 - The `### 📂 Clone the repository` heading explains the section.
 - The **bash block** is properly closed — three backticks ` ``` ` at the end.
