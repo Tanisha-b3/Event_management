@@ -47,35 +47,32 @@ The Event Management System is a full-stack web application built with the **MER
 - **Backend:** Node.js, Express.js
 - **Database:** MongoDB
 - **Authentication:** JWT
-- **Payment Integration:** (Optional) Stripe or Razorpay for ticketin
-
----
+- **Payment Integration:** (Optional) Stripe or Razorpay for ticket
 
 ## ⚙️ Project Setup
 
-### 📂 Clone the repository
-# 📦 Project Setup Commands
-
 Follow these steps to clone the repository, install dependencies, and run both the backend and frontend servers.
 
-```bash
-git clone <repository-url>
-cd Event_management
+### 📂 Clone the repository
 
-# Install backend dependencies
-cd backend
-npm install
+✅ **How this works:**  
+- The `### 📂 Clone the repository` heading explains the section.
+- The **bash block** is properly closed — three backticks ` ``` ` at the end.
+- There’s Project Setup Commands`** inside the block — you don’t need that as a heading inside the bash block.
 
-# Install frontend dependencies
-cd ../frontend
-npm install
-
-# Start backend server (from backend folder)
-npm run dev
-
-# Start frontend server (from frontend folder)
-npm start
 ---
+
+### 👉 **How to save it**
+
+1. Copy the text above.
+2. Save it as `README.md` in your project folder.
+3. Replace `<repository-url>` with your actual GitHub repo link.
+4. Commit and push it:
+   ```bash
+   git add README.md
+   git commit -m "Add setup instructions"
+   git push
+
 # 📚 Learning & Reference Links
 
 To learn or revise the stack:
