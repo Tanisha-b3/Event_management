@@ -1,0 +1,60 @@
+/* LocationSearchBar.css */
+.location-search-bar1 {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 300px; 
+  margin: 10px 0;
+  margin-left: 10rem;
+}
+
+.search-input-container3 {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-left: 1rem;
+}
+
+.search-icon {
+ position: absolute;
+  left: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: black;
+  border-radius: 30px;
+}
+
+.search-input7{
+  width: 100%;
+  padding: 10px 35px 10px 35px; /* Right padding for clear button */
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #4a90e2;
+}
+
+.clear-btn4 {
+  align-items: end;
+  position: relative;
+  right: 10px; 
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  margin-top: -5rem ;
+  margin-left: 3rem;
+}
+
+.clear-btn4:hover {
+  color: #666;
+}

@@ -1,0 +1,224 @@
+/* Create Event Form - Custom CSS */
+.create-event-form1 {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  transition: all 0.3s ease;
+}
+
+.create-event-form1:hover {
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+}
+
+.create-event-form1 h2 {
+  color: #2c3e50;
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 2rem;
+  font-weight: 600;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.create-event-form1 h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, #3498db, #9b59b6);
+  border-radius: 2px;
+}
+
+.form-group3 {
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.form-group3 label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #34495e;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.form-group3 input,
+.form-group3 textarea,
+.form-group3 select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #dfe6e9;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background-color: #f8f9fa;
+}
+
+.form-group3 input:focus,
+.form-group3 textarea:focus,
+.form-group3 select:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+  background-color: #fff;
+}
+
+.form-group3 textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.create-event-form1 button[type="submit"] {
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(135deg, #3498db, #9b59b6);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.create-event-form1 button[type="submit"]:hover {
+  background: linear-gradient(135deg, #2980b9, #8e44ad);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.create-event-form1 button[type="submit"]:disabled {
+  background: #bdc3c7;
+  transform: none;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* Error Styling */
+.form-group3.error input,
+.form-group3.error textarea,
+.form-group3.error select {
+  border-color: #e74c3c !important;
+}
+
+.field-error {
+  color: #e74c3c;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+.error-message {
+  color: #e74c3c;
+  background-color: #fadbd8;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #e74c3c;
+  animation: slideIn 0.4s ease;
+}
+
+.success-message {
+  color: #27ae60;
+  background-color: #d5f5e3;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #27ae60;
+  animation: slideIn 0.4s ease;
+}
+
+/* Floating Label Styles */
+.form-group3.floating {
+  margin-top: 1.5rem;
+}
+
+.form-group3.floating label {
+  position: absolute;
+  top: 0.75rem;
+  left: 1rem;
+  color: #7f8c8d;
+  transition: all 0.3s ease;
+  pointer-events: none;
+  background: #f8f9fa;
+  padding: 0 0.5rem;
+  border-radius: 4px;
+}
+
+.form-group3.floating input:focus + label,
+.form-group3.floating input:not(:placeholder-shown) + label,
+.form-group3.floating textarea:focus + label,
+.form-group3.floating textarea:not(:placeholder-shown) + label {
+  top: -0.75rem;
+  left: 0.8rem;
+  font-size: 0.75rem;
+  color: #3498db;
+  background: #fff;
+}
+
+/* Time Input Specific Styling */
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.5);
+  cursor: pointer;
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  filter: invert(0.3);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .create-event-form1 {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+  
+  .create-event-form1 h2 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .create-event-form1 {
+    padding: 1rem;
+  }
+  
+  .form-group3 input,
+  .form-group3 textarea,
+  .form-group3 select {
+    padding: 0.6rem 0.8rem;
+  }
+  
+  .create-event-form1 button[type="submit"] {
+    padding: 0.8rem;
+  }
+}
