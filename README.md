@@ -54,42 +54,56 @@ The Event Management System is a full-stack web application built with the **MER
 ## ⚙️ Project Setup
 
 ### 📂 Clone the repository
+# 📦 Project Setup Commands
+
+Follow these steps to clone the repository, install dependencies, and run both the backend and frontend servers.
+
 ```bash
 git clone <repository-url>
 cd Event_management
+
+# Install backend dependencies
 cd backend
 npm install
+
+# Install frontend dependencies
 cd ../frontend
 npm install
+
+# Start backend server (from backend folder)
 npm run dev
+
+# Start frontend server (from frontend folder)
 npm start
 ---
-##📚 Learning & Reference Links
+# 📚 Learning & Reference Links
+
 To learn or revise the stack:
 
-JavaScript & ES6:
+### 🟢 JavaScript & ES6
+- [MDN JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+- [JavaScript Tutorial](https://www.javascripttutorial.net/)
 
-MDN JavaScript
+### ⚛️ React.js
+- [React Docs](https://react.dev/)
 
-JavaScript Tutorial
+### 🟢 Node.js & Express
+- [Node.js Docs](https://nodejs.org/en/docs)
+- [Express Docs](https://expressjs.com/)
 
-React.js:
+### 🍃 MongoDB
+- [MongoDB Docs](https://www.mongodb.com/docs/)
 
-React Docs
-
-Node.js & Express:
-
-Node.js Docs
-
-Express Docs
-
-MongoDB:
-
-MongoDB Docs
 ---
-🤝 Contribution
-Feel free to fork this repository, raise issues, and submit pull requests to improve features, fix bugs, or suggest enhancements.
 
-🙌 Thank You
-Thank you for exploring this Event Management System!
+## 🤝 Contribution
+
+Feel free to **fork** this repository, **raise issues**, and **submit pull requests** to improve features, fix bugs, or suggest enhancements.
+
+---
+
+## 🙌 Thank You
+
+Thank you for exploring this **Event Management System**!  
+Happy coding and best of luck building awesome events! 🚀
 Happy coding 🎉
