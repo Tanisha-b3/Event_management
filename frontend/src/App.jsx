@@ -12,6 +12,8 @@ import EventDetails from './components/EventDetails.jsx';
 import Profile from './components/Profile.jsx';
 import MyTickets from './components/tickets/tickets.jsx';
 import BookTicket from './components/tickets/TicketBook.jsx';
+import OrganizerDashboard from './components/Messages/Organiser.jsx';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const PrivateRoute = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
@@ -36,8 +38,8 @@ const PublicRoute = ({ children }) => {
 
 const App = () => {
   return (
-    <>
-      <BrowserRouter>
+    <GoogleOAuthProvider clientId="147075803739-q88du7ttr1n8ia39483oag2ocebrnoj5.apps.googleusercontent.com">
+     <BrowserRouter>
         <Routes>
         <Route path="/book-event/:eventId" element={<BookTicket />} />
         <Route path="/my-tickets" element={<MyTickets />} />
@@ -59,7 +61,11 @@ const App = () => {
               </PublicRoute>
             } 
           />
-
+          <Route path ="/organizer"
+          element={
+            <OrganizerDashboard />
+          }
+           />
           {/* Private Routes */}
           <Route
             path="/dashboard"
@@ -105,7 +111,7 @@ const App = () => {
         draggable
         pauseOnHover
       />
-    </>
+      </GoogleOAuthProvider>
   );
 };
 

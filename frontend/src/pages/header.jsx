@@ -18,7 +18,6 @@ const Header = ({ onSearch }) => {
   const [locationTerm, setLocationTerm] = useState('');
   const [dateRange, setDateRange] = useState([null, null]);
   const [startDate, endDate] = dateRange;
-  const [showSearchFilters, setShowSearchFilters] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -42,11 +41,12 @@ const Header = ({ onSearch }) => {
     { path: '/discover', icon: <FiCalendar />, label: 'Events' },
     { path: '/profile', icon: <FiUser />, label: 'Profile' },
     { path: '/my-tickets', icon: <FiTable />, label: 'Tickets' },
-    {path:'/create-event',icon:<FiMenu />, label:'CreateEvent'}
+    // { path: '/create-event', icon: <FiMenu />, label: 'Create Event' },
+    { path: '/organizer', icon: <FiUser />, label: 'Organizer' }
   ];
 
   const handleSearch = (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     
     if (onSearch) {
       onSearch({
@@ -92,6 +92,7 @@ const Header = ({ onSearch }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('authProvider');
+    setIsLoggedIn(false);
     navigate('/login');
     setMobileMenuOpen(false);
   };
@@ -111,7 +112,7 @@ const Header = ({ onSearch }) => {
           <h1 className="app-title">EventPro</h1>
         </div>
 
-        {isLoggedIn && (
+        {isLoggedIn ? (
           <>
             <div className="header-actions">
               <nav className="header-nav">
@@ -152,7 +153,6 @@ const Header = ({ onSearch }) => {
 
             {mobileMenuOpen && (
               <div className="mobile-menu">
-
                 <nav className="mobile-nav">
                   {navItems.map((item) => (
                     <button
@@ -166,46 +166,6 @@ const Header = ({ onSearch }) => {
                   ))}
                 </nav>
 
-                <div className="mobile-filters">
-                  <div className="mobile-filter-group">
-                    <FiMapPin className="filter-icon" />
-                    <input
-                      type="text"
-                      placeholder="Location..."
-                      value={locationTerm}
-                      onChange={(e) => setLocationTerm(e.target.value)}
-                      className="filter-input"
-                    />
-                  </div>
-
-                  <div className="mobile-date-filter">
-                    <DatePicker
-                      selectsRange={true}
-                      startDate={startDate}
-                      endDate={endDate}
-                      onChange={handleDateChange}
-                      isClearable={true}
-                      placeholderText="Date range"
-                      className="mobile-date-picker"
-                    />
-                  </div>
-
-                  <div className="mobile-filter-actions">
-                    <button 
-                      className="apply-filters-button"
-                      onClick={handleSearch}
-                    >
-                      Apply Filters
-                    </button>
-                    <button 
-                      className="clear-filters-button"
-                      onClick={clearFilters}
-                    >
-                      Clear All
-                    </button>
-                  </div>
-                </div>
-
                 <button 
                   className="mobile-logout-btn"
                   onClick={handleLogout}
@@ -216,6 +176,11 @@ const Header = ({ onSearch }) => {
               </div>
             )}
           </>
+        ) : (
+          <div className="guest-actions">
+            <button onClick={() => navigate('/login')}>Login</button>
+            <button onClick={() => navigate('/register')}>Register</button>
+          </div>
         )}
       </div>
     </header>

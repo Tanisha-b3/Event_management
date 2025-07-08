@@ -6,23 +6,36 @@ const jwt = require('jsonwebtoken');
 const auth = require('../middleware/Auth.js');
 
 // Register
+// In your routes file (add these middleware first)
+router.use(express.json()); // for parsing application/json
+router.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+
+// Updated register route
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
     
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ success: false, error: 'Email already in use' });
+    // Validate input
+    if (!name || !email || !password) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Please provide name, email and password' 
+      });
     }
 
-    // Create new user
+    // Check if user exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email already in use' 
+      });
+    }
+
     const user = await User.create({ name, email, password });
     
-    // Generate token
     const token = user.getJWTToken();
-    
-    res.status(201).json({ 
+    res.status(201).set('Content-Type', 'application/json').json({ 
       success: true, 
       token,
       user: {
@@ -32,7 +45,11 @@ router.post('/register', async (req, res) => {
       }
     });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    console.error('Registration error:', err);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Server error during registration' 
+    });
   }
 });
 

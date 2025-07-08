@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaTicketAlt, FaUser, FaCreditCard, FaCheck } from 'react-icons/fa';
+import { FaTicketAlt, FaUser, FaCreditCard, FaCheck, FaArrowLeft, FaChevronLeft} from 'react-icons/fa';
 import './BookTicket.css';
 import Header from '../../pages/header';
 import Footer from '../../pages/footer';
@@ -120,11 +120,8 @@ const BookTicket = () => {
   return (<>
     <div className="booking-container">
       <Header />
-      <button 
-                    className="btn-back"
-                    onClick={() => navigate('/dashboard')}
-                  >
-                    <FaArrowLeft /> Back to Dashboard
+      <button className="btn-back" onClick={() => navigate('/dashboard')} >
+                    <FaChevronLeft /> Back to Dashboard
                   </button>
       <main className="booking-main">
         <h1>Book Tickets: {event.title}</h1>

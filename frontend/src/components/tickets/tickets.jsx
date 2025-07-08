@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FaTicketAlt, FaCalendarAlt, FaMapMarkerAlt, FaTrash } from 'react-icons/fa'
+import { FaTicketAlt, FaCalendarAlt, FaMapMarkerAlt, FaTrash , FaArrowLeft} from 'react-icons/fa'
 import './tickets.css'
 import Header from '../../pages/header.jsx';
 import Footer from '../../pages/footer.jsx';
@@ -53,7 +53,7 @@ const MyTickets = () => {
                   <FaTicketAlt className="ticket-icon" />
                   <h2>Details</h2>
                   <button 
-                    className="btn-cancel"
+                    className="btn-cancel5"
                     onClick={() => cancelTicket(ticket.bookingId)}
                   >
                     <FaTrash /> Cancel

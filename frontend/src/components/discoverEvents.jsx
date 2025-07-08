@@ -121,54 +121,54 @@ const Discover = () => {
         </div>
 
         {filteredEvents.length > 0 ? (
-          <div className="events-grid">
+          <div className="events-grid5">
             {filteredEvents.map(event => (
-              <div className="event-card" key={event.id}>
+              <div className="event-card5" key={event.id}>
                 <div 
-                  className="event-image-container"
+                  className="event-image-container5"
                   style={{ backgroundImage: `url(${event.image})`}}
                 >
-                  <span className={`event-status ${event.status}`}>
+                  <span className={`event-status5 ${event.status}`}>
                     {event.status}
                   </span>
-                  <div className="event-category-badge">
+                  <div className="event-category-badge5">
                     <FaTag /> {event.category}
                   </div>
                 </div>
 
-                <div className="event-content">
+                <div className="event-content5">
                   <h3>{event.title}</h3>
-                  <p className="event-description">{event.description}</p>
+                  <p className="event-description5">{event.description}</p>
                   
-                  <div className="event-meta">
-                    <div className="meta-item">
+                  <div className="event-meta5">
+                    <div className="meta-item5">
                       <FaCalendarAlt /> {formatDate(event.date)}
                     </div>
-                    <div className="meta-item">
+                    <div className="meta-item5">
                       <FaMapMarkerAlt /> {event.location}
                     </div>
                   </div>
 
-                  <div className="event-stats">
+                  <div className="event-stats5">
                     <div className="stat-item">
                       <FaUsers /> {event.attendees}/{event.capacity} ({getAttendancePercentage(event.attendees, event.capacity)}%)
-                      <div className="progress-bar">
+                      <div className="progress-bar5">
                         <div 
-                          className="progress-fill" 
+                          className="progress-fill5" 
                           style={{ width: `${getAttendancePercentage(event.attendees, event.capacity)}%` }}
                         ></div>
                       </div>
                     </div>
-                    <div className="stat-item">
+                    <div className="stat-item5">
                       <FaTicketAlt /> {event.ticketsSold} tickets sold
                     </div>
-                    <div className="stat-item">
+                    <div className="stat-item5">
                       <FaDollarSign /> {formatCurrency(event.revenue)}
                     </div>
                   </div>
 
                   <button 
-                    className="view-details-btn"
+                    className="view-details-btn5"
                     onClick={() =>  navigate(`/event/${event._id || event.id}`)}
                   >
                     View Details <FaArrowRight />
@@ -178,7 +178,7 @@ const Discover = () => {
             ))}
           </div>
         ) : (
-          <div className="no-events-found">
+          <div className="no-events-found5">
             <h3>No events match your search criteria</h3>
             <p>Try adjusting your search or filters</p>
           </div>

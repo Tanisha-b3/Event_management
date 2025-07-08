@@ -125,11 +125,11 @@ const filteredEvents = localEvents.filter(event => {
   const eventDate = new Date(event.date);
   
   if (filterType === 'upcoming') {
-    return matchesSearch && matchesCategory && matchesLocation && eventDate > today;
+    return matchesSearch && matchesCategory && matchesLocation && eventDate > today && event.status =='upcoming';
   } else if (filterType === 'active') {
     return matchesSearch && matchesCategory && matchesLocation && eventDate >= today && event.status === 'active';
   } else if (filterType === 'past') {
-    return matchesSearch && matchesCategory && matchesLocation && eventDate < today;
+    return matchesSearch && matchesCategory && matchesLocation && eventDate < today && event.status =='completed';
   }
   return matchesSearch && matchesCategory && matchesLocation;
 });

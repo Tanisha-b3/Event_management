@@ -544,7 +544,7 @@
   100% { transform: scale(1); }
 }
 
-.dashboard-header {
+.dashboard-header3 {
   animation: fadeIn 0.4s cubic-bezier(0.39, 0.575, 0.565, 1) both;
 }
 

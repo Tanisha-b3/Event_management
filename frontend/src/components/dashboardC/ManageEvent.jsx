@@ -23,7 +23,6 @@ const ManageEvent = ({
   formatCurrency,
   attendeeSearch,
   setAttendeeSearch,
-  handleExportAttendees,
   filteredAttendees,
   setMessageContent,
   messageTemplates,
@@ -169,9 +168,6 @@ const ManageEvent = ({
                   onChange={(e) => setAttendeeSearch(e.target.value)}
                 />
               </div>
-              <button className="btn-primary" onClick={handleExportAttendees}>
-                <FiDownload className="icon" /> Export List
-              </button>
             </div>
 
             <div className="attendee-table">
