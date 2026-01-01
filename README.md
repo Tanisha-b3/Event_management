@@ -55,11 +55,9 @@ Follow these steps to clone the repository, install dependencies, and run both t
 
 ### 📂 Clone the repository
 ✅ **How this works:**  
-- The `### 📂 Clone the repository` heading explains the section.
-- The **bash block** is properly closed — three backticks ` ``` ` at the end.
+- The 📂 Clone the repository` heading explains the section.
+- The **bash block** is properly closed — three backticks at the end.
 - There’s Project Setup Commands`** inside the block — you don’t need that as a heading inside the bash block.
-
----
 
 ### 👉 **How to save it**
 
@@ -69,7 +67,7 @@ Follow these steps to clone the repository, install dependencies, and run both t
 4. Commit and push it:
    ```bash
    git add README.md
-   git commit -m "Add setup instructions"
+   git commit -m "Add setup instructions."
    git push
 
 # 📚 Learning & Reference Links
