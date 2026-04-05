@@ -46,7 +46,7 @@ const EventCarousel = () => {
 
   return (
     <div className="carousel-wrapper">
-      <button className="nav-btn3" onClick={handlePrev}>
+      <button className="carousel-nav-btn prev nav-btn3" onClick={handlePrev}>
         ‹
       </button>
 
@@ -69,7 +69,7 @@ const EventCarousel = () => {
         </div>
       </div>
 
-      <button className="nav-btn1" onClick={handleNext}>
+      <button className="carousel-nav-btn next nav-btn1" onClick={handleNext}>
         ›
       </button>
     </div>

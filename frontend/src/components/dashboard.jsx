@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   FiPlus, FiSearch, FiCalendar, FiUsers, FiDollarSign, FiEdit, 
@@ -7,14 +7,14 @@ import {
 } from 'react-icons/fi';
 import Header from '../pages/header.jsx';
 import Footer from '../pages/footer.jsx';
-import { EVENTS} from './constants';
+import { EVENTS, LOCATION_OPTIONS } from './constants';
 import './Dashboard.css';
 import Location from '../components/featuresd/Location.jsx';
-import { LOCATION_OPTIONS } from './constants';
 import CategoryFilter from './category.jsx';
 import EventCarousel from './featuresd/features.jsx';
 import { Attendees, tickets, messages } from './constants';
 import ManageEvent from './dashboardC/ManageEvent.jsx';
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
@@ -36,12 +36,49 @@ const Dashboard = () => {
     quantity: 0
   });
 
-  // Sample data initialization
   const [attendees, setAttendees] = useState(Attendees);
-
   const [ticketTypes, setTicketTypes] = useState(tickets);
-
   const messageTemplates = messages;
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [locationSearchTerm, setLocationSearchTerm] = useState('');
+
+  // Memoized filtered events for better performance
+ // Update your filteredEvents useMemo to properly handle categories
+const filteredEvents = useMemo(() => {
+  return localEvents.filter(event => {
+    // Search filter
+    const matchesSearch = 
+      event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.category.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Location filter
+    const matchesLocation = 
+      locationSearchTerm === '' ||
+      event.location.toLowerCase().includes(locationSearchTerm.toLowerCase());
+    
+    // Category filter - FIXED: Properly compare category
+    const matchesCategory = activeCategory === 'all' || 
+      event.category.toLowerCase() === activeCategory.toLowerCase();
+    
+    // Status filter
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const eventDate = new Date(event.date);
+    
+    if (filterType === 'upcoming') {
+      return matchesSearch && matchesCategory && matchesLocation && 
+             eventDate > today && event.status === 'upcoming';
+    } else if (filterType === 'active') {
+      return matchesSearch && matchesCategory && matchesLocation && 
+             eventDate >= today && event.status === 'active';
+    } else if (filterType === 'past') {
+      return matchesSearch && matchesCategory && matchesLocation && 
+             eventDate < today && event.status === 'completed';
+    }
+    
+    return matchesSearch && matchesCategory && matchesLocation;
+  });
+}, [localEvents, searchTerm, locationSearchTerm, activeCategory, filterType]);
 
   // Generate sample sales data
   useEffect(() => {
@@ -63,77 +100,58 @@ const Dashboard = () => {
       }
       setSalesData(generatedSales);
 
-      // Set ticket types for selected event
       if (selectedEvent.ticketTypes) {
         setTicketTypes(selectedEvent.ticketTypes);
       }
     }
   }, [selectedEvent]);
 
+  // Fetch events on mount
   useEffect(() => {
     const fetchEvents = async () => {
-      
+      try {
         setTimeout(() => {
-          const combinedEvents = [
-            ...EVENTS.map(event => ({
-              ...event,
-              status: event.status || 'active',
-              attendees: event.attendees || 0,
-              ticketsSold: event.ticketsSold || 0,
-              revenue: event.revenue || 0,
-              capacity: event.capacity || 100,
-              privacy: event.privacy || 'public',
-              ticketTypes: event.ticketTypes || [
-                { id: 1, type: 'General Admission', price: 50, sold: 0, total: 100 }
-              ]
-            }))
-          ];
-          console.log(combinedEvents);
+          const combinedEvents = EVENTS.map(event => ({
+            ...event,
+            status: event.status || 'active',
+            attendees: event.attendees || 0,
+            ticketsSold: event.ticketsSold || 0,
+            revenue: event.revenue || 0,
+            capacity: event.capacity || 100,
+            privacy: event.privacy || 'public',
+            ticketTypes: event.ticketTypes || [
+              { id: 1, type: 'General Admission', price: 50, sold: 0, total: 100 }
+            ]
+          }));
           
+          // Remove duplicates
           const uniqueEvents = combinedEvents.reduce((acc, current) => {
             const x = acc.find(item => item.id === current.id);
-            return x ? acc : [...acc, current];
+            if (!x) {
+              return [...acc, current];
+            }
+            return acc;
           }, []);
           
           setEvents(uniqueEvents);
           setLocalEvents(uniqueEvents);
           setIsLoading(false);
         }, 800);
-      };
+      } catch (error) {
+        console.error('Error fetching events:', error);
+        setIsLoading(false);
+      }
+    };
     
     fetchEvents();
   }, []);
-const [activeCategory, setActiveCategory] = useState('all');
 
-const [locationSearchTerm, setLocationSearchTerm] = useState('');
-
-// Update your filteredEvents function
-const filteredEvents = localEvents.filter(event => {
-  const matchesSearch = 
-    event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    event.category.toLowerCase().includes(searchTerm.toLowerCase());
-  
-  const matchesLocation = 
-    locationSearchTerm === '' ||
-    event.location.toLowerCase().includes(locationSearchTerm.toLowerCase());
-  
-  const matchesCategory = activeCategory === 'all' || 
-    event.category.toLowerCase() === activeCategory.toLowerCase();
-  
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const eventDate = new Date(event.date);
-  
-  if (filterType === 'upcoming') {
-    return matchesSearch && matchesCategory && matchesLocation && eventDate > today && event.status =='upcoming';
-  } else if (filterType === 'active') {
-    return matchesSearch && matchesCategory && matchesLocation && eventDate >= today && event.status === 'active';
-  } else if (filterType === 'past') {
-    return matchesSearch && matchesCategory && matchesLocation && eventDate < today && event.status =='completed';
-  }
-  return matchesSearch && matchesCategory && matchesLocation;
-});
-
+  // Save to localStorage whenever localEvents changes
+  useEffect(() => {
+    if (localEvents.length > 0) {
+      localStorage.setItem('events', JSON.stringify(localEvents));
+    }
+  }, [localEvents]);
 
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -152,7 +170,9 @@ const filteredEvents = localEvents.filter(event => {
     setActiveTab('manage');
   };
 
-  const toggleEventStatus = () => {
+  const toggleEventStatus = useCallback(() => {
+    if (!selectedEvent) return;
+    
     const updatedEvents = localEvents.map(ev => {
       if (ev.id === selectedEvent.id) {
         const newStatus = ev.status === 'active' ? 'paused' : 'active';
@@ -161,22 +181,21 @@ const filteredEvents = localEvents.filter(event => {
       return ev;
     });
     setLocalEvents(updatedEvents);
-    setSelectedEvent(prev => ({
+    setSelectedEvent(prev => prev ? {
       ...prev,
       status: prev.status === 'active' ? 'paused' : 'active'
-    }));
-    localStorage.setItem('events', JSON.stringify(updatedEvents));
-  };
+    } : null);
+  }, [selectedEvent, localEvents]);
 
-  const handleDeleteEvent = () => {
-  
+  const handleDeleteEvent = useCallback(() => {
+    if (!selectedEvent) return;
+    
     const updatedEvents = localEvents.filter(ev => ev.id !== selectedEvent.id);
     setLocalEvents(updatedEvents);
     setSelectedEvent(null);
     setActiveTab('events');
     setShowDeleteModal(false);
-    localStorage.setItem('events', JSON.stringify(updatedEvents));
-  };
+  }, [selectedEvent, localEvents]);
 
   const handleSendMessage = () => {
     const recipientCount = recipientType === 'all' 
@@ -185,6 +204,7 @@ const filteredEvents = localEvents.filter(event => {
           recipientType === 'checked-in' ? a.status === 'Checked In' : a.status === 'Not Checked In'
         ).length;
     
+    // In a real app, you would send this to an API
     alert(`Message sent to ${recipientCount} ${recipientType} attendees:\n\n${messageContent}`);
     setMessageContent('');
   };
@@ -199,30 +219,35 @@ const filteredEvents = localEvents.filter(event => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `${selectedEvent.title}_attendees.csv`);
+    link.setAttribute('download', `${selectedEvent?.title || 'event'}_attendees.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const handleUseTemplate = (template) => {
     setMessageContent(template.content);
   };
 
-  const filteredAttendees = attendees.filter(attendee => {
-    const matchesSearch = 
-      attendee.name.toLowerCase().includes(attendeeSearch.toLowerCase()) ||
-      attendee.email.toLowerCase().includes(attendeeSearch.toLowerCase());
-    
-    if (recipientType === 'checked-in') {
-      return matchesSearch && attendee.status === 'Checked In';
-    } else if (recipientType === 'not-checked-in') {
-      return matchesSearch && attendee.status === 'Not Checked In';
-    }
-    return matchesSearch;
-  });
+  const filteredAttendees = useMemo(() => {
+    return attendees.filter(attendee => {
+      const matchesSearch = 
+        attendee.name.toLowerCase().includes(attendeeSearch.toLowerCase()) ||
+        attendee.email.toLowerCase().includes(attendeeSearch.toLowerCase());
+      
+      if (recipientType === 'checked-in') {
+        return matchesSearch && attendee.status === 'Checked In';
+      } else if (recipientType === 'not-checked-in') {
+        return matchesSearch && attendee.status === 'Not Checked In';
+      }
+      return matchesSearch;
+    });
+  }, [attendees, attendeeSearch, recipientType]);
 
   const handlePrivacyChange = (privacy) => {
+    if (!selectedEvent) return;
+    
     const updatedEvents = localEvents.map(ev => {
       if (ev.id === selectedEvent.id) {
         return { ...ev, privacy };
@@ -230,8 +255,7 @@ const filteredEvents = localEvents.filter(event => {
       return ev;
     });
     setLocalEvents(updatedEvents);
-    setSelectedEvent(prev => ({ ...prev, privacy }));
-    localStorage.setItem('events', JSON.stringify(updatedEvents));
+    setSelectedEvent(prev => prev ? { ...prev, privacy } : null);
   };
 
   const handleTicketTypeChange = (id, field, value) => {
@@ -243,14 +267,15 @@ const filteredEvents = localEvents.filter(event => {
     });
     setTicketTypes(updatedTicketTypes);
     
-    const updatedEvents = localEvents.map(ev => {
-      if (ev.id === selectedEvent.id) {
-        return { ...ev, ticketTypes: updatedTicketTypes };
-      }
-      return ev;
-    });
-    setLocalEvents(updatedEvents);
-    localStorage.setItem('events', JSON.stringify(updatedEvents));
+    if (selectedEvent) {
+      const updatedEvents = localEvents.map(ev => {
+        if (ev.id === selectedEvent.id) {
+          return { ...ev, ticketTypes: updatedTicketTypes };
+        }
+        return ev;
+      });
+      setLocalEvents(updatedEvents);
+    }
   };
 
   const handleAddTicketType = () => {
@@ -266,14 +291,15 @@ const filteredEvents = localEvents.filter(event => {
       const updatedTicketTypes = [...ticketTypes, newTicket];
       setTicketTypes(updatedTicketTypes);
       
-      const updatedEvents = localEvents.map(ev => {
-        if (ev.id === selectedEvent.id) {
-          return { ...ev, ticketTypes: updatedTicketTypes };
-        }
-        return ev;
-      });
-      setLocalEvents(updatedEvents);
-      localStorage.setItem('events', JSON.stringify(updatedEvents));
+      if (selectedEvent) {
+        const updatedEvents = localEvents.map(ev => {
+          if (ev.id === selectedEvent.id) {
+            return { ...ev, ticketTypes: updatedTicketTypes };
+          }
+          return ev;
+        });
+        setLocalEvents(updatedEvents);
+      }
       
       setNewTicketType({ name: '', price: 0, quantity: 0 });
     }
@@ -283,113 +309,127 @@ const filteredEvents = localEvents.filter(event => {
     const updatedTicketTypes = ticketTypes.filter(ticket => ticket.id !== id);
     setTicketTypes(updatedTicketTypes);
     
-    const updatedEvents = localEvents.map(ev => {
-      if (ev.id === selectedEvent.id) {
-        return { ...ev, ticketTypes: updatedTicketTypes };
-      }
-      return ev;
-    });
-    setLocalEvents(updatedEvents);
-    localStorage.setItem('events', JSON.stringify(updatedEvents));
+    if (selectedEvent) {
+      const updatedEvents = localEvents.map(ev => {
+        if (ev.id === selectedEvent.id) {
+          return { ...ev, ticketTypes: updatedTicketTypes };
+        }
+        return ev;
+      });
+      setLocalEvents(updatedEvents);
+    }
   };
 
   const totalRevenue = ticketTypes.reduce((sum, ticket) => sum + (ticket.price * ticket.sold), 0);
   const totalTicketsSold = ticketTypes.reduce((sum, ticket) => sum + ticket.sold, 0);
   const totalTicketsAvailable = ticketTypes.reduce((sum, ticket) => sum + ticket.total, 0);
 
-  const renderEventsTab = () => (
-    <div className="events-grid2">
-      {filteredEvents.map(event => (
-        <div className="event-card2" key={event.id}>
-          <div className="event-header2">
-            <span className={`event-status2 ${event.status}`}>
-              {event.status}
-            </span>
-            <span className="event-category2">{event.category}</span>
-            <span className="event-date2">
-              <FiCalendar className="icon" />
-              {formatDate(event.date)}
-            </span>
-            {event.privacy === 'private' && (
-              <span className="event-privacy">
-                <FiLock size={14} />
-              </span>
-            )}
+const renderEventsTab = () => (
+  <div className="events-grid">
+    {filteredEvents.map(event => (
+      <div className="event-card" key={event.id}>
+       <div className="event-header">
+  
+  {/* LEFT SIDE */}
+  <div className="left">
+    <span className={`event-status ${event.status}`}>
+      {event.status.toUpperCase()}
+    </span>
+
+   
+  </div>
+
+  {/* RIGHT SIDE */}
+  <div className="right">
+    <span className="event-date">
+      <FiCalendar className="icon" />
+      {formatDate(event.date)}
+    </span>
+    <br/>
+  </div>
+
+</div>
+        
+        <h3 className="event-title">{event.title}</h3>
+             <span className="event">
+      Category: {event.category}
+    </span>
+
+        <p className="event-location">{event.location}</p>
+        
+        <div className="event-stats">
+          <div className="stat-item">
+            <FiUsers className="icon" />
+            <span>{event.attendees || 0}/{event.capacity || 100}</span>
           </div>
-          
-          <h3 className="event-title2">{event.title}</h3>
-          <p className="event-location2">{event.location}</p>
-          
-          <div className="event-stats2">
-            <div className="stat-item1">
-              <FiUsers className="icon" />
-              <span>{event.attendees}/{event.capacity}</span>
-            </div>
-            <div className="stat-item1">
-              <FiDollarSign className="icon" />
-              <span>{formatCurrency(event.revenue)}</span>
-            </div>
+          <div className="stat-item">
+            <FiDollarSign className="icon" />
+            <span>{formatCurrency(event.revenue || 0)}</span>
           </div>
-          <div className='event1-t'>
-          <div className='event-actions3'>
-             <button
-      className="btn-secondary1"
-      onClick={() => navigate(`/event/${event.id}`)}
-    >
-      EventDetails
-    </button>
-     </div>
-          
-          <div className="event-actions2">
+        </div>
+        
+        <div className="event-t">
+          <div className="event-actions">
             <button
-              className="btn-secondary1"
+              className="btn-secondary"
+              onClick={() => navigate(`/event/${event.id}`)}
+            >
+              Event Details
+            </button>
+          </div>
+          <div className="event-actions">
+            <button
+              className="btn-secondary"
               onClick={() => handleManageEvent(event)}
             >
               Manage Event
             </button>
           </div>
-          </div>
         </div>
-      ))}
-    </div>
-  );
-
+      </div>
+    ))}
+  </div>
+);
 
   return (
-    <div className="dashboard-container3">
-    <Header />
-      <main className="dashboard-main4">
-      <br />
-      <br/>
-<EventCarousel 
-  events={EVENTS.filter(event => event.status === 'active').slice(0, 6)} />
+    <div className="dashboard-container">
+      <Header />
+      <main className="dashboard-main">
+        <br />
+        <br/>
+        <EventCarousel 
+          events={EVENTS.filter(event => event.status === 'active').slice(0, 6)} 
+        />
+        
         {activeTab === 'events' && (
           <>
-            <div className="dashboard-controls4">
-            <div className='search-1'>
-              <div className="search-container3">
-                {/* <FiSearch className="search-icon" /> */}
-                <input
-                  type="text"
-                  placeholder="Search events..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="search-input"
-                /></div>
+            <div className="dashboard-controls">
+              <div className='search'>
+                <div className="search-container">
+                 
+                  <input
+                    type="text"
+                    placeholder="Search events..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="search-input"
+                  />
+                </div>
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-              <Location className='class1'
-    onSearch={setLocationSearchTerm}
-    placeholder="Search by city..."
-    events={localEvents}
-  />
-
-  </div>
-              <div className="filter-buttons3">     
+                <Location 
+                  className='search-location'
+                  onSearch={setLocationSearchTerm}
+                  placeholder="Search by city..."
+                  events={localEvents}
+                />
+              </div>
+              
+              <div className="filter-buttons">
                 <button 
                   className={`btn-filter ${filterType === 'all' ? 'active' : ''}`}
                   onClick={() => setFilterType('all')}
                 >
-                  All
+                  All Events
                 </button>
                 <button 
                   className={`btn-filter ${filterType === 'upcoming' ? 'active' : ''}`}
@@ -412,11 +452,11 @@ const filteredEvents = localEvents.filter(event => {
               </div>
             </div>
             
-                     
- <CategoryFilter 
-      activeCategory={activeCategory}
-      setActiveCategory={setActiveCategory}
-    />
+            <CategoryFilter 
+              activeCategory={activeCategory}
+              setActiveCategory={setActiveCategory}
+            />
+            
             {isLoading ? (
               <div className="loading-container">
                 <div className="loading-spinner"></div>
@@ -440,56 +480,55 @@ const filteredEvents = localEvents.filter(event => {
           </>
         )}
         
-        {activeTab !== 'events' && (
-  <ManageEvent
-    selectedEvent={selectedEvent}
-    activeTab={activeTab}
-    setActiveTab={setActiveTab}
-    toggleEventStatus={toggleEventStatus}
-    formatCurrency={formatCurrency}
-    attendeeSearch={attendeeSearch}
-    setAttendeeSearch={setAttendeeSearch}
-    handleExportAttendees={handleExportAttendees}
-    filteredAttendees={filteredAttendees}
-    setMessageContent={setMessageContent}
-    messageTemplates={messageTemplates}
-    handleUseTemplate={handleUseTemplate}
-    messageContent={messageContent}
-    recipientType={recipientType}
-    setRecipientType={setRecipientType}
-    handleSendMessage={handleSendMessage}
-    totalRevenue={totalRevenue}
-    totalTicketsSold={totalTicketsSold}
-    totalTicketsAvailable={totalTicketsAvailable}
-    salesData={salesData}
-    ticketTypes={ticketTypes}
-    editingTicket={editingTicket}
-    setEditingTicket={setEditingTicket}
-    handleTicketTypeChange={handleTicketTypeChange}
-    handleRemoveTicketType={handleRemoveTicketType}
-    newTicketType={newTicketType}
-    setNewTicketType={setNewTicketType}
-    handleAddTicketType={handleAddTicketType}
-    handlePrivacyChange={handlePrivacyChange}
-    setShowDeleteModal={setShowDeleteModal}
-    localEvents={localEvents}
-    setLocalEvents={setLocalEvents}
-    setSelectedEvent={setSelectedEvent}
-  />
-)}
+        {activeTab !== 'events' && selectedEvent && (
+          <ManageEvent
+            selectedEvent={selectedEvent}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            toggleEventStatus={toggleEventStatus}
+            formatCurrency={formatCurrency}
+            attendeeSearch={attendeeSearch}
+            setAttendeeSearch={setAttendeeSearch}
+            handleExportAttendees={handleExportAttendees}
+            filteredAttendees={filteredAttendees}
+            setMessageContent={setMessageContent}
+            messageTemplates={messageTemplates}
+            handleUseTemplate={handleUseTemplate}
+            messageContent={messageContent}
+            recipientType={recipientType}
+            setRecipientType={setRecipientType}
+            handleSendMessage={handleSendMessage}
+            totalRevenue={totalRevenue}
+            totalTicketsSold={totalTicketsSold}
+            totalTicketsAvailable={totalTicketsAvailable}
+            salesData={salesData}
+            ticketTypes={ticketTypes}
+            editingTicket={editingTicket}
+            setEditingTicket={setEditingTicket}
+            handleTicketTypeChange={handleTicketTypeChange}
+            handleRemoveTicketType={handleRemoveTicketType}
+            newTicketType={newTicketType}
+            setNewTicketType={setNewTicketType}
+            handleAddTicketType={handleAddTicketType}
+            handlePrivacyChange={handlePrivacyChange}
+            setShowDeleteModal={setShowDeleteModal}
+            localEvents={localEvents}
+            setLocalEvents={setLocalEvents}
+            setSelectedEvent={setSelectedEvent}
+          />
+        )}
 
-
-        {showDeleteModal && (
+        {showDeleteModal && selectedEvent && (
           <div className="modal-overlay">
             <div className="modal-content">
               <h3>Delete Event</h3>
-              <p>Are you sure you want to permanently delete "{selectedEvent?.title}"? This action cannot be undone.</p>
+              <p>Are you sure you want to permanently delete "{selectedEvent.title}"? This action cannot be undone.</p>
               <div className="modal-actions">
                 <button 
                   className="btn-secondary"
                   onClick={() => setShowDeleteModal(false)}
                 >
-                  No, Keep Event
+                  Cancel
                 </button>
                 <button 
                   className="btn-danger"
@@ -508,4 +547,4 @@ const filteredEvents = localEvents.filter(event => {
   );
 };
 
-export default Dashboard; 
+export default Dashboard;

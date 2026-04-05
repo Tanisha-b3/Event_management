@@ -5,6 +5,8 @@ const eventController = require('../controllers/events.js');
 
 router.get('/', eventController.getEvents);
 
+router.get('/:id', eventController.getEventById);
+
 router.post('/', eventController.createEvent);
 
 

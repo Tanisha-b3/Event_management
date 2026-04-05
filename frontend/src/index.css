@@ -194,11 +194,11 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
-html, body {
+/* 
+/* html, body {
   height: 100%;
   width: 100%;
-}
+} */ */
 
 body {
   font-family: var(--font-sans);

@@ -5,6 +5,8 @@ import { FaCalendarAlt, FaMapMarkerAlt, FaDollarSign, FaUsers, FaLock } from 're
 import Header from '../pages/header';
 import Footer from '../pages/footer';
 import { useNavigate } from 'react-router-dom';
+import { handleSuccess, handleError } from './utils';
+
 const CreateEvent = ({ existingEvent, onCancel, onSuccess }) => {
   const navigate = useNavigate();
   const [eventData, setEventData] = useState({
@@ -65,6 +67,13 @@ const handleSubmit = async (e) => {
   setFieldErrors({});
 
   try {
+    // Validate required fields
+    if (!eventData.title || !eventData.date || !eventData.time || !eventData.location || !eventData.category) {
+      handleError('Please fill in all required fields');
+      setIsSubmitting(false);
+      return;
+    }
+
     const dateTime = new Date(
       `${eventData.date}T${eventData.time}:00`
     ).toISOString();
@@ -73,6 +82,8 @@ const handleSubmit = async (e) => {
       ...eventData,
       date: dateTime,
     };
+
+    console.log('Sending event data:', eventPayload);
 
     let response;
 
@@ -86,6 +97,7 @@ const handleSubmit = async (e) => {
           },
         }
       );
+      handleSuccess(response.data.message || 'Event updated successfully!');
     } else {
       response = await axios.post(
         "http://localhost:5000/api/events",
@@ -96,17 +108,35 @@ const handleSubmit = async (e) => {
           },
         }
       );
+      handleSuccess(response.data.message || 'Event created successfully!');
     }
 
     // ✅ SUCCESS
+    console.log('Event saved:', response.data);
     onSuccess?.(response.data);
-    navigate("/dashboard"); // 🚀 redirect
+    
+    setTimeout(() => {
+      navigate("/dashboard");
+    }, 1500);
 
   } catch (err) {
+    console.error('Error saving event:', err);
+    
     if (err.response?.data?.errors) {
       setFieldErrors(err.response.data.errors);
+      handleError(err.response.data.message || 'Validation error');
+    } else if (err.response?.data?.message) {
+      const errorMsg = err.response.data.message;
+      setError(errorMsg);
+      handleError(errorMsg);
+    } else if (err.message === 'Network Error') {
+      const msg = 'Cannot connect to server. Please make sure the backend is running on port 5000.';
+      setError(msg);
+      handleError(msg);
     } else {
-      setError(err.response?.data?.message || "Failed to save event");
+      const msg = "Failed to save event. Please try again.";
+      setError(msg);
+      handleError(msg);
     }
   } finally {
     setIsSubmitting(false);
@@ -118,12 +148,12 @@ const handleSubmit = async (e) => {
     <>
       <Header />
 
-    <div className="create-event-form1">
+    <div className="create-event-form">
       <h2>{existingEvent ? 'Edit Event' : 'Create New Event'}</h2>
       {error && <div className="error-message">{error}</div>}
 
       <form onSubmit={handleSubmit}>
-        <div className="form-group3">
+        <div className="form-group">
           <label>Title:</label>
           <input
             type="text"
@@ -135,7 +165,7 @@ const handleSubmit = async (e) => {
           {fieldErrors.title && <span className="field-error">{fieldErrors.title}</span>}
         </div>
 
-        <div className="form-group3">
+        <div className="form-group">
           <label>Date:</label>
           <input
             type="date"
@@ -147,7 +177,7 @@ const handleSubmit = async (e) => {
           {fieldErrors.date && <span className="field-error">{fieldErrors.date}</span>}
         </div>
 
-        <div className="form-group3">
+        <div className="form-group">
           <label>Time:</label>
           <input
             type="time"
@@ -159,7 +189,7 @@ const handleSubmit = async (e) => {
           {fieldErrors.time && <span className="field-error">{fieldErrors.time}</span>}
         </div>
 
-        <div className="form-group3">
+        <div className="form-group">
           <label>Location:</label>
           <input
             type="text"
@@ -171,7 +201,7 @@ const handleSubmit = async (e) => {
           {fieldErrors.location && <span className="field-error">{fieldErrors.location}</span>}
         </div>
 
-        <div className="form-group3">
+        <div className="form-group">
           <label>Description:</label>
           <textarea
             name="description"
@@ -182,7 +212,7 @@ const handleSubmit = async (e) => {
           {fieldErrors.description && <span className="field-error">{fieldErrors.description}</span>}
         </div>
 
-        <div className="form-group3">
+        <div className="form-group">
           <label>Category:</label>
           <select
             name="category"
@@ -200,7 +230,7 @@ const handleSubmit = async (e) => {
           {fieldErrors.category && <span className="field-error">{fieldErrors.category}</span>}
         </div>
 
-        <div className="form-group3">
+        <div className="form-group">
           <label>Ticket Price ($):</label>
           <input
             type="number"
@@ -213,7 +243,7 @@ const handleSubmit = async (e) => {
           {fieldErrors.ticketPrice && <span className="field-error">{fieldErrors.ticketPrice}</span>}
         </div>
 
-        <div className="form-group3">
+        <div className="form-group">
           <label>Capacity:</label>
           <input
             type="number"
@@ -226,7 +256,7 @@ const handleSubmit = async (e) => {
           {fieldErrors.capacity && <span className="field-error">{fieldErrors.capacity}</span>}
         </div>
 
-        <div className="form-group3">
+        <div className="form-group">
           <label>Privacy:</label>
           <select
             name="privacy"
@@ -238,7 +268,7 @@ const handleSubmit = async (e) => {
           </select>
         </div>
 
-        <div className="form-group3">
+        <div className="form-group">
           <label>Status:</label>
           <select
             name="status"
@@ -251,7 +281,7 @@ const handleSubmit = async (e) => {
           </select>
         </div>
 
-        <div className="form-group3">
+        <div className="form-group">
           <label>Image URL:</label>
           <input
             type="text"

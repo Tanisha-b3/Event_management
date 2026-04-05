@@ -106,11 +106,11 @@ const Discover = () => {
             </datalist>
           </div>
 
-          <div className="category-filter2">
+          <div className="category-filter">
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="category-select1"
+              className="category-select"
             >
               <option value="All">All Categories</option>
               {EVENT_CATEGORIES.map(category => (
@@ -121,54 +121,54 @@ const Discover = () => {
         </div>
 
         {filteredEvents.length > 0 ? (
-          <div className="events-grid5">
+          <div className="events-grid">
             {filteredEvents.map(event => (
-              <div className="event-card5" key={event.id}>
+              <div className="event-card" key={event.id}>
                 <div 
-                  className="event-image-container5"
+                  className="event-image-container"
                   style={{ backgroundImage: `url(${event.image})`}}
                 >
-                  <span className={`event-status5 ${event.status}`}>
+                  <span className={`event-status ${event.status}`}>
                     {event.status}
                   </span>
-                  <div className="event-category-badge5">
+                  <div className="event-category-badge">
                     <FaTag /> {event.category}
                   </div>
                 </div>
 
-                <div className="event-content5">
+                <div className="event-content">
                   <h3>{event.title}</h3>
-                  <p className="event-description5">{event.description}</p>
+                  <p className="event-description">{event.description}</p>
                   
-                  <div className="event-meta5">
-                    <div className="meta-item5">
+                  <div className="event-meta">
+                    <div className="meta-item">
                       <FaCalendarAlt /> {formatDate(event.date)}
                     </div>
-                    <div className="meta-item5">
+                    <div className="meta-item">
                       <FaMapMarkerAlt /> {event.location}
                     </div>
                   </div>
 
-                  <div className="event-stats5">
+                  <div className="event-stats">
                     <div className="stat-item">
                       <FaUsers /> {event.attendees}/{event.capacity} ({getAttendancePercentage(event.attendees, event.capacity)}%)
-                      <div className="progress-bar5">
+                      <div className="progress-bar">
                         <div 
-                          className="progress-fill5" 
+                          className="progress-fill"
                           style={{ width: `${getAttendancePercentage(event.attendees, event.capacity)}%` }}
                         ></div>
                       </div>
                     </div>
-                    <div className="stat-item5">
+                    <div className="stat-item">
                       <FaTicketAlt /> {event.ticketsSold} tickets sold
                     </div>
-                    <div className="stat-item5">
+                    <div className="stat-item">
                       <FaDollarSign /> {formatCurrency(event.revenue)}
                     </div>
                   </div>
 
                   <button 
-                    className="view-details-btn5"
+                    className="view-details-btn"
                     onClick={() =>  navigate(`/event/${event._id || event.id}`)}
                   >
                     View Details <FaArrowRight />
@@ -178,7 +178,7 @@ const Discover = () => {
             ))}
           </div>
         ) : (
-          <div className="no-events-found5">
+          <div className="no-events-found">
             <h3>No events match your search criteria</h3>
             <p>Try adjusting your search or filters</p>
           </div>
