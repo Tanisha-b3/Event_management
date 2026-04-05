@@ -1,27 +1,40 @@
-/* Create Event Form - Custom CSS */
+/* ===================================
+   CREATE EVENT - Premium Form Design
+   =================================== */
+
 .create-event-form1 {
-  max-width: 1000px;
-  margin: 2rem auto;
-  padding: 2rem;
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  transition: all 0.3s ease;
+  max-width: 900px;
+  margin: var(--space-8) auto;
+  padding: var(--space-10);
+  background: white;
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  font-family: var(--font-sans);
+  animation: fadeInUp 0.5s ease-out;
+  border: 1px solid var(--neutral-100);
+  position: relative;
+  overflow: hidden;
 }
 
-.create-event-form1:hover {
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+.create-event-form1::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: var(--gradient-primary);
 }
 
 .create-event-form1 h2 {
-  color: #2c3e50;
+  font-family: var(--font-display);
+  color: var(--neutral-900);
   text-align: center;
-  margin-bottom: 2rem;
-  font-size: 2rem;
-  font-weight: 600;
+  margin-bottom: var(--space-8);
+  font-size: var(--text-3xl);
+  font-weight: 800;
   position: relative;
-  padding-bottom: 0.5rem;
+  padding-bottom: var(--space-4);
 }
 
 .create-event-form1 h2::after {
@@ -32,74 +45,118 @@
   transform: translateX(-50%);
   width: 80px;
   height: 4px;
-  background: linear-gradient(90deg, #3498db, #9b59b6);
-  border-radius: 2px;
+  background: var(--gradient-primary);
+  border-radius: var(--radius-full);
 }
 
+/* Form Group */
 .form-group3 {
-  margin-top: 2rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-6);
   position: relative;
 }
 
 .form-group3 label {
   display: block;
-  margin-bottom: 0.5rem;
-  color: #34495e;
-  font-weight: 500;
-  font-size: 0.95rem;
+  margin-bottom: var(--space-2);
+  color: var(--neutral-700);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  letter-spacing: 0.01em;
+}
+
+.form-group3 label span {
+  color: var(--error-500);
 }
 
 .form-group3 input,
 .form-group3 textarea,
 .form-group3 select {
   width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid #dfe6e9;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  background-color: #f8f9fa;
+  padding: var(--space-4);
+  border: 2px solid var(--neutral-200);
+  border-radius: var(--radius-xl);
+  font-size: var(--text-base);
+  transition: all var(--transition-base);
+  background-color: var(--neutral-50);
+  color: var(--neutral-800);
+}
+
+.form-group3 input::placeholder,
+.form-group3 textarea::placeholder {
+  color: var(--neutral-400);
+}
+
+.form-group3 input:hover,
+.form-group3 textarea:hover,
+.form-group3 select:hover {
+  border-color: var(--neutral-300);
 }
 
 .form-group3 input:focus,
 .form-group3 textarea:focus,
 .form-group3 select:focus {
   outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-  background-color: #fff;
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+  background-color: white;
 }
 
 .form-group3 textarea {
-  min-height: 120px;
+  min-height: 140px;
   resize: vertical;
+  line-height: var(--leading-relaxed);
 }
 
+.form-group3 select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right var(--space-4) center;
+  background-size: 1.25rem;
+  cursor: pointer;
+}
+
+/* Submit Button */
 .create-event-form1 button[type="submit"] {
   width: 100%;
-  padding: 1rem;
-  background: linear-gradient(135deg, #3498db, #9b59b6);
+  padding: var(--space-4);
+  background: var(--gradient-primary);
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
+  border-radius: var(--radius-xl);
+  font-size: var(--text-lg);
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 1rem;
+  transition: all var(--transition-base);
+  margin-top: var(--space-6);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
+  position: relative;
+  overflow: hidden;
 }
 
-.create-event-form1 button[type="submit"]:hover {
-  background: linear-gradient(135deg, #2980b9, #8e44ad);
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+.create-event-form1 button[type="submit"]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.create-event-form1 button[type="submit"]:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.create-event-form1 button[type="submit"]:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-colored);
 }
 
 .create-event-form1 button[type="submit"]:disabled {
-  background: #bdc3c7;
+  background: var(--neutral-300);
   transform: none;
   box-shadow: none;
   cursor: not-allowed;
@@ -109,116 +166,172 @@
 .form-group3.error input,
 .form-group3.error textarea,
 .form-group3.error select {
-  border-color: #e74c3c !important;
+  border-color: var(--error-400) !important;
+  background-color: var(--error-50);
+}
+
+.form-group3.error input:focus,
+.form-group3.error textarea:focus,
+.form-group3.error select:focus {
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
 }
 
 .field-error {
-  color: #e74c3c;
-  font-size: 0.8rem;
-  margin-top: 0.5rem;
-  display: block;
+  color: var(--error-500);
+  font-size: var(--text-xs);
+  margin-top: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
   animation: fadeIn 0.3s ease;
 }
 
+.field-error::before {
+  content: '⚠';
+}
+
 .error-message {
-  color: #e74c3c;
-  background-color: #fadbd8;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-  border-left: 4px solid #e74c3c;
-  animation: slideIn 0.4s ease;
+  color: var(--error-700);
+  background: linear-gradient(135deg, var(--error-50), var(--error-100));
+  padding: var(--space-4);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-6);
+  border-left: 4px solid var(--error-500);
+  animation: slideInLeft 0.4s ease;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
 
 .success-message {
-  color: #27ae60;
-  background-color: #d5f5e3;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-  border-left: 4px solid #27ae60;
-  animation: slideIn 0.4s ease;
+  color: var(--success-700);
+  background: linear-gradient(135deg, var(--success-50), var(--success-100));
+  padding: var(--space-4);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-6);
+  border-left: 4px solid var(--success-500);
+  animation: slideInLeft 0.4s ease;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
 
-/* Floating Label Styles */
-.form-group3.floating {
-  margin-top: 1.5rem;
-}
-
-.form-group3.floating label {
-  position: absolute;
-  top: 0.75rem;
-  left: 1rem;
-  color: #7f8c8d;
-  transition: all 0.3s ease;
-  pointer-events: none;
-  background: #f8f9fa;
-  padding: 0 0.5rem;
-  border-radius: 4px;
-}
-
-.form-group3.floating input:focus + label,
-.form-group3.floating input:not(:placeholder-shown) + label,
-.form-group3.floating textarea:focus + label,
-.form-group3.floating textarea:not(:placeholder-shown) + label {
-  top: -0.75rem;
-  left: 0.8rem;
-  font-size: 0.75rem;
-  color: #3498db;
-  background: #fff;
-}
-
-/* Time Input Specific Styling */
-input[type="time"]::-webkit-calendar-picker-indicator {
-  filter: invert(0.5);
+/* Time Input Styling */
+input[type="time"],
+input[type="date"] {
   cursor: pointer;
 }
 
-input[type="time"]::-webkit-calendar-picker-indicator:hover {
-  filter: invert(0.3);
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(40%) sepia(60%) saturate(500%) hue-rotate(200deg);
+  cursor: pointer;
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+input[type="time"]::-webkit-calendar-picker-indicator:hover,
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  background: var(--primary-50);
 }
 
-@keyframes slideIn {
-  from { 
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to { 
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Form Section Headers */
+.form-section {
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 2px solid var(--neutral-100);
+}
+
+.form-section h3 {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  color: var(--neutral-800);
+  margin-bottom: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.form-section h3 .icon {
+  color: var(--primary-500);
+}
+
+/* Two Column Layout */
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+}
+
+/* File Upload */
+.file-upload {
+  border: 2px dashed var(--neutral-300);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  background: var(--neutral-50);
+}
+
+.file-upload:hover {
+  border-color: var(--primary-400);
+  background: var(--primary-50);
+}
+
+.file-upload.dragging {
+  border-color: var(--primary-500);
+  background: var(--primary-100);
+}
+
+.file-upload-icon {
+  font-size: 2.5rem;
+  color: var(--neutral-400);
+  margin-bottom: var(--space-3);
+}
+
+.file-upload-text {
+  color: var(--neutral-600);
+  font-size: var(--text-sm);
+}
+
+.file-upload-text span {
+  color: var(--primary-600);
+  font-weight: 600;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
   .create-event-form1 {
-    padding: 1.5rem;
-    margin: 1rem;
+    padding: var(--space-6);
+    margin: var(--space-4);
+    border-radius: var(--radius-xl);
   }
   
   .create-event-form1 h2 {
-    font-size: 1.5rem;
+    font-size: var(--text-2xl);
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 480px) {
   .create-event-form1 {
-    padding: 1rem;
+    padding: var(--space-5);
+    margin: var(--space-3);
   }
   
   .form-group3 input,
   .form-group3 textarea,
   .form-group3 select {
-    padding: 0.6rem 0.8rem;
+    padding: var(--space-3);
   }
   
   .create-event-form1 button[type="submit"] {
-    padding: 0.8rem;
+    padding: var(--space-3);
+    font-size: var(--text-base);
   }
 }
