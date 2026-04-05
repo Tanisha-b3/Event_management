@@ -1,26 +1,34 @@
+/* ===================================
+   FEATURES - Modern Carousel Design
+   =================================== */
+
 .carousel-wrapper {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  max-width: 1400px;
-  margin: 20px auto;
+  width: 100%;
+  margin: var(--space-6) auto;
+  padding: 0 var(--space-4);
 }
 
 .carousel-viewport {
   overflow: hidden;
   width: 100%;
-  border-radius: 12px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  background: var(--gradient-glass);
+  backdrop-filter: blur(12px);
 }
 
 .carousel-track {
   display: flex;
-  transition: transform 1s ease-in-out;
+  transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .carousel-slide {
   flex: 0 0 100%;
+  position: relative;
 }
 
 .carousel-slide img {
@@ -28,108 +36,158 @@
   height: 400px;
   object-fit: cover;
   display: block;
-  border-radius: 12px;
-  transition: transform 0.4s ease;
+  border-radius: var(--radius-xl);
+  transition: transform 0.4s ease, filter 0.4s ease;
 }
 
 .carousel-slide img:hover {
-  transform: scale(1.03);
+  transform: scale(1.02);
+  filter: brightness(1.1);
 }
 
+.carousel-nav-btn,
 .nav-btn3,
 .nav-btn1 {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: #fff;
-  border: none;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
-  width: 45px;
-  height: 45px;
+  width: 50px;
+  height: 50px;
   font-size: 1.8rem;
-  color: #333;
+  color: var(--primary-600);
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  transition: background 0.3s, transform 0.3s;
+  box-shadow: var(--shadow-lg);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+.carousel-nav-btn:hover,
 .nav-btn3:hover,
 .nav-btn1:hover {
-  background: #f2f2f2;
+  background: var(--primary-600);
+  color: white;
   transform: translateY(-50%) scale(1.1);
+  box-shadow: var(--shadow-colored);
 }
 
+.carousel-nav-btn.prev,
 .nav-btn3 {
   left: -20px;
 }
 
+.carousel-nav-btn.next,
 .nav-btn1 {
   right: -20px;
 }
 
+/* Text Overlay */
+.text-overlay {
+  position: absolute;
+  bottom: var(--space-6);
+  left: var(--space-6);
+  right: var(--space-6);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(12px);
+  color: white;
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: slideUp 0.6s ease-out;
+}
+
+.text-overlay h2 {
+  margin: 0 0 var(--space-2) 0;
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-overlay p {
+  margin: 0;
+  font-size: var(--text-base);
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
   .carousel-slide img {
-    height: 250px;
+    height: 280px;
   }
 
-  .nav-btn3,
-  .nav-btn1 {
-    width: 40px;
-    height: 40px;
+  .carousel-nav-btn {
+    width: 42px;
+    height: 42px;
     font-size: 1.5rem;
+  }
+
+  .carousel-nav-btn.prev {
+    left: -15px;
+  }
+
+  .carousel-nav-btn.next {
+    right: -15px;
+  }
+
+  .text-overlay {
+    padding: var(--space-4);
+    bottom: var(--space-4);
+    left: var(--space-4);
+    right: var(--space-4);
+  }
+
+  .text-overlay h2 {
+    font-size: var(--text-xl);
+  }
+
+  .text-overlay p {
+    font-size: var(--text-sm);
   }
 }
 
 @media (max-width: 480px) {
   .carousel-wrapper {
-    max-width: 90%;
+    padding: 0 var(--space-2);
   }
 
-  .nav-btn3,
-  .nav-btn1 {
-    width: 35px;
-    height: 35px;
+  .carousel-slide img {
+    height: 220px;
+  }
+
+  .carousel-nav-btn {
+    width: 38px;
+    height: 38px;
     font-size: 1.3rem;
   }
-}
-.carousel-slide {
-  position: relative; /* needed for overlay positioning */
-  flex: 0 0 100%;
-}
 
-.text-overlay {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  right: 20px;
-  background: rgba(0, 0, 0, 0.5);
-  color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-}
+  .carousel-nav-btn.prev {
+    left: -10px;
+  }
 
-.text-overlay h2 {
-  margin: 0 0 8px 0;
-  font-size: 1.8rem;
-}
+  .carousel-nav-btn.next {
+    right: -10px;
+  }
 
-.text-overlay p {
-  margin: 0;
-  font-size: 1rem;
-}
-
-@media (max-width: 768px) {
   .text-overlay {
-    padding: 12px;
+    padding: var(--space-3);
   }
 
   .text-overlay h2 {
-    font-size: 1.4rem;
+    font-size: var(--text-lg);
   }
 
   .text-overlay p {
-    font-size: 0.9rem;
+    font-size: var(--text-xs);
   }
 }
 

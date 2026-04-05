@@ -17,6 +17,38 @@ exports.getEvents = async (req, res) => {
   }
 };
 
+// Get single event by ID
+exports.getEventById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid event ID format'
+      });
+    }
+
+    const event = await Event.findById(id);
+    
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: 'Event not found'
+      });
+    }
+
+    res.status(200).json(event);
+  } catch (err) {
+    console.error(`Error fetching event ${req.params.id}:`, err);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching event',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+};
+
 // Create a new event
 exports.createEvent = async (req, res) => {
   try {

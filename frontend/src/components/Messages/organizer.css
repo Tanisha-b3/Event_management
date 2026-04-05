@@ -1,8 +1,8 @@
 /* Base Styles */
 .organiser-container {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: 1800px;
+  /* margin: 0 auto; */
   padding: 20px;
   color: #333;
 }
@@ -34,11 +34,12 @@
   cursor: pointer;
   transition: all 0.3s ease;
   border: none;
+
 }
 
 .btn-back {
   background-color: #f8f9fa;
-  color: #6c757d;
+  color: black;
 }
 
 .btn-back:hover {

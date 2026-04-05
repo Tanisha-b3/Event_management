@@ -24,7 +24,7 @@ const CategoryFilter = ({ activeCategory, setActiveCategory }) => {
     { id: 'dating', label: 'Dating', icon: <FaHeart /> },
     { id: 'Sports', label: 'Sports', icon: <FaGamepad /> },
     { id: 'business', label: 'Business', icon: <FaBriefcase /> },
-    { id: 'food-drink', label: 'Food & Drink', icon: <FaUtensils /> },
+    { id: 'Food', label: 'Food & Drink', icon: <FaUtensils /> },
     { id: 'technology', label: 'Technology', icon: <FaMicrochip /> }
   ];
 

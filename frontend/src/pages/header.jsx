@@ -103,8 +103,8 @@ const Header = ({ onSearch }) => {
   };
 
   return (
-    <header className="dashboard-header3">
-      <div className="header-content2">
+    <header className="dashboard-header">
+      <div className="header-content">
         <div 
           className="app-title-container" 
           onClick={() => handleNavigation(isLoggedIn ? '/dashboard' : '/')}
@@ -134,7 +134,7 @@ const Header = ({ onSearch }) => {
                   onClick={() => handleNavigation('/profile')}
                   aria-label="User profile"
                 >
-                  <FaUserCircle size={24} />
+                  👤
                 </button>
                 <button className="logout-btn" onClick={handleLogout}>
                   <FiLogOut />

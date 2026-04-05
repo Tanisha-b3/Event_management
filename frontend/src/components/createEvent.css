@@ -2,8 +2,9 @@
    CREATE EVENT - Premium Form Design
    =================================== */
 
-.create-event-form1 {
-  max-width: 900px;
+.create-event-form {
+  width: 100%;
+  max-width: 1200px;
   margin: var(--space-8) auto;
   padding: var(--space-10);
   background: white;
@@ -16,7 +17,7 @@
   overflow: hidden;
 }
 
-.create-event-form1::before {
+.create-event-form::before {
   content: '';
   position: absolute;
   top: 0;
@@ -26,7 +27,7 @@
   background: var(--gradient-primary);
 }
 
-.create-event-form1 h2 {
+.create-event-form h2 {
   font-family: var(--font-display);
   color: var(--neutral-900);
   text-align: center;
@@ -37,7 +38,7 @@
   padding-bottom: var(--space-4);
 }
 
-.create-event-form1 h2::after {
+.create-event-form h2::after {
   content: '';
   position: absolute;
   bottom: 0;
@@ -50,12 +51,12 @@
 }
 
 /* Form Group */
-.form-group3 {
+.form-group {
   margin-bottom: var(--space-6);
   position: relative;
 }
 
-.form-group3 label {
+.form-group label {
   display: block;
   margin-bottom: var(--space-2);
   color: var(--neutral-700);
@@ -64,13 +65,13 @@
   letter-spacing: 0.01em;
 }
 
-.form-group3 label span {
+.form-group label span {
   color: var(--error-500);
 }
 
-.form-group3 input,
-.form-group3 textarea,
-.form-group3 select {
+.form-group input,
+.form-group textarea,
+.form-group select {
   width: 100%;
   padding: var(--space-4);
   border: 2px solid var(--neutral-200);
@@ -81,33 +82,33 @@
   color: var(--neutral-800);
 }
 
-.form-group3 input::placeholder,
-.form-group3 textarea::placeholder {
+.form-group input::placeholder,
+.form-group textarea::placeholder {
   color: var(--neutral-400);
 }
 
-.form-group3 input:hover,
-.form-group3 textarea:hover,
-.form-group3 select:hover {
+.form-group input:hover,
+.form-group textarea:hover,
+.form-group select:hover {
   border-color: var(--neutral-300);
 }
 
-.form-group3 input:focus,
-.form-group3 textarea:focus,
-.form-group3 select:focus {
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
   outline: none;
   border-color: var(--primary-500);
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
   background-color: white;
 }
 
-.form-group3 textarea {
+.form-group textarea {
   min-height: 140px;
   resize: vertical;
   line-height: var(--leading-relaxed);
 }
 
-.form-group3 select {
+.form-group select {
   appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
@@ -117,7 +118,7 @@
 }
 
 /* Submit Button */
-.create-event-form1 button[type="submit"] {
+.create-event-form button[type="submit"] {
   width: 100%;
   padding: var(--space-4);
   background: var(--gradient-primary);
@@ -135,7 +136,7 @@
   overflow: hidden;
 }
 
-.create-event-form1 button[type="submit"]::before {
+.create-event-form button[type="submit"]::before {
   content: '';
   position: absolute;
   top: 0;
@@ -146,16 +147,16 @@
   transition: left 0.5s;
 }
 
-.create-event-form1 button[type="submit"]:hover:not(:disabled)::before {
+.create-event-form button[type="submit"]:hover:not(:disabled)::before {
   left: 100%;
 }
 
-.create-event-form1 button[type="submit"]:hover:not(:disabled) {
+.create-event-form button[type="submit"]:hover:not(:disabled) {
   transform: translateY(-3px);
   box-shadow: var(--shadow-colored);
 }
 
-.create-event-form1 button[type="submit"]:disabled {
+.create-event-form button[type="submit"]:disabled {
   background: var(--neutral-300);
   transform: none;
   box-shadow: none;
@@ -163,16 +164,16 @@
 }
 
 /* Error Styling */
-.form-group3.error input,
-.form-group3.error textarea,
-.form-group3.error select {
+.form-group.error input,
+.form-group.error textarea,
+.form-group.error select {
   border-color: var(--error-400) !important;
   background-color: var(--error-50);
 }
 
-.form-group3.error input:focus,
-.form-group3.error textarea:focus,
-.form-group3.error select:focus {
+.form-group.error input:focus,
+.form-group.error textarea:focus,
+.form-group.error select:focus {
   box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
 }
 
@@ -303,13 +304,13 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .create-event-form1 {
+  .create-event-form {
     padding: var(--space-6);
     margin: var(--space-4);
     border-radius: var(--radius-xl);
   }
   
-  .create-event-form1 h2 {
+  .create-event-form h2 {
     font-size: var(--text-2xl);
   }
   
@@ -319,18 +320,18 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 
 @media (max-width: 480px) {
-  .create-event-form1 {
+  .create-event-form {
     padding: var(--space-5);
     margin: var(--space-3);
   }
   
-  .form-group3 input,
-  .form-group3 textarea,
-  .form-group3 select {
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
     padding: var(--space-3);
   }
   
-  .create-event-form1 button[type="submit"] {
+  .create-event-form button[type="submit"] {
     padding: var(--space-3);
     font-size: var(--text-base);
   }
