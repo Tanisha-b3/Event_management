@@ -2,18 +2,24 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
 const authRoutes = require('./routes/auth.js');
 const eventRoutes = require('./routes/events.js');
 const http = require('http');
-const ticketRoutes = require('./routes/ticket.js')
+const ticketRoutes = require('./routes/ticket.js');
 // Initialize app
 const app = express();
 
 // Middleware
 app.use(express.json());
+const allowedOrigins = (process.env.VITE_API_URL)
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: "http://localhost:5173", // your frontend
+    origin: allowedOrigins,
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -24,6 +30,16 @@ app.use(
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/tickets',ticketRoutes);
+
+// Serve frontend in production
+if (process.env.NODE_ENV === 'production') {
+  const clientDist = path.resolve(__dirname, '../frontend/dist');
+  app.use(express.static(clientDist));
+
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(clientDist, 'index.html'));
+  });
+}
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {

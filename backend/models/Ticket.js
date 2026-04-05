@@ -2,7 +2,9 @@ const mongoose = require('mongoose');
 
 const ticketSchema = new mongoose.Schema({
   bookingId: { type: String, required: true, unique: true },
-  userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
+  userId: { type: String, required: true },
+  userEmail: { type: String },
+  userName: { type: String },
   eventId: { type: String, required: true },
   eventName: { type: String, required: true },
   eventDate: { type: Date, required: true },
@@ -10,6 +12,8 @@ const ticketSchema = new mongoose.Schema({
   ticketType: { type: String, required: true },
   quantity: { type: Number, required: true, min: 1 },
   price: { type: Number, required: true, min: 0 },
+  isCancelled: { type: Boolean, default: false },
+  cancelledAt: { type: Date },
   createdAt: { type: Date, default: Date.now }
 });
 

@@ -2,11 +2,14 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key';
+
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-})
+  role: { type: String, enum: ['admin', 'booker', 'organiser'], default: 'booker' }
+});
 
 // Hash password before saving
 userSchema.pre('save', async function(next) {
@@ -17,7 +20,7 @@ userSchema.pre('save', async function(next) {
 
 // Generate JWT token
 userSchema.methods.getJWTToken = function() {
-  return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+  return jwt.sign({ id: this._id }, JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE || '30d'
   });
 };

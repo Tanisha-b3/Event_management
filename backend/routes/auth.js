@@ -3,15 +3,66 @@ const router = express.Router();
 const User = require('../models/User.js');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const auth = require('../middleware/Auth.js');
+const { OAuth2Client } = require('google-auth-library');
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
 
 router.use(express.json()); // for parsing application/json
 router.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 
+// Google OAuth login/exchange
+router.post('/google', async (req, res) => {
+  try {
+    if (!googleClient) {
+      return res.status(500).json({ success: false, error: 'Google login not configured' });
+    }
+
+    const { credential } = req.body;
+    if (!credential) {
+      return res.status(400).json({ success: false, error: 'Credential is required' });
+    }
+
+    const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: GOOGLE_CLIENT_ID });
+    const payload = ticket.getPayload();
+    if (!payload || !payload.email) {
+      return res.status(401).json({ success: false, error: 'Invalid Google token' });
+    }
+
+    // Find or create user
+    let user = await User.findOne({ email: payload.email });
+    if (!user) {
+      const tempPassword = bcrypt.genSaltSync(10); // random placeholder
+      user = await User.create({
+        name: payload.name || payload.email,
+        email: payload.email,
+        password: tempPassword,
+        role: 'booker'
+      });
+    }
+
+    const token = user.getJWTToken();
+    res.status(200).json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        photoURL: payload.picture,
+        authProvider: 'google',
+        role: user.role
+      }
+    });
+  } catch (err) {
+    console.error('Google login error:', err);
+    res.status(500).json({ success: false, error: 'Failed to process Google login' });
+  }
+});
+
 // Updated register route
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
     
     // Validate input
     if (!name || !email || !password) {
@@ -30,7 +81,10 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    const user = await User.create({ name, email, password });
+    const allowedRoles = ['admin', 'booker', 'organiser'];
+    const userRole = allowedRoles.includes(role) ? role : 'booker';
+
+    const user = await User.create({ name, email, password, role: userRole });
     
     const token = user.getJWTToken();
     res.status(201).set('Content-Type', 'application/json').json({ 
@@ -39,7 +93,8 @@ router.post('/register', async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        role: user.role
       }
     });
   } catch (err) {
@@ -77,7 +132,8 @@ router.post('/login', async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        role: user.role
       }
     });
   } catch (err) {
