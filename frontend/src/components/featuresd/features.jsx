@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import './features.css';
 
 import image1 from '../../assets/image3.jpg';
@@ -6,7 +6,7 @@ import image2 from '../../assets/image4.jpg';
 import image3 from '../../assets/image8.jpg';
 import image4 from '../../assets/image10.jpg';
 
-const images = [
+const fallbackSlides = [
   {
     src: image1,
     title: 'Summer Gala 2025',
@@ -29,18 +29,27 @@ const images = [
   },
 ];
 
-const EventCarousel = () => {
+const EventCarousel = ({ events = [] }) => {
+  const slides = useMemo(() => {
+    if (!events.length) return fallbackSlides;
+    return events.slice(0, 6).map((ev, idx) => ({
+      src: ev.image || fallbackSlides[idx % fallbackSlides.length].src,
+      title: ev.title,
+      description: ev.description || ev.category || ev.location || 'Featured event',
+    }));
+  }, [events]);
+
   const [index, setIndex] = useState(0);
 
   const handlePrev = () => {
     setIndex((prev) =>
-      prev === 0 ? images.length - 1 : prev - 1
+      prev === 0 ? slides.length - 1 : prev - 1
     );
   };
 
   const handleNext = () => {
     setIndex((prev) =>
-      prev === images.length - 1 ? 0 : prev + 1
+      prev === slides.length - 1 ? 0 : prev + 1
     );
   };
 
@@ -57,9 +66,9 @@ const EventCarousel = () => {
             transform: `translateX(-${index * 100}%)`,
           }}
         >
-          {images.map((image, idx) => (
+          {slides.map((image, idx) => (
             <div className="carousel-slide" key={idx}>
-              <img src={image.src} alt={`Slide ${idx + 1}`} />
+              <img src={image.src} alt={image.title} />
               <div className="text-overlay">
                 <h2>{image.title}</h2>
                 <p>{image.description}</p>

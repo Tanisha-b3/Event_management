@@ -186,6 +186,12 @@ function Profile() {
                 {editing ? <><FaTimes /> Cancel</> : <><FaEdit /> Edit Profile</>}
               </button>
             )}
+            <button 
+              onClick={handleLogout}
+              className="btn logout-btn"
+            >
+              <FaSignOutAlt /> Logout
+            </button>
           </div>
         </div>
         

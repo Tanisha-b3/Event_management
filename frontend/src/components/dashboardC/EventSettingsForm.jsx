@@ -1,23 +1,75 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { FiGlobe, FiLock, FiEdit, FiTrash2 } from 'react-icons/fi';
+import { apiClient } from '../../utils/api';
+import { getUserRole } from '../../utils/auth';
+import { toast } from 'react-toastify';
+import './EventSettingsForm.css';
 
 const EventSettingsForm = ({
   selectedEvent,
-  localEvents,
-  setLocalEvents,
   setSelectedEvent,
+  setLocalEvents,
   ticketTypes,
-  editingTicket,
-  setEditingTicket,
-  handleTicketTypeChange,
-  handleRemoveTicketType,
-  newTicketType,
-  setNewTicketType,
-  handleAddTicketType,
   handlePrivacyChange,
   setShowDeleteModal,
-  formatCurrency
 }) => {
+  const role = getUserRole();
+  const canEdit = role === 'admin' || role === 'organiser';
+
+  const toDateTimeLocal = (value) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toISOString().slice(0, 16);
+  };
+
+  const [formData, setFormData] = useState({
+    title: selectedEvent.title || '',
+    date: toDateTimeLocal(selectedEvent.date),
+    location: selectedEvent.location || '',
+    description: selectedEvent.description || ''
+  });
+
+  useEffect(() => {
+    setFormData({
+      title: selectedEvent.title || '',
+      date: toDateTimeLocal(selectedEvent.date),
+      location: selectedEvent.location || '',
+      description: selectedEvent.description || ''
+    });
+  }, [selectedEvent]);
+
+  const updateField = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    setSelectedEvent(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = async () => {
+    if (!canEdit) return;
+    const normalizedDate = formData.date ? new Date(formData.date).toISOString() : selectedEvent.date;
+    const payload = {
+      title: formData.title,
+      date: normalizedDate,
+      location: formData.location,
+      description: formData.description,
+      privacy: selectedEvent.privacy,
+      ticketTypes
+    };
+
+    try {
+      const { data } = await apiClient.put(`/events/${selectedEvent.id}`, payload);
+      const updated = data?.data || data;
+      setSelectedEvent(prev => ({ ...prev, ...updated, id: updated?._id || prev.id }));
+      if (setLocalEvents) {
+        setLocalEvents(prev => prev.map(ev => ev.id === selectedEvent.id ? { ...ev, ...updated, id: updated?._id || ev.id } : ev));
+      }
+      toast.success('Event updated successfully');
+    } catch (err) {
+      const message = err.response?.data?.message || err.response?.data?.error || 'Failed to update event';
+      toast.error(message);
+    }
+  };
+
   return (
     <div className="settings-section">
       <h3>Event Settings</h3>
@@ -26,15 +78,9 @@ const EventSettingsForm = ({
           <label>Event Title</label>
           <input 
             type="text" 
-            value={selectedEvent.title} 
-            onChange={(e) => {
-              const updatedEvents = localEvents.map(ev => 
-                ev.id === selectedEvent.id ? {...ev, title: e.target.value} : ev
-              );
-              setLocalEvents(updatedEvents);
-              setSelectedEvent(prev => ({...prev, title: e.target.value}));
-              localStorage.setItem('events', JSON.stringify(updatedEvents));
-            }}
+            value={formData.title} 
+            onChange={(e) => updateField('title', e.target.value)}
+            disabled={!canEdit}
           />
         </div>
         
@@ -42,15 +88,9 @@ const EventSettingsForm = ({
           <label>Date & Time</label>
           <input 
             type="datetime-local" 
-            value={selectedEvent.date} 
-            onChange={(e) => {
-              const updatedEvents = localEvents.map(ev => 
-                ev.id === selectedEvent.id ? {...ev, date: e.target.value} : ev
-              );
-              setLocalEvents(updatedEvents);
-              setSelectedEvent(prev => ({...prev, date: e.target.value}));
-              localStorage.setItem('events', JSON.stringify(updatedEvents));
-            }}
+            value={formData.date} 
+            onChange={(e) => updateField('date', e.target.value)}
+            disabled={!canEdit}
           />
         </div>
         
@@ -58,30 +98,18 @@ const EventSettingsForm = ({
           <label>Location</label>
           <input 
             type="text" 
-            value={selectedEvent.location} 
-            onChange={(e) => {
-              const updatedEvents = localEvents.map(ev => 
-                ev.id === selectedEvent.id ? {...ev, location: e.target.value} : ev
-              );
-              setLocalEvents(updatedEvents);
-              setSelectedEvent(prev => ({...prev, location: e.target.value}));
-              localStorage.setItem('events', JSON.stringify(updatedEvents));
-            }}
+            value={formData.location} 
+            onChange={(e) => updateField('location', e.target.value)}
+            disabled={!canEdit}
           />
         </div>
         
         <div className="form-group">
           <label>Description</label>
           <textarea 
-            value={selectedEvent.description}
-            onChange={(e) => {
-              const updatedEvents = localEvents.map(ev => 
-                ev.id === selectedEvent.id ? {...ev, description: e.target.value} : ev
-              );
-              setLocalEvents(updatedEvents);
-              setSelectedEvent(prev => ({...prev, description: e.target.value}));
-              localStorage.setItem('events', JSON.stringify(updatedEvents));
-            }}
+            value={formData.description}
+            onChange={(e) => updateField('description', e.target.value)}
+            disabled={!canEdit}
           ></textarea>
         </div>
         
@@ -91,119 +119,26 @@ const EventSettingsForm = ({
             <button
               className={`privacy-option ${selectedEvent.privacy === 'public' ? 'active' : ''}`}
               onClick={() => handlePrivacyChange('public')}
+              disabled={!canEdit}
             >
               <FiGlobe /> Public (Visible to everyone)
             </button>
             <button
               className={`privacy-option ${selectedEvent.privacy === 'private' ? 'active' : ''}`}
               onClick={() => handlePrivacyChange('private')}
+              disabled={!canEdit}
             >
               <FiLock /> Private (Only visible to invited guests)
             </button>
           </div>
         </div>
         
-        <div className="form-group">
-          <label>Ticket Types</label>
-          <div className="ticket-types-editor">
-            {ticketTypes.map(ticket => (
-              <div key={ticket.id} className="ticket-type-card">
-                {editingTicket === ticket.id ? (
-                  <div className="ticket-edit-form">
-                    <input
-                      type="text"
-                      value={ticket.type}
-                      onChange={(e) => handleTicketTypeChange(ticket.id, 'type', e.target.value)}
-                      placeholder="Ticket name"
-                    />
-                    <input
-                      type="number"
-                      value={ticket.price}
-                      onChange={(e) => handleTicketTypeChange(ticket.id, 'price', e.target.value)}
-                      min="0"
-                      placeholder="Price"
-                    />
-                    <input
-                      type="number"
-                      value={ticket.total}
-                      onChange={(e) => handleTicketTypeChange(ticket.id, 'total', e.target.value)}
-                      min="1"
-                      placeholder="Quantity"
-                    />
-                    <button 
-                      className="save-ticket-btn"
-                      onClick={() => setEditingTicket(null)}
-                    >
-                      Save
-                    </button>
-                  </div>
-                ) : (
-                  <div className="ticket-type-display">
-                    <div>
-                      <strong>{ticket.type}</strong>
-                      <span>{formatCurrency(ticket.price)}</span>
-                      <span>{ticket.sold}/{ticket.total} sold</span>
-                    </div>
-                    <div className="ticket-actions">
-                      <button 
-                        className="edit-btn"
-                        onClick={() => setEditingTicket(ticket.id)}
-                      >
-                        <FiEdit />
-                      </button>
-                      <button 
-                        className="delete-btn"
-                        onClick={() => handleRemoveTicketType(ticket.id)}
-                        disabled={ticket.sold > 0}
-                      >
-                        <FiTrash2 />
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-            
-            <div className="add-ticket-type">
-              <h4>Add New Ticket Type</h4>
-              <div className="ticket-inputs">
-                <input
-                  type="text"
-                  placeholder="Ticket name"
-                  value={newTicketType.name}
-                  onChange={(e) => setNewTicketType({...newTicketType, name: e.target.value})}
-                />
-                <input
-                  type="number"
-                  placeholder="Price"
-                  value={newTicketType.price}
-                  onChange={(e) => setNewTicketType({...newTicketType, price: e.target.value})}
-                  min="0"
-                />
-                <input
-                  type="number"
-                  placeholder="Quantity"
-                  value={newTicketType.quantity}
-                  onChange={(e) => setNewTicketType({...newTicketType, quantity: e.target.value})}
-                  min="1"
-                />
-                <button 
-                  className="add-ticket-btn"
-                  onClick={handleAddTicketType}
-                  disabled={!newTicketType.name || newTicketType.price <= 0 || newTicketType.quantity <= 0}
-                >
-                  Add Ticket
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        
         <div className="form-actions">
-          <button className="btn-primary">Save All Changes</button>
+          <button className="btn-primary" onClick={handleSave} disabled={!canEdit}>Save All Changes</button>
           <button 
             className="btn-danger" 
             onClick={() => setShowDeleteModal(true)}
+            disabled={!canEdit}
           >
             <FiTrash2 className="icon" /> Delete Event
           </button>

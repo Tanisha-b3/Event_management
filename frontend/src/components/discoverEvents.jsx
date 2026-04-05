@@ -15,7 +15,6 @@ import { EVENTS, EVENT_CATEGORIES } from './constants';
 import './discoverEvents.css';
 import Footer from '../pages/footer.jsx';
 import Header from '../pages/header.jsx';
-import image4 from '../assets/image3.jpg';
 const Discover = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');

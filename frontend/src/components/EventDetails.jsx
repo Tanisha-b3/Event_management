@@ -22,6 +22,7 @@ import Header from '../pages/header.jsx';
 import Footer from '../pages/footer.jsx';
 import image2 from '../assets/image4.jpg'
 import { FaGrinHearts, FaSlideshare } from 'react-icons/fa';
+import { apiClient } from '../utils/api';
 
 const EventDetails = () => {
   const { id } = useParams();
@@ -32,8 +33,7 @@ const EventDetails = () => {
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
 
-  // Find the event in the constants or use the passed state
-  const event = state?.event || EVENTS.find(e => e.id === parseInt(id)||e.id.toString() === id) || {
+  const initialEvent = state?.event || EVENTS.find(e => e.id === parseInt(id) || e.id?.toString() === id) || {
     id,
     title: 'Event Not Found',
     date: 'N/A',
@@ -50,48 +50,63 @@ const EventDetails = () => {
     status: 'cancelled'
   };
 
-  const handleBookTicket = () => {
+  const [eventDetail, setEventDetail] = useState(initialEvent);
+
+  const handleBookTicket = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please log in to book tickets.');
+      navigate('/login');
+      return;
+    }
+
+    const role = (JSON.parse(localStorage.getItem('user') || '{}').role) || 'booker';
+    if (!['booker', 'organiser', 'admin'].includes(role)) {
+      alert('Your account is not allowed to book tickets.');
+      return;
+    }
+
+    const available = getAvailableTickets();
+    if (available <= 0 || ticketCount > available) {
+      alert('Not enough tickets available for this event.');
+      return;
+    }
     setIsBooking(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      // Create ticket object
-      const ticket = {
-        eventId: event.id,
-        eventTitle: event.title,
-        eventDate: event.date,
-        eventLocation: event.location,
-        eventImage: event.image,
+    try {
+      const payload = {
+        eventId: eventDetail._id || eventDetail.id,
+        eventName: eventDetail.title,
+        eventDate: eventDetail.date,
+        eventLocation: eventDetail.location,
         ticketType: 'General Admission',
-        price: event.ticketPrice || 50,
         quantity: ticketCount,
-        bookingDate: new Date().toISOString(),
-        bookingId: `ticket-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        status: 'confirmed'
+        price: eventDetail.ticketPrice || 50
       };
 
-      // Save to user's tickets in localStorage
+      const { data } = await apiClient.post('/tickets', payload);
+
+      const ticket = {
+        ...data.ticket,
+        eventTitle: eventDetail.title,
+        eventImage: eventDetail.image
+      };
+
+      // Persist tickets locally for My Tickets page
       const userTickets = JSON.parse(localStorage.getItem('userTickets')) || [];
       localStorage.setItem('userTickets', JSON.stringify([...userTickets, ticket]));
 
-      // Update event stats in localStorage (if using localStorage for events)
-      const events = JSON.parse(localStorage.getItem('events')) || EVENTS;
-      const updatedEvents = events.map(ev => {
-        if (ev.id === event.id) {
-          return {
-            ...ev,
-            ticketsSold: ev.ticketsSold + ticketCount,
-            attendees: ev.attendees + ticketCount,
-            revenue: (ev.revenue || 0) + (ticket.price * ticketCount)
-          };
-        }
-        return ev;
-      });
-      localStorage.setItem('events', JSON.stringify(updatedEvents));
+      // Reflect updated event metrics from backend
+      if (data.event) {
+        setEventDetail(prev => ({ ...prev, ...data.event, id: data.event._id || prev.id }));
+      }
 
       setBookingSuccess(true);
+    } catch (err) {
+      const message = err.response?.data?.error || err.response?.data?.message || 'Booking failed. Please try again.';
+      alert(message);
+    } finally {
       setIsBooking(false);
-    }, 1500);
+    }
   };
 
   const formatDate = (dateString) => {
@@ -109,7 +124,8 @@ const EventDetails = () => {
   };
 
   const getAvailableTickets = () => {
-    return event.capacity - event.ticketsSold;
+    const available = (eventDetail.capacity || 0) - (eventDetail.ticketsSold || 0);
+    return Math.max(available, 0);
   };
 
   const handleTicketCountChange = (change) => {
@@ -122,8 +138,8 @@ const EventDetails = () => {
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: event.title,
-        text: `Check out this event: ${event.title}`,
+        title: eventDetail.title,
+        text: `Check out this event: ${eventDetail.title}`,
         url: window.location.href,
       });
     } else {
@@ -142,7 +158,7 @@ const EventDetails = () => {
               <FiCheck className="success-icon" />
             </div>
             <h2>Booking Confirmed!</h2>
-            <p>Your tickets for <strong>{event.title}</strong> have been successfully booked.</p>
+            <p>Your tickets for <strong>{eventDetail.title}</strong> have been successfully booked.</p>
             <div className="booking-details">
               <div className="detail-row">
                 <span>Tickets</span>
@@ -150,7 +166,7 @@ const EventDetails = () => {
               </div>
               <div className="detail-row">
                 <span>Total Paid</span>
-                <strong>{formatCurrency((event.ticketPrice || 50) * ticketCount)}</strong>
+                 <strong>{formatCurrency((eventDetail.ticketPrice || 50) * ticketCount)}</strong>
               </div>
             </div>
             <div className="action-buttons">
@@ -198,15 +214,15 @@ const EventDetails = () => {
 
         <div className="event-header">
           <div className="event-image-container">
-            <img src={event.image} alt={event.title} className="event-image" />
-            <span className={`event-status ${event.status}`}>
-              {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
-            </span>
-            <span className="event-category">{event.category}</span>
-          </div>
-          <div className="event-header-content">
-            <h1 className="event-title">{event.title}</h1>
-            <p className="event-organizer">Organized by <strong>{event.organizer}</strong></p>
+            <img src={eventDetail.image} alt={eventDetail.title} className="event-image" />
+          <span className={`event-status ${eventDetail.status}`}>
+            {eventDetail.status.charAt(0).toUpperCase() + eventDetail.status.slice(1)}
+          </span>
+          <span className="event-category">{eventDetail.category}</span>
+        </div>
+        <div className="event-header-content">
+          <h1 className="event-title">{eventDetail.title}</h1>
+          <p className="event-organizer">Organized by <strong>{eventDetail.organizer}</strong></p>
             
             <div className="event-meta">
               <div className="meta-item">
@@ -215,7 +231,7 @@ const EventDetails = () => {
                 </div>
                 <div className="meta-content">
                   <span className="meta-label">Date</span>
-                  <span className="meta-value">{formatDate(event.date)}</span>
+                  <span className="meta-value">{formatDate(eventDetail.date)}</span>
                 </div>
               </div>
               <div className="meta-item">
@@ -233,7 +249,7 @@ const EventDetails = () => {
                 </div>
                 <div className="meta-content">
                   <span className="meta-label">Location</span>
-                  <span className="meta-value">{event.location}</span>
+                  <span className="meta-value">{eventDetail.location}</span>
                 </div>
               </div>
               <div className="meta-item">
@@ -242,7 +258,7 @@ const EventDetails = () => {
                 </div>
                 <div className="meta-content">
                   <span className="meta-label">Price</span>
-                  <span className="meta-value">{formatCurrency(event.ticketPrice || 50)} / ticket</span>
+                  <span className="meta-value">{formatCurrency(eventDetail.ticketPrice || 50)} / ticket</span>
                 </div>
               </div>
               <div className="meta-item highlight">
@@ -251,7 +267,7 @@ const EventDetails = () => {
                 </div>
                 <div className="meta-content">
                   <span className="meta-label">Availability</span>
-                  <span className="meta-value">{getAvailableTickets()} of {event.capacity} seats</span>
+                  <span className="meta-value">{getAvailableTickets()} of {eventDetail.capacity} seats</span>
                 </div>
               </div>
             </div>
@@ -261,7 +277,7 @@ const EventDetails = () => {
         <div className="event-body">
           <div className="event-description-section">
             <h3>About the Event</h3>
-            <p className="event-description">{event.description}</p>
+            <p className="event-description">{eventDetail.description}</p>
           </div>
 
           <div className="event-stats-section">
@@ -269,34 +285,34 @@ const EventDetails = () => {
             <div className="stats-grid">
               <div className="stat-card">
                 <div className="stat-icon"><FiUsers /></div>
-                <div className="stat-value">{event.attendees}</div>
+                <div className="stat-value">{eventDetail.attendees}</div>
                 <div className="stat-label">Attendees</div>
               </div>
               <div className="stat-card">
                 <div className="stat-icon"><FiCheck /></div>
-                <div className="stat-value">{event.ticketsSold}</div>
+                <div className="stat-value">{eventDetail.ticketsSold}</div>
                 <div className="stat-label">Tickets Sold</div>
               </div>
               <div className="stat-card">
                 <div className="stat-icon"><FiDollarSign /></div>
-                <div className="stat-value">{formatCurrency(event.revenue || 0)}</div>
+                <div className="stat-value">{formatCurrency(eventDetail.revenue || 0)}</div>
                 <div className="stat-label">Revenue</div>
               </div>
               <div className="stat-card">
                 <div className="stat-icon progress">
                   <div 
                     className="progress-ring"
-                    style={{ '--progress': `${Math.round((event.attendees / event.capacity) * 100)}%` }}
+                    style={{ '--progress': `${eventDetail.capacity ? Math.round(((eventDetail.attendees || 0) / eventDetail.capacity) * 100) : 0}%` }}
                   ></div>
                 </div>
-                <div className="stat-value">{Math.round((event.attendees / event.capacity) * 100)}%</div>
+                <div className="stat-value">{eventDetail.capacity ? Math.round(((eventDetail.attendees || 0) / eventDetail.capacity) * 100) : 0}%</div>
                 <div className="stat-label">Capacity Filled</div>
               </div>
             </div>
           </div>
 
           <div className="event-actions">
-            {event.status === 'active' || event.status === 'upcoming' ? (
+            {eventDetail.status === 'active' || eventDetail.status === 'upcoming' ? (
               <div className="booking-section">
                 <h3>Book Your Tickets</h3>
                 <div className="ticket-selector">
@@ -318,7 +334,7 @@ const EventDetails = () => {
                 </div>
                 <div className="booking-total">
                   <span>Total:</span>
-                  <span className="total-price">{formatCurrency((event.ticketPrice || 50) * ticketCount)}</span>
+                  <span className="total-price">{formatCurrency((eventDetail.ticketPrice || 50) * ticketCount)}</span>
                 </div>
                 <button 
                   className={`book-button ${isBooking ? 'loading' : ''}`} 
@@ -341,7 +357,7 @@ const EventDetails = () => {
             ) : (
               <div className="booking-section disabled-booking">
                 <button className="book-button disabled" disabled>
-                  {event.status === 'completed' ? '✓ Event Ended' : '✕ Event Cancelled'}
+                   {eventDetail.status === 'completed' ? '✓ Event Ended' : '✕ Event Cancelled'}
                 </button>
               </div>
             )}

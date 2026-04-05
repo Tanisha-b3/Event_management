@@ -14,7 +14,9 @@ import {
 } from 'react-icons/fa';
 import CreateEvent from '../createEvent.jsx';
 import './organizer.css';
-import axios from 'axios';
+import { apiClient } from '../../utils/api';
+import { getUserRole } from '../../utils/auth';
+import { toast } from 'react-toastify';
 import image4 from '../../assets/image4.jpg'
 const Organizer = () => {
   const navigate = useNavigate();
@@ -22,20 +24,31 @@ const Organizer = () => {
   const [currentEvent, setCurrentEvent] = useState(null);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'form'
   const [isLoading, setIsLoading] = useState(false);
+  const role = getUserRole();
+
+  useEffect(() => {
+    if (role !== 'admin' && role !== 'organiser') {
+      navigate('/');
+    }
+  }, [role, navigate]);
 
   // Load events from API
   useEffect(() => {
     const fetchEvents = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get('http://localhost:5000/api/events', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        setEvents(response.data);
+        const { data } = await apiClient.get('/events');
+        const normalized = (data || []).map(ev => ({
+          ...ev,
+          id: ev._id || ev.id,
+          attendees: ev.attendees || 0,
+          ticketsSold: ev.ticketsSold || 0,
+          capacity: ev.capacity || 0,
+        }));
+        setEvents(normalized);
       } catch (err) {
         console.error('Error fetching events:', err);
+        toast.error('Failed to load events');
       } finally {
         setIsLoading(false);
       }
@@ -46,17 +59,15 @@ const Organizer = () => {
   const deleteEvent = async (id) => {
     if (window.confirm('Are you sure you want to delete this event?')) {
       try {
-        await axios.delete(`http://localhost:5000/api/events/${id}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        });
+        await apiClient.delete(`/events/${id}`);
         const userTickets = JSON.parse(localStorage.getItem('userTickets')) || [];
          const updatedTickets = userTickets.filter(ticket => ticket.eventId !== id);
          localStorage.setItem('userTickets', JSON.stringify(updatedTickets));
-        setEvents(events.filter(event => event._id !== id));
+        setEvents(events.filter(event => event._id !== id && event.id !== id));
+        toast.success('Event deleted');
       } catch (err) {
         console.error('Error deleting event:', err);
+        toast.error('Failed to delete event');
       }
     }
   };
@@ -64,12 +75,12 @@ const Organizer = () => {
   const handleEventCreated = (newEvent) => {
     if (currentEvent) {
       // Update existing event
-      setEvents(events.map(event => 
-        event._id === newEvent._id ? newEvent : event
-      ));
-    } else {
-      // Add new event
-      setEvents([...events, newEvent]);
+        setEvents(events.map(event => 
+          (event._id || event.id) === (newEvent._id || newEvent.id) ? newEvent : event
+        ));
+      } else {
+        // Add new event
+        setEvents([...events, newEvent]);
     }
     setCurrentEvent(null);
     setViewMode('list');
@@ -112,7 +123,7 @@ const Organizer = () => {
                 </div>
               ) : (
                 events.map(event => (
-                  <div key={event._id} className="event-card">
+                  <div key={event._id || event.id} className="event-card">
                     <div className="event-image">
                       {event.image ? (
                         <img src={event.image} alt={event.title} />
@@ -130,7 +141,7 @@ const Organizer = () => {
                       
                       <div className="event-stats">
                         <span><FaTicketAlt /> ${event.ticketPrice}</span>
-                        <span><FaUsers /> {event.attendees.length}/{event.capacity}</span>
+                        <span><FaUsers /> {event.attendees || event.ticketsSold || 0}/{event.capacity}</span>
                         <span>
                           {event.privacy === 'public' ? <FaEye /> : <FaEyeSlash />}
                           {event.privacy}

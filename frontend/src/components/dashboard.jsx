@@ -5,19 +5,21 @@ import {
   FiMail, FiBarChart2, FiSettings, FiPause, FiPlay, FiTrash2,
   FiDownload, FiSend, FiMessageSquare, FiLock, FiGlobe, FiEye, FiEyeOff
 } from 'react-icons/fi';
-import Header from '../pages/header.jsx';
 import Footer from '../pages/footer.jsx';
-import { EVENTS, LOCATION_OPTIONS } from './constants';
+import { EVENTS as STATIC_EVENTS, LOCATION_OPTIONS } from './constants';
 import './Dashboard.css';
 import Location from '../components/featuresd/Location.jsx';
 import CategoryFilter from './category.jsx';
 import EventCarousel from './featuresd/features.jsx';
-import { Attendees, tickets, messages } from './constants';
+import { messages } from './constants';
+import fallbackImage from '../assets/image8.jpg';
 import ManageEvent from './dashboardC/ManageEvent.jsx';
+import { apiClient } from '../utils/api';
+import { getUserRole } from '../utils/auth';
+import { toast } from 'react-toastify';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [events, setEvents] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('events');
@@ -36,11 +38,11 @@ const Dashboard = () => {
     quantity: 0
   });
 
-  const [attendees, setAttendees] = useState(Attendees);
-  const [ticketTypes, setTicketTypes] = useState(tickets);
+  const [ticketTypes, setTicketTypes] = useState([]);
   const messageTemplates = messages;
   const [activeCategory, setActiveCategory] = useState('all');
   const [locationSearchTerm, setLocationSearchTerm] = useState('');
+  const [userRole, setUserRole] = useState('booker');
 
   // Memoized filtered events for better performance
  // Update your filteredEvents useMemo to properly handle categories
@@ -100,45 +102,50 @@ const filteredEvents = useMemo(() => {
       }
       setSalesData(generatedSales);
 
-      if (selectedEvent.ticketTypes) {
+      if (selectedEvent.ticketTypes && selectedEvent.ticketTypes.length) {
         setTicketTypes(selectedEvent.ticketTypes);
+      } else {
+        setTicketTypes([]);
       }
     }
   }, [selectedEvent]);
 
-  // Fetch events on mount
+  // Fetch events on mount (API first, fallback to static)
   useEffect(() => {
+    setUserRole(getUserRole());
     const fetchEvents = async () => {
       try {
-        setTimeout(() => {
-          const combinedEvents = EVENTS.map(event => ({
-            ...event,
-            status: event.status || 'active',
-            attendees: event.attendees || 0,
-            ticketsSold: event.ticketsSold || 0,
-            revenue: event.revenue || 0,
-            capacity: event.capacity || 100,
-            privacy: event.privacy || 'public',
-            ticketTypes: event.ticketTypes || [
-              { id: 1, type: 'General Admission', price: 50, sold: 0, total: 100 }
-            ]
-          }));
-          
-          // Remove duplicates
-          const uniqueEvents = combinedEvents.reduce((acc, current) => {
-            const x = acc.find(item => item.id === current.id);
-            if (!x) {
-              return [...acc, current];
-            }
-            return acc;
-          }, []);
-          
-          setEvents(uniqueEvents);
-          setLocalEvents(uniqueEvents);
-          setIsLoading(false);
-        }, 800);
+        const { data } = await apiClient.get('/events');
+        const normalized = (data || []).map(event => ({
+          ...event,
+          id: event._id || event.id,
+          status: event.status || 'active',
+          attendees: event.attendees || 0,
+          ticketsSold: event.ticketsSold || 0,
+          revenue: event.revenue || 0,
+          capacity: event.capacity || 100,
+          privacy: event.privacy || 'public',
+          ticketTypes: event.ticketTypes || [
+            { id: 1, type: 'General Admission', price: 50, sold: 0, total: 100 }
+          ]
+        }));
+        setLocalEvents(normalized);
+        setIsLoading(false);
       } catch (error) {
-        console.error('Error fetching events:', error);
+        console.error('Error fetching events, using fallback:', error);
+        const combinedEvents = STATIC_EVENTS.map(event => ({
+          ...event,
+          status: event.status || 'active',
+          attendees: event.attendees || 0,
+          ticketsSold: event.ticketsSold || 0,
+          revenue: event.revenue || 0,
+          capacity: event.capacity || 100,
+          privacy: event.privacy || 'public',
+          ticketTypes: event.ticketTypes || [
+            { id: 1, type: 'General Admission', price: 50, sold: 0, total: 100 }
+          ]
+        }));
+        setLocalEvents(combinedEvents);
         setIsLoading(false);
       }
     };
@@ -198,52 +205,19 @@ const filteredEvents = useMemo(() => {
   }, [selectedEvent, localEvents]);
 
   const handleSendMessage = () => {
-    const recipientCount = recipientType === 'all' 
-      ? attendees.length 
-      : attendees.filter(a => 
-          recipientType === 'checked-in' ? a.status === 'Checked In' : a.status === 'Not Checked In'
-        ).length;
-    
-    // In a real app, you would send this to an API
-    alert(`Message sent to ${recipientCount} ${recipientType} attendees:\n\n${messageContent}`);
+    toast.info('Attendee messaging not yet connected to backend.');
     setMessageContent('');
   };
 
   const handleExportAttendees = () => {
-    const csvContent = [
-      ['Name', 'Email', 'Ticket Type', 'Status'],
-      ...filteredAttendees.map(a => [a.name, a.email, a.ticketType, a.status])
-    ].map(e => e.join(',')).join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `${selectedEvent?.title || 'event'}_attendees.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    toast.info('Attendee export is unavailable until attendee data is provided by the backend.');
   };
 
   const handleUseTemplate = (template) => {
     setMessageContent(template.content);
   };
 
-  const filteredAttendees = useMemo(() => {
-    return attendees.filter(attendee => {
-      const matchesSearch = 
-        attendee.name.toLowerCase().includes(attendeeSearch.toLowerCase()) ||
-        attendee.email.toLowerCase().includes(attendeeSearch.toLowerCase());
-      
-      if (recipientType === 'checked-in') {
-        return matchesSearch && attendee.status === 'Checked In';
-      } else if (recipientType === 'not-checked-in') {
-        return matchesSearch && attendee.status === 'Not Checked In';
-      }
-      return matchesSearch;
-    });
-  }, [attendees, attendeeSearch, recipientType]);
+  const filteredAttendees = useMemo(() => [], []);
 
   const handlePrivacyChange = (privacy) => {
     if (!selectedEvent) return;
@@ -320,15 +294,18 @@ const filteredEvents = useMemo(() => {
     }
   };
 
-  const totalRevenue = ticketTypes.reduce((sum, ticket) => sum + (ticket.price * ticket.sold), 0);
-  const totalTicketsSold = ticketTypes.reduce((sum, ticket) => sum + ticket.sold, 0);
-  const totalTicketsAvailable = ticketTypes.reduce((sum, ticket) => sum + ticket.total, 0);
+  const totalRevenue = selectedEvent?.revenue ?? ticketTypes.reduce((sum, ticket) => sum + (ticket.price * ticket.sold), 0);
+  const totalTicketsSold = selectedEvent?.ticketsSold ?? ticketTypes.reduce((sum, ticket) => sum + ticket.sold, 0);
+  const totalTicketsAvailable = selectedEvent?.capacity ?? ticketTypes.reduce((sum, ticket) => sum + ticket.total, 0);
 
 const renderEventsTab = () => (
   <div className="events-grid">
     {filteredEvents.map(event => (
       <div className="event-card" key={event.id}>
-       <div className="event-header">
+        <div className="event-card-image">
+          <img src={event.image || fallbackImage} alt={event.title} />
+        </div>
+        <div className="event-header">
   
   {/* LEFT SIDE */}
   <div className="left">
@@ -378,12 +355,14 @@ const renderEventsTab = () => (
             </button>
           </div>
           <div className="event-actions">
-            <button
-              className="btn-secondary"
-              onClick={() => handleManageEvent(event)}
-            >
-              Manage Event
-            </button>
+            {(userRole === 'admin' || userRole === 'organiser') && (
+              <button
+                className="btn-secondary"
+                onClick={() => handleManageEvent(event)}
+              >
+                Manage Event
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -393,27 +372,27 @@ const renderEventsTab = () => (
 
   return (
     <div className="dashboard-container">
-      <Header />
       <main className="dashboard-main">
-        <br />
-        <br/>
         <EventCarousel 
-          events={EVENTS.filter(event => event.status === 'active').slice(0, 6)} 
+          events={(localEvents.length ? localEvents : STATIC_EVENTS).filter(event => event.status === 'active').slice(0, 6)} 
         />
         
         {activeTab === 'events' && (
           <>
             <div className="dashboard-controls">
               <div className='search'>
-                <div className="search-container">
-                 
+                <div>
+      <div className="location-search__input-wrap">
+        <FiSearch className="location-search__icon" />
                   <input
                     type="text"
                     placeholder="Search events..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="search-input"
+                    className="location-search__input"
                   />
+                  
+                </div>
                 </div>
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <Location 

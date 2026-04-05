@@ -192,6 +192,61 @@
   transform: translateY(0);
 }
 
+/* Modal overlay for delete confirmation */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+  z-index: 120;
+}
+
+.modal-card {
+  background: white;
+  padding: var(--space-6);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-2xl);
+  width: min(420px, 90vw);
+  border: 1px solid var(--neutral-200);
+}
+
+.modal-card h3 {
+  margin: 0 0 var(--space-2) 0;
+}
+
+.modal-card p {
+  margin: 0 0 var(--space-5) 0;
+  color: var(--neutral-600);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+.btn-secondary {
+  background: white;
+  color: var(--neutral-800);
+  border: 1px solid var(--neutral-300);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+}
+
 /* Ticket Details Grid */
 .ticket-details {
   display: grid;

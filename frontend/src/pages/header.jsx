@@ -1,92 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
-  FiHome, FiCalendar, FiUser, FiLogOut, FiMenu, FiX, 
-  FiTable, FiSearch, FiMapPin 
+  FiHome, FiCalendar, FiLogOut, FiMenu, FiX, 
+  FiTable, FiUser
 } from 'react-icons/fi';
-import { FaUserCircle } from 'react-icons/fa';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
 import './Header.css';
+import "../components/Dashboard.css";
+import { getUserRole } from '../utils/auth';
+// import { X } from 'lucide-react';
 
-const Header = ({ onSearch }) => {
+const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [locationTerm, setLocationTerm] = useState('');
-  const [dateRange, setDateRange] = useState([null, null]);
-  const [startDate, endDate] = dateRange;
+  const [role, setRole] = useState('booker');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     const authProvider = localStorage.getItem('authProvider');
     setIsLoggedIn(!!token || !!authProvider);
-    
-    const searchParams = new URLSearchParams(location.search);
-    setSearchTerm(searchParams.get('search') || '');
-    setLocationTerm(searchParams.get('location') || '');
-    
-    if (searchParams.get('startDate') && searchParams.get('endDate')) {
-      setDateRange([
-        new Date(searchParams.get('startDate')),
-        new Date(searchParams.get('endDate'))
-      ]);
-    }
-  }, [location]);
+    setRole(getUserRole());
+  }, []);
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const navItems = [
     { path: '/dashboard', icon: <FiHome />, label: 'Dashboard' },
     { path: '/discover', icon: <FiCalendar />, label: 'Events' },
-    { path: '/profile', icon: <FiUser />, label: 'Profile' },
     { path: '/my-tickets', icon: <FiTable />, label: 'Tickets' },
-    // { path: '/create-event', icon: <FiMenu />, label: 'Create Event' },
-    { path: '/organizer', icon: <FiUser />, label: 'Organizer' }
   ];
 
-  const handleSearch = (e) => {
-    e?.preventDefault();
-    
-    if (onSearch) {
-      onSearch({
-        searchTerm,
-        locationTerm,
-        startDate,
-        endDate
-      });
-    } else {
-      const params = new URLSearchParams();
-      if (searchTerm) params.append('search', searchTerm);
-      if (locationTerm) params.append('location', locationTerm);
-      if (startDate) params.append('startDate', startDate.toISOString());
-      if (endDate) params.append('endDate', endDate.toISOString());
-      
-      navigate(`/discover?${params.toString()}`);
-    }
-  };
-
-  const handleDateChange = (dates) => {
-    const [start, end] = dates;
-    setDateRange(dates);
-  };
-
-  const clearFilters = () => {
-    setSearchTerm('');
-    setLocationTerm('');
-    setDateRange([null, null]);
-    
-    if (onSearch) {
-      onSearch({
-        searchTerm: '',
-        locationTerm: '',
-        startDate: null,
-        endDate: null
-      });
-    } else {
-      navigate('/discover');
-    }
-  };
+  if (role === 'admin' || role === 'organiser') {
+    navItems.push({ path: '/organizer', icon: <FiUser />, label: 'Organizer' });
+  }
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -102,12 +52,27 @@ const Header = ({ onSearch }) => {
     setMobileMenuOpen(false);
   };
 
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [mobileMenuOpen]);
+
   return (
     <header className="dashboard-header">
       <div className="header-content">
         <div 
           className="app-title-container" 
           onClick={() => handleNavigation(isLoggedIn ? '/dashboard' : '/')}
+          role="button"
+          tabIndex={0}
+          onKeyPress={(e) => e.key === 'Enter' && handleNavigation(isLoggedIn ? '/dashboard' : '/')}
         >
           <h1 className="app-title">EventPro</h1>
         </div>
@@ -147,7 +112,7 @@ const Header = ({ onSearch }) => {
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 aria-label="Toggle menu"
               >
-                {mobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+                {mobileMenuOpen ? "X" : "☰"}
               </button>
             </div>
 

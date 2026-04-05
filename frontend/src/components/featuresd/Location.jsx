@@ -1,24 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FiSearch, FiX, FiMapPin } from 'react-icons/fi';
+import './Location.css';
 
-const Location = ({ events, onSearch }) => {
+const Location = ({ events = [], onSearch = () => {} }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const uniqueLocations = [...new Set(events.map(event => event.location))];
+
+  const uniqueLocations = useMemo(() => {
+    const values = (events || [])
+      .map((event) => event.location)
+      .filter(Boolean)
+      .map((loc) => loc.trim());
+    return [...new Set(values)];
+  }, [events]);
 
   useEffect(() => {
     if (searchTerm.length > 1) {
-      const filtered = uniqueLocations.filter(location =>
+      const filtered = uniqueLocations.filter((location) =>
         location.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setSuggestions(filtered);
-      setShowSuggestions(true);
+      setShowSuggestions(filtered.length > 0);
     } else {
       setSuggestions([]);
       setShowSuggestions(false);
     }
-  }, [searchTerm, events]);
+  }, [searchTerm, uniqueLocations]);
 
   const handleSelect = (location) => {
     setSearchTerm(location);
@@ -26,41 +34,53 @@ const Location = ({ events, onSearch }) => {
     setShowSuggestions(false);
   };
 
+  const handleInputChange = (value) => {
+    setSearchTerm(value);
+    onSearch(value);
+  };
+
   const clearSearch = () => {
     setSearchTerm('');
     onSearch('');
+    setSuggestions([]);
     setShowSuggestions(false);
   };
 
   return (
-    <div className="location-search-bar1">
-      <div className="search-input-container3">
-        {/* <FiSearch className="search-icon" /> */}
+    <div className="location-search">
+      <div className="location-search__input-wrap">
+        <FiSearch className="location-search__icon" />
         <input
           type="text"
           value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            onSearch(e.target.value);
-          }}
+          onChange={(e) => handleInputChange(e.target.value)}
           onFocus={() => searchTerm.length > 1 && setShowSuggestions(true)}
-          onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+          onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
           placeholder="Search by location..."
-          className="search-input"
-          onClick={clearSearch}
+          className="location-search__input"
         />
+        {searchTerm && (
+          <button
+            type="button"
+            className="location-search__clear"
+            onClick={clearSearch}
+            aria-label="Clear location search"
+          >
+            <FiX />
+          </button>
+        )}
       </div>
-      
+
       {showSuggestions && suggestions.length > 0 && (
-        <ul className="suggestions-dropdown">
-          {suggestions.map((location, index) => (
-            <li 
-              key={index}
-              onClick={() => handleSelect(location)}
-              className="suggestion-item"
+        <ul className="location-search__dropdown">
+          {suggestions.map((location) => (
+            <li
+              key={location}
+              onMouseDown={() => handleSelect(location)}
+              className="location-search__item"
             >
-              <FiMapPin className="suggestion-icon" />
-              {location}
+              <FiMapPin className="location-search__item-icon" />
+              <span>{location}</span>
             </li>
           ))}
         </ul>

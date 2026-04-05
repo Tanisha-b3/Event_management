@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   FiUsers,
   FiDollarSign,
@@ -14,6 +14,9 @@ import {
 } from 'react-icons/fi';
 
 import EventSettingsForm from './EventSettingsForm'; // adjust path if needed
+import { apiClient } from '../../utils/api';
+import './ManageEvent.css';
+import { toast } from 'react-toastify';
 
 const ManageEvent = ({
   selectedEvent,
@@ -23,7 +26,6 @@ const ManageEvent = ({
   formatCurrency,
   attendeeSearch,
   setAttendeeSearch,
-  filteredAttendees,
   setMessageContent,
   messageTemplates,
   handleUseTemplate,
@@ -33,7 +35,6 @@ const ManageEvent = ({
   handleSendMessage,
   totalRevenue,
   totalTicketsSold,
-  totalTicketsAvailable,
   salesData,
   ticketTypes,
   editingTicket,
@@ -45,11 +46,114 @@ const ManageEvent = ({
   handleAddTicketType,
   handlePrivacyChange,
   setShowDeleteModal,
-  localEvents,
   setLocalEvents,
   setSelectedEvent
 }) => {
-  if (!selectedEvent) return null;
+  const [ticketsData, setTicketsData] = useState([]);
+  const [derivedTicketTypes, setDerivedTicketTypes] = useState(ticketTypes || []);
+  const [attendeesError, setAttendeesError] = useState('');
+
+  useEffect(() => {
+    if (!selectedEvent) return;
+    const fetchTickets = async () => {
+      try {
+        const { data } = await apiClient.get(`/events/${selectedEvent.id}/attendees`);
+        const attendees = data?.attendees || [];
+        setTicketsData(attendees);
+
+        // Aggregate sold counts per type
+        const soldByType = attendees.reduce((acc, t) => {
+          const qty = t.quantity || 1;
+          const type = t.ticketType || 'General Admission';
+          acc[type] = (acc[type] || 0) + qty;
+          return acc;
+        }, {});
+
+        const baseTypes = (selectedEvent.ticketTypes || []).map(tt => ({
+          ...tt,
+          sold: soldByType[tt.type] ?? tt.sold ?? 0
+        }));
+
+        const extraTypes = Object.entries(soldByType)
+          .filter(([type]) => !baseTypes.find(bt => bt.type === type))
+          .map(([type, sold]) => ({ id: type, type, price: 0, total: selectedEvent.capacity || 0, sold }));
+
+        const merged = [...baseTypes, ...extraTypes];
+        setDerivedTicketTypes(merged.length ? merged : baseTypes);
+      } catch (err) {
+        console.error('Failed to fetch attendees/tickets', err);
+        setTicketsData([]);
+        setDerivedTicketTypes(selectedEvent?.ticketTypes || []);
+        setAttendeesError('Failed to load attendees');
+        toast.error('Failed to load attendees');
+      }
+    };
+
+    fetchTickets();
+  }, [selectedEvent]);
+
+  const capacity = selectedEvent?.capacity || 0;
+
+  const ticketsSoldComputed = useMemo(
+    () => ticketsData.reduce((sum, t) => sum + (t.quantity || 1), 0),
+    [ticketsData]
+  );
+
+  const revenueComputed = useMemo(
+    () => ticketsData.reduce((sum, t) => sum + (t.price || 0) * (t.quantity || 1), 0),
+    [ticketsData]
+  );
+
+  const inferredTicketsSold = ticketsSoldComputed || totalTicketsSold || selectedEvent?.ticketsSold || 0;
+  const attendanceCount = Math.max(selectedEvent.attendees || 0, inferredTicketsSold);
+  const revenueDisplay = revenueComputed || totalRevenue || selectedEvent?.revenue || 0;
+  const attendancePct = capacity > 0 ? Math.min((attendanceCount / capacity) * 100, 100) : 0;
+
+  const ticketTypesForDisplay = useMemo(() => {
+    return derivedTicketTypes.length ? derivedTicketTypes : (ticketTypes || []);
+  }, [derivedTicketTypes, ticketTypes]);
+
+  const totalRevenueDisplay = revenueDisplay;
+  const totalTicketsSoldDisplay = inferredTicketsSold;
+  const totalTicketsAvailableDisplay = capacity;
+
+  const salesDataComputed = useMemo(() => {
+    if (!ticketsData.length) return salesData || [];
+    const grouped = ticketsData.reduce((acc, t) => {
+      const date = (t.createdAt ? new Date(t.createdAt) : new Date()).toISOString().split('T')[0];
+      const qty = t.quantity || 1;
+      const rev = (t.price || 0) * qty;
+      if (!acc[date]) acc[date] = { date, tickets: 0, revenue: 0 };
+      acc[date].tickets += qty;
+      acc[date].revenue += rev;
+      return acc;
+    }, {});
+    return Object.values(grouped).sort((a, b) => (a.date < b.date ? -1 : 1));
+  }, [ticketsData, salesData]);
+
+  const maxTicketsForChart = useMemo(() => {
+    if (!salesDataComputed.length) return 1;
+    return Math.max(...salesDataComputed.map((d) => d.tickets || 0), 1);
+  }, [salesDataComputed]);
+
+  const displayedAttendees = useMemo(() => {
+    const search = attendeeSearch.toLowerCase();
+    return ticketsData
+      .map(t => ({
+        id: t.bookingId || t._id || `${t.eventId}-${t.userId}-${t.createdAt}`,
+        name: t.userName || t.userEmail || 'Attendee',
+        email: t.userEmail || 'N/A',
+        ticketType: t.ticketType || 'General Admission',
+        status: t.status || 'Confirmed'
+      }))
+      .filter(att => {
+        const matches = att.name.toLowerCase().includes(search) || att.email.toLowerCase().includes(search) || att.ticketType.toLowerCase().includes(search);
+        if (!matches) return false;
+        if (recipientType === 'checked-in') return att.status.toLowerCase() === 'checked in';
+        if (recipientType === 'not-checked-in') return att.status.toLowerCase() === 'not checked in';
+        return true;
+      });
+  }, [ticketsData, attendeeSearch, recipientType]);
 
   return (
     <div className="manage-event-container">
@@ -100,14 +204,12 @@ const ManageEvent = ({
               <div className="stat-card">
                 <h3>Attendance</h3>
                 <div className="stat-value">
-                  {selectedEvent.attendees}/{selectedEvent.capacity}
+                  {attendanceCount}/{capacity || 0}
                 </div>
                 <div className="progress-bar">
                   <div
                     className="progress-fill"
-                    style={{
-                      width: `${(selectedEvent.attendees / selectedEvent.capacity) * 100}%`
-                    }}
+                    style={{ width: `${attendancePct}%` }}
                   ></div>
                 </div>
               </div>
@@ -115,10 +217,10 @@ const ManageEvent = ({
               <div className="stat-card">
                 <h3>Revenue</h3>
                 <div className="stat-value">
-                  {formatCurrency(selectedEvent.revenue)}
+                  {formatCurrency(revenueDisplay)}
                 </div>
                 <div className="stat-subtext">
-                  from {selectedEvent.ticketsSold} tickets
+                  from {inferredTicketsSold} tickets
                 </div>
               </div>
 
@@ -157,10 +259,11 @@ const ManageEvent = ({
 
         {activeTab === 'attendees' && (
           <div className="attendees-section">
-            <h3>Attendee List</h3>
-            <div className="search-controls">
-              <div className="search-container">
-                <input
+              <h3>Attendee List</h3>
+              {attendeesError && <p className="muted">{attendeesError}</p>}
+              <div className="search-controls">
+                <div className="search-container">
+                  <input
                   type="text"
                   placeholder="Search attendees..."
                   className="search-input"
@@ -170,44 +273,50 @@ const ManageEvent = ({
               </div>
             </div>
 
-            <div className="attendee-table">
-              <div className="table-header">
-                <div className="header-item">Name</div>
-                <div className="header-item">Email</div>
-                <div className="header-item">Ticket Type</div>
-                <div className="header-item">Status</div>
-                <div className="header-item">Actions</div>
-              </div>
+              <div className="attendee-table">
+               <div className="table-header">
+                 <div className="header-item">Name</div>
+                 <div className="header-item">Email</div>
+                 <div className="header-item">Ticket Type</div>
+                 <div className="header-item">Status</div>
+                 <div className="header-item">Actions</div>
+               </div>
 
-              {filteredAttendees.map((attendee) => (
-                <div className="table-row" key={attendee.id}>
-                  <div className="row-item">{attendee.name}</div>
-                  <div className="row-item">{attendee.email}</div>
-                  <div className="row-item">{attendee.ticketType}</div>
-                  <div className="row-item">
-                    <span
-                      className={`status-${attendee.status
-                        .toLowerCase()
-                        .replace(' ', '-')}`}
-                    >
-                      {attendee.status}
-                    </span>
-                  </div>
-                  <div className="row-item">
-                    <button
-                      className="btn-small"
-                      onClick={() => {
-                        setMessageContent(`Message for ${attendee.name}:\n\n`);
-                        setActiveTab('messages');
-                      }}
-                    >
-                      <FiMessageSquare className="icon" /> Message
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+               {displayedAttendees.length === 0 && !attendeesError && (
+                 <div className="table-row empty">
+                   <div className="row-item">No attendees found yet.</div>
+                 </div>
+               )}
+
+               {displayedAttendees.map((attendee) => (
+                 <div className="table-row" key={attendee.id}>
+                   <div className="row-item">{attendee.name}</div>
+                   <div className="row-item">{attendee.email}</div>
+                   <div className="row-item">{attendee.ticketType}</div>
+                   <div className="row-item">
+                     <span
+                       className={`status-${attendee.status
+                         .toLowerCase()
+                         .replace(' ', '-')}`}
+                     >
+                       {attendee.status}
+                     </span>
+                   </div>
+                   <div className="row-item">
+                     <button
+                       className="btn-small"
+                       onClick={() => {
+                         setMessageContent(`Message for ${attendee.name}:\n\n`);
+                         setActiveTab('messages');
+                       }}
+                     >
+                       <FiMessageSquare className="icon" /> Message
+                     </button>
+                   </div>
+                 </div>
+               ))}
+             </div>
+           </div>
         )}
 
         {activeTab === 'sales' && (
@@ -216,16 +325,16 @@ const ManageEvent = ({
             <div className="sales-stats">
               <div className="stat-card">
                 <h4>Total Revenue</h4>
-                <div className="stat-value-large">{formatCurrency(totalRevenue)}</div>
+                 <div className="stat-value-large">{formatCurrency(totalRevenueDisplay)}</div>
               </div>
               <div className="stat-card">
                 <h4>Tickets Sold</h4>
-                <div className="stat-value-large">{totalTicketsSold}</div>
+                <div className="stat-value-large">{totalTicketsSoldDisplay}</div>
               </div>
               <div className="stat-card">
                 <h4>Remaining</h4>
                 <div className="stat-value-large">
-                  {totalTicketsAvailable - totalTicketsSold}
+                  {Math.max(totalTicketsAvailableDisplay - totalTicketsSoldDisplay, 0)}
                 </div>
               </div>
             </div>
@@ -233,24 +342,29 @@ const ManageEvent = ({
             <div className="sales-chart">
               <h4>Sales Over Time</h4>
               <div className="chart-container">
-                {salesData.map((day, index) => (
-                  <div key={index} className="chart-bar-container">
-                    <div
-                      className="chart-bar"
-                      style={{ height: `${(day.tickets / 20) * 100}%` }}
-                      title={`${day.date}: ${day.tickets} tickets (${formatCurrency(
-                        day.revenue
-                      )})`}
-                    ></div>
-                    <div className="chart-label">{day.date.split('-')[2]}</div>
-                  </div>
-                ))}
-              </div>
+                 {salesDataComputed.length === 0 && (
+                   <div className="chart-label">No sales data yet.</div>
+                 )}
+                 {salesDataComputed.map((day, index) => (
+                   <div key={index} className="chart-bar-container">
+                     <div
+                       className="chart-bar"
+                       style={{ height: `${Math.min((day.tickets / maxTicketsForChart) * 100, 100)}%` }}
+                       title={`${day.date}: ${day.tickets} tickets (${formatCurrency(
+                         day.revenue
+                       )})`}
+                     ></div>
+                     <div className="chart-label">{day.date.slice(5)}</div>
+                   </div>
+                 ))}
+               </div>
             </div>
-
             <div className="ticket-types">
               <h4>Ticket Types</h4>
-              {ticketTypes.map((ticket, index) => (
+              {ticketTypesForDisplay.length === 0 && (
+                <div className="ticket-card">No ticket types available.</div>
+              )}
+              {ticketTypesForDisplay.map((ticket, index) => (
                 <div className="ticket-card" key={index}>
                   <div className="ticket-info">
                     <h5>{ticket.type}</h5>
@@ -261,7 +375,7 @@ const ManageEvent = ({
                     <div className="progress-bar">
                       <div
                         className="progress-fill"
-                        style={{ width: `${(ticket.sold / ticket.total) * 100}%` }}
+                        style={{ width: `${ticket.total ? Math.min((ticket.sold / ticket.total) * 100, 100) : 0}%` }}
                       ></div>
                     </div>
                   </div>
@@ -274,8 +388,10 @@ const ManageEvent = ({
         {activeTab === 'messages' && (
           <div className="messages-section">
             <h3>Communications</h3>
+            <br/>
             <div className="message-templates">
               <h4>Quick Templates</h4>
+              <br/>
               <div className="templates-grid">
                 {messageTemplates.map((template) => (
                   <div className="template-card" key={template.id}>
@@ -326,9 +442,8 @@ const ManageEvent = ({
         {activeTab === 'settings' && (
           <EventSettingsForm
             selectedEvent={selectedEvent}
-            localEvents={localEvents}
-            setLocalEvents={setLocalEvents}
             setSelectedEvent={setSelectedEvent}
+            setLocalEvents={setLocalEvents}
             ticketTypes={ticketTypes}
             editingTicket={editingTicket}
             setEditingTicket={setEditingTicket}

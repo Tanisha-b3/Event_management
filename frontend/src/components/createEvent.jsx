@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { apiClient } from '../utils/api';
 import './createEvent.css';
 import { FaCalendarAlt, FaMapMarkerAlt, FaDollarSign, FaUsers, FaLock } from 'react-icons/fa';
 import Header from '../pages/header';
 import Footer from '../pages/footer';
+import { getUserRole } from '../utils/auth';
 import { useNavigate } from 'react-router-dom';
 import { handleSuccess, handleError } from './utils';
 
 const CreateEvent = ({ existingEvent, onCancel, onSuccess }) => {
   const navigate = useNavigate();
+  const role = getUserRole();
   const [eventData, setEventData] = useState({
     title: '',
     date: '',
@@ -29,6 +31,11 @@ const CreateEvent = ({ existingEvent, onCancel, onSuccess }) => {
 
   // Populate form if editing existing event
   useEffect(() => {
+    if (role !== 'admin' && role !== 'organiser') {
+      navigate('/');
+      return;
+    }
+
     if (existingEvent) {
       const eventDate = new Date(existingEvent.date);
       const formattedDate = eventDate.toISOString().split('T')[0];
@@ -48,7 +55,7 @@ const CreateEvent = ({ existingEvent, onCancel, onSuccess }) => {
         imageUrl: existingEvent.imageUrl || ''
       });
     }
-  }, [existingEvent]);
+  }, [existingEvent, navigate, role]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -88,25 +95,13 @@ const handleSubmit = async (e) => {
     let response;
 
     if (existingEvent) {
-      response = await axios.put(
-        `http://localhost:5000/api/events/${existingEvent._id}`,
-        eventPayload,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
+      response = await apiClient.put(`/events/${existingEvent._id}`,
+        eventPayload
       );
       handleSuccess(response.data.message || 'Event updated successfully!');
     } else {
-      response = await axios.post(
-        "http://localhost:5000/api/events",
-        eventPayload,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
+      response = await apiClient.post('/events',
+        eventPayload
       );
       handleSuccess(response.data.message || 'Event created successfully!');
     }
