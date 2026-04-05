@@ -4,8 +4,9 @@ import './createEvent.css';
 import { FaCalendarAlt, FaMapMarkerAlt, FaDollarSign, FaUsers, FaLock } from 'react-icons/fa';
 import Header from '../pages/header';
 import Footer from '../pages/footer';
-
+import { useNavigate } from 'react-router-dom';
 const CreateEvent = ({ existingEvent, onCancel, onSuccess }) => {
+  const navigate = useNavigate();
   const [eventData, setEventData] = useState({
     title: '',
     date: '',
@@ -57,57 +58,61 @@ const CreateEvent = ({ existingEvent, onCancel, onSuccess }) => {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
-    setFieldErrors({});
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setIsSubmitting(true);
+  setError(null);
+  setFieldErrors({});
 
-    try {
-      // Combine date and time into a single ISO string
-      const dateTime = new Date(`${eventData.date}T${eventData.time}:00`).toISOString();
-      
-      const eventPayload = {
-        ...eventData,
-        date: dateTime
-      };
+  try {
+    const dateTime = new Date(
+      `${eventData.date}T${eventData.time}:00`
+    ).toISOString();
 
-      let response;
-      if (existingEvent) {
-        // Update existing event
-        response = await axios.put(
-          `http://localhost:5000/api/events/${existingEvent._id}`,
-          eventPayload,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('token')}`
-            }
-          }
-        );
-      } else {
-        // Create new event
-        response = await axios.post(
-          'http://localhost:5000/api/events',
-          eventPayload,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('token')}`
-            }
-          }
-        );
-      }
+    const eventPayload = {
+      ...eventData,
+      date: dateTime,
+    };
 
-      onSuccess(response.data);
-    } catch (err) {
-      if (err.response?.data?.errors) {
-        setFieldErrors(err.response.data.errors);
-      } else {
-        setError(err.response?.data?.message || 'Failed to save event');
-      }
-    } finally {
-      setIsSubmitting(false);
+    let response;
+
+    if (existingEvent) {
+      response = await axios.put(
+        `http://localhost:5000/api/events/${existingEvent._id}`,
+        eventPayload,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+    } else {
+      response = await axios.post(
+        "http://localhost:5000/api/events",
+        eventPayload,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
     }
-  };
+
+    // ✅ SUCCESS
+    onSuccess?.(response.data);
+    navigate("/dashboard"); // 🚀 redirect
+
+  } catch (err) {
+    if (err.response?.data?.errors) {
+      setFieldErrors(err.response.data.errors);
+    } else {
+      setError(err.response?.data?.message || "Failed to save event");
+    }
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   return (
     <>

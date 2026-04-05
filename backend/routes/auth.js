@@ -5,8 +5,6 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const auth = require('../middleware/Auth.js');
 
-// Register
-// In your routes file (add these middleware first)
 router.use(express.json()); // for parsing application/json
 router.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 
