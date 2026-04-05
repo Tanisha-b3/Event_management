@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { FiSearch, FiX, FiMapPin } from 'react-icons/fi';
+import { getLocations } from '../constants';
 import './Location.css';
 
-const Location = ({ events = [], onSearch = () => {} }) => {
+const Location = ({ events = [], onSearch = () => {}, placeholder = 'Search by location...', className = '' }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const uniqueLocations = useMemo(() => {
-    const values = (events || [])
-      .map((event) => event.location)
+    const locations = getLocations(events)
       .filter(Boolean)
-      .map((loc) => loc.trim());
-    return [...new Set(values)];
+      .map((loc) => loc.trim())
+      .filter((loc) => loc.toLowerCase() !== 'all');
+    return [...new Set(locations)];
   }, [events]);
 
   useEffect(() => {
@@ -47,7 +48,7 @@ const Location = ({ events = [], onSearch = () => {} }) => {
   };
 
   return (
-    <div className="location-search">
+    <div className={`location-search ${className}`.trim()}>
       <div className="location-search__input-wrap">
         <FiSearch className="location-search__icon" />
         <input
@@ -56,7 +57,7 @@ const Location = ({ events = [], onSearch = () => {} }) => {
           onChange={(e) => handleInputChange(e.target.value)}
           onFocus={() => searchTerm.length > 1 && setShowSuggestions(true)}
           onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-          placeholder="Search by location..."
+          placeholder={placeholder}
           className="location-search__input"
         />
         {searchTerm && (

@@ -6,12 +6,14 @@ import {
   FiDownload, FiSend, FiMessageSquare, FiLock, FiGlobe, FiEye, FiEyeOff
 } from 'react-icons/fi';
 import Footer from '../pages/footer.jsx';
-import { EVENTS as STATIC_EVENTS, LOCATION_OPTIONS } from './constants';
 import './Dashboard.css';
 import Location from '../components/featuresd/Location.jsx';
 import CategoryFilter from './category.jsx';
 import EventCarousel from './featuresd/features.jsx';
 import { messages } from './constants';
+
+// Fallback static events (empty by default; constants.js no longer exports EVENTS)
+const STATIC_EVENTS = [];
 import fallbackImage from '../assets/image8.jpg';
 import ManageEvent from './dashboardC/ManageEvent.jsx';
 import { apiClient } from '../utils/api';

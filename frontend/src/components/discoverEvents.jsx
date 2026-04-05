@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   FaSearch, 
@@ -11,7 +11,7 @@ import {
   FaTag,
   FaTimes
 } from 'react-icons/fa';
-import { EVENTS, EVENT_CATEGORIES } from './constants';
+import { EVENT_CATEGORIES, getEvents as fetchEvents } from './constants';
 import './discoverEvents.css';
 import Footer from '../pages/footer.jsx';
 import Header from '../pages/header.jsx';
@@ -19,6 +19,8 @@ const Discover = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [locationFilter, setLocationFilter] = useState('');
+  const [events, setEvents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   const formatDate = (dateString) => {
@@ -34,10 +36,24 @@ const Discover = () => {
     }).format(amount);
   };
 
-  // Get unique locations for suggestions
-  const uniqueLocations = [...new Set(EVENTS.map(event => event.location))];
+  useEffect(() => {
+    const loadEvents = async () => {
+      setIsLoading(true);
+      const loaded = await fetchEvents();
+      setEvents(loaded);
+      setIsLoading(false);
+    };
 
-  const filteredEvents = EVENTS.filter(event => {
+    loadEvents();
+  }, []);
+
+  // Get unique locations for suggestions
+  const uniqueLocations = useMemo(
+    () => [...new Set(events.map(event => event.location).filter(Boolean))],
+    [events]
+  );
+
+  const filteredEvents = events.filter(event => {
     const matchesSearch = 
       event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       event.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -71,7 +87,6 @@ const Discover = () => {
 
         <div className="discover-controls">
           <div className="search-container">
-            {/* <FaSearch className="search-icon" /> */}
             <input
               type="text"
               placeholder="Search events..."
@@ -83,7 +98,6 @@ const Discover = () => {
 
           <div className="location-filter-container">
             <div className="location-input-wrapper">
-              {/* <FaMapMarkerAlt className="location-icon" /> */}
               <input
                 type="text"
                 placeholder="Filter by location..."
@@ -99,8 +113,8 @@ const Discover = () => {
               )}
             </div>
             <datalist id="location-suggestions">
-              {uniqueLocations.map((location, index) => (
-                <option key={index} value={location} />
+              {uniqueLocations.map((location) => (
+                <option key={location} value={location} />
               ))}
             </datalist>
           </div>
@@ -119,10 +133,15 @@ const Discover = () => {
           </div>
         </div>
 
-        {filteredEvents.length > 0 ? (
+        {isLoading ? (
+          <div className="loading-container">
+            <div className="loading-spinner" />
+            <p>Loading events...</p>
+          </div>
+        ) : filteredEvents.length > 0 ? (
           <div className="events-grid">
             {filteredEvents.map(event => (
-              <div className="event-card" key={event.id}>
+              <div className="event-card" key={event._id || event.id}>
                 <div 
                   className="event-image-container"
                   style={{ backgroundImage: `url(${event.image})`}}

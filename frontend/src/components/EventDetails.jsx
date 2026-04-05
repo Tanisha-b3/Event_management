@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
   FiCalendar, 
@@ -16,7 +16,7 @@ import {
 } from 'react-icons/fi';
 
 import { Heart, Share2 } from "lucide-react";
-import { EVENTS } from './constants';
+import { getEvents as fetchEvents } from './constants';
 import './EventDetails.css';
 import Header from '../pages/header.jsx';
 import Footer from '../pages/footer.jsx';
@@ -32,8 +32,10 @@ const EventDetails = () => {
   const [isBooking, setIsBooking] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const [isLoading, setIsLoading] = useState(!state?.event);
+  const [loadError, setLoadError] = useState('');
 
-  const initialEvent = state?.event || EVENTS.find(e => e.id === parseInt(id) || e.id?.toString() === id) || {
+  const initialEvent = state?.event || {
     id,
     title: 'Event Not Found',
     date: 'N/A',
@@ -51,6 +53,46 @@ const EventDetails = () => {
   };
 
   const [eventDetail, setEventDetail] = useState(initialEvent);
+
+  // Load event details if not provided via navigation state
+  useEffect(() => {
+    if (state?.event) {
+      // Ensure id is normalized
+      setEventDetail({ ...state.event, id: state.event._id || state.event.id || id });
+      setIsLoading(false);
+      return;
+    }
+
+    const loadEvent = async () => {
+      setIsLoading(true);
+      setLoadError('');
+      try {
+        // Prefer the dedicated endpoint for a single event
+        const { data } = await apiClient.get(`/events/${id}`);
+        setEventDetail({ ...data, id: data._id || data.id || id });
+      } catch (err) {
+        try {
+          // Fallback: fetch list and pick by id
+          const all = await fetchEvents();
+          const found = all.find(
+            (e) => e._id === id || e.id === id || e.id?.toString() === id
+          );
+          if (found) {
+            setEventDetail({ ...found, id: found._id || found.id || id });
+          } else {
+            setLoadError('Event not found');
+          }
+        } catch (err2) {
+          console.error('Failed to load event details:', err2);
+          setLoadError('Unable to load event details right now.');
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadEvent();
+  }, [id, state]);
 
   const handleBookTicket = async () => {
     const token = localStorage.getItem('token');
@@ -147,6 +189,36 @@ const EventDetails = () => {
       alert('Link copied to clipboard!');
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="event-details-page">
+        <Header />
+        <div className="event-details-container" style={{ padding: '4rem 1.5rem', textAlign: 'center' }}>
+          <div className="loading-spinner" style={{ margin: '0 auto 1rem' }} />
+          <p>Loading event details...</p>
+          {loadError && <p style={{ color: 'var(--danger-600, #dc2626)' }}>{loadError}</p>}
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (loadError && eventDetail.title === 'Event Not Found') {
+    return (
+      <div className="event-details-page">
+        <Header />
+        <div className="event-details-container" style={{ padding: '4rem 1.5rem', textAlign: 'center' }}>
+          <h2>Event not found</h2>
+          <p>{loadError}</p>
+          <button className="back-button" onClick={() => navigate('/discover')}>
+            <FiArrowLeft /> Back to Discover
+          </button>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   if (bookingSuccess) {
     return (
