@@ -25,7 +25,9 @@ app.use(
   })
 );
 
-
+app.get('/', (req, res) => { 
+  res.send('EventPro API is running');
+  });
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
