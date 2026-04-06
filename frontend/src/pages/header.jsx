@@ -7,6 +7,7 @@ import {
 import './Header.css';
 import "../components/Dashboard.css";
 import { getUserRole } from '../utils/auth';
+import ThemeToggle from '../components/ThemeToggle';
 // import { X } from 'lucide-react';
 
 const Header = () => {
@@ -94,6 +95,7 @@ const Header = () => {
               </nav>
 
               <div className="user-controls">
+                <ThemeToggle />
                 <button 
                   className="user-avatar"
                   onClick={() => handleNavigation('/profile')}
@@ -143,6 +145,7 @@ const Header = () => {
           </>
         ) : (
           <div className="guest-actions">
+            <ThemeToggle />
             <button onClick={() => navigate('/login')}>Login</button>
             <button onClick={() => navigate('/register')}>Register</button>
           </div>

@@ -175,6 +175,61 @@
   --z-modal: 500;
   --z-popover: 600;
   --z-tooltip: 700;
+
+  /* Theme Colors (Light Mode - Default) */
+  --bg-primary: var(--neutral-50);
+  --bg-secondary: #ffffff;
+  --bg-tertiary: var(--neutral-100);
+  --bg-card: #ffffff;
+  --bg-input: #ffffff;
+  --bg-hover: var(--neutral-100);
+  
+  --text-primary: var(--neutral-900);
+  --text-secondary: var(--neutral-600);
+  --text-tertiary: var(--neutral-400);
+  --text-inverse: #ffffff;
+  
+  --border-primary: var(--neutral-200);
+  --border-secondary: var(--neutral-300);
+  --border-focus: var(--primary-500);
+  
+  --shadow-card: var(--shadow-md);
+  --shadow-card-hover: var(--shadow-xl);
+}
+
+/* ===================================
+   DARK MODE THEME
+   =================================== */
+[data-theme="dark"] {
+  /* Background Colors */
+  --bg-primary: var(--neutral-950);
+  --bg-secondary: var(--neutral-900);
+  --bg-tertiary: var(--neutral-800);
+  --bg-card: var(--neutral-900);
+  --bg-input: var(--neutral-800);
+  --bg-hover: var(--neutral-800);
+  
+  /* Text Colors */
+  --text-primary: var(--neutral-50);
+  --text-secondary: var(--neutral-300);
+  --text-tertiary: var(--neutral-500);
+  --text-inverse: var(--neutral-900);
+  
+  /* Border Colors */
+  --border-primary: var(--neutral-700);
+  --border-secondary: var(--neutral-600);
+  --border-focus: var(--primary-400);
+  
+  /* Shadows for dark mode */
+  --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --shadow-card-hover: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.4);
+  
+  /* Glass Effects for dark mode */
+  --glass-bg: rgba(15, 23, 42, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  
+  /* Adjusted gradients for dark mode */
+  --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
 }
 
 /* ===================================
@@ -204,9 +259,10 @@ body {
   font-family: var(--font-sans);
   font-size: var(--text-base);
   line-height: var(--leading-normal);
-  color: var(--neutral-800);
-  background-color: var(--neutral-50);
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
   overflow-x: hidden;
+  transition: background-color var(--transition-slow), color var(--transition-slow);
 }
 
 #root {
@@ -222,7 +278,7 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
   font-weight: 700;
   line-height: var(--leading-tight);
-  color: var(--neutral-900);
+  color: var(--text-primary);
 }
 
 h1 { font-size: var(--text-4xl); }
@@ -233,7 +289,7 @@ h5 { font-size: var(--text-lg); }
 h6 { font-size: var(--text-base); }
 
 p {
-  color: var(--neutral-600);
+  color: var(--text-secondary);
   line-height: var(--leading-relaxed);
 }
 
@@ -253,23 +309,24 @@ a:hover {
 input, textarea, select {
   font-family: var(--font-sans);
   font-size: var(--text-base);
-  color: var(--neutral-800);
+  color: var(--text-primary);
   width: 100%;
   padding: var(--space-3) var(--space-4);
-  border: 2px solid var(--neutral-200);
+  border: 2px solid var(--border-primary);
   border-radius: var(--radius-lg);
-  background-color: white;
+  background-color: var(--bg-input);
   transition: all var(--transition-base);
   outline: none;
 }
 
 input:focus, textarea:focus, select:focus {
-  border-color: var(--primary-500);
+  border-color: var(--border-focus);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  background-color: var(--bg-input);
 }
 
 input::placeholder, textarea::placeholder {
-  color: var(--neutral-400);
+  color: var(--text-tertiary);
   font-size: var(--text-sm);
 }
 
@@ -277,7 +334,7 @@ label {
   display: block;
   font-size: var(--text-sm);
   font-weight: 600;
-  color: var(--neutral-700);
+  color: var(--text-secondary);
   margin-bottom: var(--space-2);
 }
 
@@ -380,16 +437,17 @@ button:disabled {
    CARDS
    =================================== */
 .card {
-  background: white;
+  background: var(--bg-card);
   border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
   transition: all var(--transition-slow);
+  border: 1px solid var(--border-primary);
 }
 
 .card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-xl);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .card-glass {

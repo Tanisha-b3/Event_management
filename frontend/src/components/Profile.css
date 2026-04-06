@@ -7,7 +7,8 @@
   padding: var(--space-8) var(--space-6);
   min-height: calc(100vh - 120px);
   animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  background: #f8fafc;
+  background: var(--bg-primary);
+  transition: background var(--transition-slow);
 }
 
 .profile-header-section {
@@ -34,12 +35,13 @@
 }
 
 .profile-content {
-  background: #ffffff;
+  background: var(--bg-card);
   border-radius: var(--radius-2xl);
-  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.12);
+  box-shadow: var(--shadow-xl);
   overflow: hidden;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--border-primary);
   animation: scaleIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
+  transition: background var(--transition-slow), border-color var(--transition-slow);
 }
 
 .profile-card {
@@ -50,7 +52,7 @@
 .avatar-section {
   padding: var(--space-10) var(--space-8);
   text-align: center;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: var(--gradient-primary);
   position: relative;
   overflow: hidden;
 }
@@ -79,13 +81,13 @@
   border-radius: 50%;
   object-fit: cover;
   border: 4px solid #fff;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.25);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: var(--shadow-xl);
+  transition: transform var(--transition-slow), box-shadow var(--transition-slow);
 }
 
 .avatar-image:hover {
   transform: scale(1.05);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-2xl);
 }
 
 .google-badge {
@@ -109,11 +111,11 @@
   font-size: var(--text-3xl);
   font-weight: 700;
   margin: var(--space-3) 0;
-  color: #0f172a;
+  color: white;
 }
 
 .user-bio {
-  color: #1f2937;
+  color: rgba(255, 255, 255, 0.9);
   max-width: 500px;
   margin: 0 auto;
   font-size: var(--text-base);
@@ -122,15 +124,16 @@
 
 .details-section {
   padding: var(--space-8);
+  background: var(--bg-card);
 }
 
 .detail-group {
   margin-bottom: var(--space-8);
   padding: var(--space-6);
-  background: var(--gradient-glass);
+  background: var(--bg-tertiary);
   border-radius: var(--radius-xl);
-  border: 1px solid var(--neutral-200);
-  transition: all 0.3s ease;
+  border: 1px solid var(--border-primary);
+  transition: all var(--transition-slow);
 }
 
 .detail-group:hover {
@@ -139,13 +142,21 @@
   border-color: var(--primary-300);
 }
 
+[data-theme="dark"] .detail-group:hover {
+  border-color: var(--primary-700);
+}
+
 .detail-group h3 {
   font-size: var(--text-xl);
   font-weight: 600;
-  color: var(--primary-700);
+  color: var(--primary-600);
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #ecf0f1;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+[data-theme="dark"] .detail-group h3 {
+  color: var(--primary-400);
 }
 
 .profile-field {
@@ -155,30 +166,32 @@
 .profile-field label {
   display: block;
   font-weight: 500;
-  color: #7f8c8d;
+  color: var(--text-tertiary);
   margin-bottom: 0.3rem;
 }
 
 .profile-field .field-value {
   padding: 0.5rem;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .profile-field input,
 .profile-field textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
   font-size: 1rem;
-  transition: border-color 0.3s;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
 }
 
 .profile-field input:focus,
 .profile-field textarea:focus {
   outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
 }
 
 .profile-field textarea {
@@ -203,10 +216,10 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-base);
   border: none;
 }
 
@@ -215,39 +228,40 @@
 }
 
 .logout-btn {
-  background-color: #e74c3c;
+  background: var(--gradient-accent);
   color: white;
 }
 
 .logout-btn:hover {
-  background-color: #c0392b;
+  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
 }
 
 .edit-btn {
-  background-color: #3498db;
+  background: var(--gradient-primary);
   color: white;
 }
 
 .edit-btn:hover {
-  background-color: #2980b9;
+  box-shadow: var(--shadow-glow);
 }
 
 .save-btn {
-  background-color: #2ecc71;
+  background: linear-gradient(135deg, var(--success-400) 0%, var(--success-600) 100%);
   color: white;
 }
 
 .save-btn:hover {
-  background-color: #27ae60;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .cancel-btn {
-  background-color: #95a5a6;
-  color: white;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-primary);
 }
 
 .cancel-btn:hover {
-  background-color: #7f8c8d;
+  background: var(--bg-hover);
 }
 
 .loading {
@@ -259,9 +273,9 @@
 }
 
 .loading-spinner {
-  border: 4px solid rgba(0, 0, 0, 0.1);
+  border: 4px solid var(--border-primary);
   border-radius: 50%;
-  border-top: 4px solid #3498db;
+  border-top: 4px solid var(--primary-500);
   width: 40px;
   height: 40px;
   animation: spin 1s linear infinite;
@@ -274,22 +288,23 @@
 }
 
 .error-message {
-  color: #e74c3c;
+  color: var(--error-500);
   margin-bottom: 1rem;
 }
 
 .retry-btn {
-  background-color: #3498db;
+  background: var(--gradient-primary);
   color: white;
 }
 
 .no-data {
   text-align: center;
   padding: 2rem;
+  color: var(--text-secondary);
 }
 
 .login-btn {
-  background-color: #3498db;
+  background: var(--gradient-primary);
   color: white;
   margin-top: 1rem;
 }

@@ -396,7 +396,7 @@ const renderEventsTab = () => (
                   
                 </div>
                 </div>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                {/* &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; */}
                 <Location 
                   className='search-location'
                   onSearch={setLocationSearchTerm}

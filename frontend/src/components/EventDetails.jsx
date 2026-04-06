@@ -8,20 +8,15 @@ import {
   FiArrowLeft, 
   FiCheck, 
   FiUsers,
-  FiPlus,
-  FiMinus,
-  FiShare2,
-  FiHeart,
-  FiShare
 } from 'react-icons/fi';
 
-import { Heart, Share2 } from "lucide-react";
+// import { Heart, Share2 } from "lucide-react";
 import { getEvents as fetchEvents } from './constants';
 import './EventDetails.css';
 import Header from '../pages/header.jsx';
 import Footer from '../pages/footer.jsx';
 import image2 from '../assets/image4.jpg'
-import { FaGrinHearts, FaSlideshare } from 'react-icons/fa';
+// import { FaGrinHearts, FaSlideshare } from 'react-icons/fa';
 import { apiClient } from '../utils/api';
 
 const EventDetails = () => {
