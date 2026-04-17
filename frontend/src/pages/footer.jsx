@@ -3,36 +3,44 @@ import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from 'react-icons/fa';
 import './Footer.css';
 
 const Footer = () => {
+  const year = new Date().getFullYear();
   return (
-    <footer className="site-footer">
-      <div className="footer-container">
-        {/* Compact Footer Content */}
-        <div className="footer-grid">
-          {/* Company Info and Social */}
-          <div className="footer-col">
-            <h3 className="footer-heading">EventPro</h3>
-            <div className="social-links">
-              <a href="https://facebook.com" aria-label="Facebook"><FaFacebook /></a>
-              <a href="https://twitter.com" aria-label="Twitter"><FaTwitter /></a>
-              <a href="https://instagram.com" aria-label="Instagram"><FaInstagram /></a>
-              <a href="https://linkedin.com" aria-label="LinkedIn"><FaLinkedin /></a>
-            </div>
-          </div>
-
-          {/* Minimal Links */}
-          <div className="footer-col">
-            <ul className="footer-links">
-              <li><a href="/about">About</a></li>
-              <li><a href="/events">Events</a></li>
-              <li><a href="/contact">Contact</a></li>
-            </ul>
-          </div>
-        </div>
-
-        {/* Compact Copyright Section */}
-
-      </div>
-    </footer>
+   <footer className="landing-footer">
+           <div className="footer-content">
+             <div className="footer-brand-k">
+               <div className="footer-logo">
+                 <span className="logo-icon">EP</span>
+                 <span className="logo-text">EventPro</span>
+               </div>
+               <p>Your gateway to amazing events</p>
+               <div className="footer-social">
+                 <a href="#"><FaInstagram /></a>
+                 <a href="#"><FaTwitter /></a>
+                 <a href="#"><FaFacebook /></a>
+                 <a href="#"><FaLinkedin /></a>
+               </div>
+             </div>
+             <div className="footer-links">
+               <div>
+                 <h4>Platform</h4>
+                 <a href="#">About</a>
+                 <a href="#">Careers</a>
+                 <a href="#">Press</a>
+                 <a href="#">Blog</a>
+               </div>
+               <div>
+                 <h4>Support</h4>
+                 <a href="#">Help Center</a>
+                 <a href="#">Contact</a>
+                 <a href="#">Privacy</a>
+                 <a href="#">Terms</a>
+               </div>
+             </div>
+           </div>
+           <div className="footer-bottom">
+             <p>&copy; 2026 EventPro. All rights reserved.</p>
+           </div>
+         </footer>
   );
 };
 

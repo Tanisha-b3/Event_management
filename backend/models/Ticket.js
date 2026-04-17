@@ -12,8 +12,10 @@ const ticketSchema = new mongoose.Schema({
   ticketType: { type: String, required: true },
   quantity: { type: Number, required: true, min: 1 },
   price: { type: Number, required: true, min: 0 },
-  isCancelled: { type: Boolean, default: false },
+isCancelled: { type: Boolean, default: false },
   cancelledAt: { type: Date },
+  reminderSent: { type: Boolean, default: false },
+  reminderSentAt: { type: Date },
   createdAt: { type: Date, default: Date.now }
 });
 

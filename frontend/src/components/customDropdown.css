@@ -1,0 +1,72 @@
+/* CustomDropdown - Light & Dark Mode Styles */
+
+:root {
+  --dropdown-bg-light: #fff;
+  --dropdown-bg-dark: #18181b;
+  --dropdown-border-light: #d1d5db;
+  --dropdown-border-dark: #27272a;
+  --dropdown-hover-light: #f3f4f6;
+  --dropdown-hover-dark: #23232b;
+  --dropdown-text-light: #1f2937;
+  --dropdown-text-dark: #f3f4f6;
+  --dropdown-placeholder-light: #9ca3af;
+  --dropdown-placeholder-dark: #71717a;
+  --dropdown-shadow-light: 0 10px 40px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06);
+  --dropdown-shadow-dark: 0 10px 40px rgba(0,0,0,0.32), 0 4px 8px rgba(0,0,0,0.18);
+}
+
+[data-theme="dark"] .custom-dropdown,
+.custom-dropdown.dark {
+  --dropdown-bg: var(--dropdown-bg-dark);
+  --dropdown-border: var(--dropdown-border-dark);
+  --dropdown-hover: var(--dropdown-hover-dark);
+  --dropdown-text: var(--dropdown-text-dark);
+  --dropdown-placeholder: var(--dropdown-placeholder-dark);
+  --dropdown-shadow: var(--dropdown-shadow-dark);
+}
+
+.custom-dropdown {
+  --dropdown-bg: var(--dropdown-bg-light);
+  --dropdown-border: var(--dropdown-border-light);
+  --dropdown-hover: var(--dropdown-hover-light);
+  --dropdown-text: var(--dropdown-text-light);
+  --dropdown-placeholder: var(--dropdown-placeholder-light);
+  --dropdown-shadow: var(--dropdown-shadow-light);
+}
+
+.custom-dropdown-trigger {
+  background: var(--dropdown-bg);
+  color: var(--dropdown-text);
+  border: 1px solid var(--dropdown-border);
+  box-shadow: var(--dropdown-shadow);
+  transition: background 0.2s, color 0.2s, border 0.2s;
+}
+
+.custom-dropdown-trigger[aria-expanded="true"] {
+  border-color: #4f46e5;
+}
+
+.custom-dropdown-menu {
+  background: var(--dropdown-bg);
+  color: var(--dropdown-text);
+  border: 1px solid var(--dropdown-border);
+  box-shadow: var(--dropdown-shadow);
+}
+
+.custom-dropdown-option {
+  background: transparent;
+  color: var(--dropdown-text);
+  transition: background 0.15s;
+}
+.custom-dropdown-option[aria-selected="true"],
+.custom-dropdown-option:hover:not([aria-disabled="true"]) {
+  background: var(--dropdown-hover);
+}
+.custom-dropdown-option[aria-disabled="true"] {
+  color: var(--dropdown-placeholder);
+  cursor: not-allowed;
+}
+
+.custom-dropdown-placeholder {
+  color: var(--dropdown-placeholder);
+}

@@ -1,4 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { getUserRole } from '../../utils/auth';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+  // Get user role (admin/organiser/booker)
+
 import {
   FiUsers,
   FiDollarSign,
@@ -17,6 +26,7 @@ import EventSettingsForm from './EventSettingsForm'; // adjust path if needed
 import { apiClient } from '../../utils/api';
 import './ManageEvent.css';
 import { toast } from 'react-toastify';
+import CustomDropdown from '../customDropdown.jsx';
 
 const ManageEvent = ({
   selectedEvent,
@@ -52,6 +62,45 @@ const ManageEvent = ({
   const [ticketsData, setTicketsData] = useState([]);
   const [derivedTicketTypes, setDerivedTicketTypes] = useState(ticketTypes || []);
   const [attendeesError, setAttendeesError] = useState('');
+
+    const role = getUserRole();
+
+  // Cancel dialog state for admin/organiser
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancellingTicket, setCancellingTicket] = useState(null);
+  const [cancelLoading, setCancelLoading] = useState(false);
+
+  const handleOpenCancelDialog = (ticket) => {
+    setCancellingTicket(ticket);
+    setCancelReason('');
+    setCancelDialogOpen(true);
+  };
+
+  const handleCloseCancelDialog = () => {
+    setCancelDialogOpen(false);
+    setCancellingTicket(null);
+    setCancelReason('');
+  };
+
+  const handleCancelTicket = async () => {
+    setCancelLoading(true);
+    try {
+      await apiClient.delete(`/tickets/admin/${cancellingTicket._id || cancellingTicket.id}`,
+        { data: { reason: cancelReason } });
+      toast.success('Ticket cancelled and user notified');
+      handleCloseCancelDialog();
+      // Refresh tickets/attendees
+      if (selectedEvent) {
+        const { data } = await apiClient.get(`/events/${selectedEvent.id}/attendees`);
+        setTicketsData(data?.attendees || []);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to cancel ticket');
+    } finally {
+      setCancelLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!selectedEvent) return;
@@ -109,9 +158,6 @@ const ManageEvent = ({
   const revenueDisplay = revenueComputed || totalRevenue || selectedEvent?.revenue || 0;
   const attendancePct = capacity > 0 ? Math.min((attendanceCount / capacity) * 100, 100) : 0;
 
-  const ticketTypesForDisplay = useMemo(() => {
-    return derivedTicketTypes.length ? derivedTicketTypes : (ticketTypes || []);
-  }, [derivedTicketTypes, ticketTypes]);
 
   const totalRevenueDisplay = revenueDisplay;
   const totalTicketsSoldDisplay = inferredTicketsSold;
@@ -250,7 +296,7 @@ const ManageEvent = ({
               <button className="btn-action" onClick={() => setActiveTab('settings')}>
                 <FiEdit className="icon" /> Edit Event Details
               </button>
-              <button className="btn-action">
+              <button className="btn-action" onClick={() => setActiveTab('sales')}>
                 <FiBarChart2 className="icon" /> View Analytics
               </button>
             </div>
@@ -262,7 +308,7 @@ const ManageEvent = ({
               <h3>Attendee List</h3>
               {attendeesError && <p className="muted">{attendeesError}</p>}
               <div className="search-controls">
-                <div className="search-container">
+                {/* <div className="search-container"> */}
                   <input
                   type="text"
                   placeholder="Search attendees..."
@@ -270,7 +316,7 @@ const ManageEvent = ({
                   value={attendeeSearch}
                   onChange={(e) => setAttendeeSearch(e.target.value)}
                 />
-              </div>
+              {/* </div> */}
             </div>
 
               <div className="attendee-table">
@@ -302,7 +348,7 @@ const ManageEvent = ({
                        {attendee.status}
                      </span>
                    </div>
-                   <div className="row-item">
+                   <div className="row-item" style={{ display: 'flex', gap: 8 }}>
                      <button
                        className="btn-small"
                        onClick={() => {
@@ -312,9 +358,51 @@ const ManageEvent = ({
                      >
                        <FiMessageSquare className="icon" /> Message
                      </button>
+                     {(role === 'admin' || role === 'organiser') && (
+                       <button
+                         className="btn-small"
+                         style={{ color: '#ef4444', borderColor: '#ef4444' }}
+                         onClick={() => handleOpenCancelDialog(attendee)}
+                         disabled={attendee.status.toLowerCase() === 'cancelled'}
+                       >
+                         Cancel
+                       </button>
+                     )}
                    </div>
                  </div>
                ))}
+                  {/* Cancel Ticket Dialog */}
+                  <Dialog
+                    open={cancelDialogOpen}
+                    onClose={handleCloseCancelDialog}
+                    className="admin-book-dialog"
+                    PaperProps={{ className: 'admin-book-dialog' }}
+                  >
+                    <DialogTitle>Cancel Ticket</DialogTitle>
+                    <DialogContent>
+                      <TextField
+                        label="Reason for cancellation"
+                        value={cancelReason}
+                        onChange={e => setCancelReason(e.target.value)}
+                        fullWidth
+                        multiline
+                        minRows={2}
+                        autoFocus
+                        margin="dense"
+                      />
+                    </DialogContent>
+                    <DialogActions>
+                      <Button onClick={handleCloseCancelDialog} disabled={cancelLoading}>Close</Button>
+                      <Button
+                        onClick={handleCancelTicket}
+                        color="error"
+                        variant="contained"
+                        disabled={!cancelReason.trim() || cancelLoading}
+                      >
+                        {cancelLoading ? 'Cancelling...' : 'Cancel Ticket'}
+                      </Button>
+                    </DialogActions>
+                  </Dialog>
              </div>
            </div>
         )}
@@ -339,49 +427,7 @@ const ManageEvent = ({
               </div>
             </div>
 
-            <div className="sales-chart">
-              <h4>Sales Over Time</h4>
-              <div className="chart-container">
-                 {salesDataComputed.length === 0 && (
-                   <div className="chart-label">No sales data yet.</div>
-                 )}
-                 {salesDataComputed.map((day, index) => (
-                   <div key={index} className="chart-bar-container">
-                     <div
-                       className="chart-bar"
-                       style={{ height: `${Math.min((day.tickets / maxTicketsForChart) * 100, 100)}%` }}
-                       title={`${day.date}: ${day.tickets} tickets (${formatCurrency(
-                         day.revenue
-                       )})`}
-                     ></div>
-                     <div className="chart-label">{day.date.slice(5)}</div>
-                   </div>
-                 ))}
-               </div>
-            </div>
-            <div className="ticket-types">
-              <h4>Ticket Types</h4>
-              {ticketTypesForDisplay.length === 0 && (
-                <div className="ticket-card">No ticket types available.</div>
-              )}
-              {ticketTypesForDisplay.map((ticket, index) => (
-                <div className="ticket-card" key={index}>
-                  <div className="ticket-info">
-                    <h5>{ticket.type}</h5>
-                    <p>{formatCurrency(ticket.price)} per ticket</p>
-                  </div>
-                  <div className="ticket-stats">
-                    <div>Sold: {ticket.sold}/{ticket.total}</div>
-                    <div className="progress-bar">
-                      <div
-                        className="progress-fill"
-                        style={{ width: `${ticket.total ? Math.min((ticket.sold / ticket.total) * 100, 100) : 0}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+           
           </div>
         )}
 
@@ -418,15 +464,17 @@ const ManageEvent = ({
                 rows="6"
               ></textarea>
               <div className="message-options">
-                <select
-                  className="recipient-select"
+                <CustomDropdown
                   value={recipientType}
-                  onChange={(e) => setRecipientType(e.target.value)}
-                >
-                  <option value="all">All Attendees</option>
-                  <option value="checked-in">Checked In</option>
-                  <option value="not-checked-in">Not Checked In</option>
-                </select>
+                  onChange={(val) => setRecipientType(val)}
+                  options={[
+                    { value: 'all', label: 'All Attendees' },
+                    { value: 'checked-in', label: 'Checked In' },
+                    { value: 'not-checked-in', label: 'Not Checked In' },
+                  ]}
+                  placeholder="Select recipients"
+                  size="sm"
+                />
                 <button
                   className="btn-primary"
                   onClick={handleSendMessage}

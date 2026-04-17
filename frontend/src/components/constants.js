@@ -1,17 +1,31 @@
 import { apiClient } from '../utils/api';
 
-// ✅ Fetch function
-export const getEvents = async () => {
+// Fetch events with pagination
+export const getEvents = async (page = 1, limit = 12, myEvents = false, category = null, search = null, location = null, filterType = 'all') => {
+  console.log('getEvents called - page:', page, 'limit:', limit, 'myEvents:', myEvents, 'category:', category, 'filterType:', filterType);
   try {
-    const { data } = await apiClient.get('/events');
-
-    return data.map((event) => ({
-      ...event,
-      id: event._id || event.id,
-    }));
+    const params = { page, limit, myEvents };
+    if (category && category !== 'all') params.category = category;
+    if (search) params.search = search;
+    if (location && location !== 'all') params.location = location;
+    if (filterType && filterType !== 'all') params.filterType = filterType;
+    
+    const { data } = await apiClient.get('/events', { params });
+    console.log('getEvents response - events count:', data.events?.length);
+    // data: { events, pagination }
+    return {
+      events: (data.events || []).map(event => ({
+        ...event,
+        id: event._id || event.id,
+      })),
+      pagination: data.pagination || { page, limit, total: 0, pages: 1 }
+    };
   } catch (err) {
     console.error('Failed to load events from API:', err);
-    return [];
+    return {
+      events: [],
+      pagination: { page, limit, total: 0, pages: 1 }
+    };
   }
 };
 
@@ -42,3 +56,32 @@ export const tickets = [
 export const messages = [ 
   { id: 1, title: 'Event Reminder', content: 'Dear attendee,\n\nThis is a reminder about our upcoming event...' }, 
   { id: 2, title: 'Thank You', content: 'Dear attendee,\n\nThank you for attending our event...' }, { id: 3, title: 'Feedback Request', content: 'Dear attendee,\n\nWe would love your feedback about...' } ];
+
+// Fetch pending events for admin approval
+export const getPendingEvents = async (page = 1, limit = 10) => {
+  try {
+    const { data } = await apiClient.get('/events/pending', { params: { page, limit } });
+    return {
+      events: (data.events || []).map(event => ({
+        ...event,
+        id: event._id || event.id,
+      })),
+      pagination: data.pagination || { page, limit, total: 0, pages: 1 }
+    };
+  } catch (err) {
+    console.error('Failed to load pending events:', err);
+    return { events: [], pagination: { page, limit, total: 0, pages: 1 } };
+  }
+};
+
+// Approve an event
+export const approveEvent = async (eventId) => {
+  const { data } = await apiClient.put(`/events/${eventId}/approve`);
+  return data;
+};
+
+// Reject an event
+export const rejectEvent = async (eventId, reason) => {
+  const { data } = await apiClient.put(`/events/${eventId}/reject`, { rejectionReason: reason });
+  return data;
+};

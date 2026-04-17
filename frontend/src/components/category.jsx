@@ -10,35 +10,44 @@ import {
   FaUtensils,
   FaMicrochip,
   FaGlobeAmericas,
-  FaUsers 
+  FaUsers,
+  FaTheaterMasks,
+  FaGraduationCap,
+  FaShoppingBag
 } from 'react-icons/fa';
 import './category.css';
 
 const CategoryFilter = ({ activeCategory, setActiveCategory }) => {
   const categories = [
-    { id: 'all', label: 'All', icon: <FaGlobeAmericas /> },
-    { id: 'music', label: 'Music', icon: <FaMusic /> },
-    { id: 'conference', label: 'Conference', icon: <FaUsers /> },
+    { id: 'all', label: 'All Events', icon: <FaGlobeAmericas /> },
+    { id: 'Music', label: 'Music', icon: <FaMusic /> },
+    { id: 'Conference', label: 'Conference', icon: <FaUsers /> },
     { id: 'Entertainment', label: 'Entertainment', icon: <FaPalette /> },
-    { id: 'holidays', label: 'Holidays', icon: <FaCalendarAlt /> },
-    { id: 'dating', label: 'Dating', icon: <FaHeart /> },
+    { id: 'Holiday', label: 'Holidays', icon: <FaCalendarAlt /> },
+    { id: 'Meetup', label: 'Dating', icon: <FaHeart /> },
     { id: 'Sports', label: 'Sports', icon: <FaGamepad /> },
-    { id: 'business', label: 'Business', icon: <FaBriefcase /> },
+    { id: 'Business', label: 'Business', icon: <FaBriefcase /> },
     { id: 'Food', label: 'Food & Drink', icon: <FaUtensils /> },
-    { id: 'technology', label: 'Technology', icon: <FaMicrochip /> }
+    { id: 'Technology', label: 'Technology', icon: <FaMicrochip /> },
+    { id: 'Festival', label: 'Festival', icon: <FaTheaterMasks /> },
+    { id: 'Education', label: 'Education', icon: <FaGraduationCap /> },
+    { id: 'Art', label: 'Art', icon: <FaPalette /> },
+    { id: 'Workshop', label: 'Workshop', icon: <FaMicrochip /> },
   ];
 
   return (
-    <div className="category-filter-container">
-      <div className="category-scroll-wrapper">
+    <div className="category-filter-container-k">
+      <div className="category-scroll-wrapper-k">
         {categories.map((category) => (
           <button
             key={category.id}
-            className={`category-btn ${activeCategory === category.id ? 'active' : ''}`}
+            className={`category-btn-k ${activeCategory === category.id ? 'active' : ''}`}
             onClick={() => setActiveCategory(category.id)}
+            aria-label={`Filter by ${category.label}`}
+            title={`Show ${category.label} events`}
           >
-            <div className="category-icon">{category.icon}</div>
-            <span className="category-label">{category.label}</span>
+            <div className="category-icon-k">{category.icon}</div>
+            <span className="category-label-k">{category.label}</span>
           </button>
         ))}
       </div>

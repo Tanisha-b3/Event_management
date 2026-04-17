@@ -69,4 +69,4 @@ const authorizeRoles = (...roles) => (req, res, next) => {
   return next();
 };
 
-module.exports = { auth, authorizeRoles };
+module.exports = { auth, authorizeRoles, protect: auth };

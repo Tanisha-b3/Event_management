@@ -3,6 +3,7 @@ import { FiGlobe, FiLock, FiEdit, FiTrash2 } from 'react-icons/fi';
 import { apiClient } from '../../utils/api';
 import { getUserRole } from '../../utils/auth';
 import { toast } from 'react-toastify';
+import CustomDropdown from '../customDropdown.jsx';
 import './EventSettingsForm.css';
 
 const EventSettingsForm = ({
@@ -27,7 +28,8 @@ const EventSettingsForm = ({
     title: selectedEvent.title || '',
     date: toDateTimeLocal(selectedEvent.date),
     location: selectedEvent.location || '',
-    description: selectedEvent.description || ''
+    description: selectedEvent.description || '',
+    category: selectedEvent.category || '',
   });
 
   useEffect(() => {
@@ -35,7 +37,8 @@ const EventSettingsForm = ({
       title: selectedEvent.title || '',
       date: toDateTimeLocal(selectedEvent.date),
       location: selectedEvent.location || '',
-      description: selectedEvent.description || ''
+      description: selectedEvent.description || '',
+      category: selectedEvent.category || '',
     });
   }, [selectedEvent]);
 
@@ -52,6 +55,7 @@ const EventSettingsForm = ({
       date: normalizedDate,
       location: formData.location,
       description: formData.description,
+      category: formData.category || selectedEvent.category,
       privacy: selectedEvent.privacy,
       ticketTypes
     };
@@ -111,6 +115,34 @@ const EventSettingsForm = ({
             onChange={(e) => updateField('description', e.target.value)}
             disabled={!canEdit}
           ></textarea>
+        </div>
+
+        <div className="form-group">
+          <label>Category</label>
+          <CustomDropdown
+            value={formData.category}
+            onChange={(val) => updateField('category', val)}
+            options={[
+              { value: 'Technology', label: 'Technology' },
+              { value: 'Music', label: 'Music' },
+              { value: 'Food', label: 'Food' },
+              { value: 'Business', label: 'Business' },
+              { value: 'Holiday', label: 'Holiday' },
+              { value: 'Sports', label: 'Sports' },
+              { value: 'Conference', label: 'Conference' },
+              { value: 'Workshop', label: 'Workshop' },
+              { value: 'Meetup', label: 'Meetup' },
+              { value: 'Festival', label: 'Festival' },
+              { value: 'Education', label: 'Education' },
+              { value: 'Art', label: 'Art' },
+              { value: 'Health', label: 'Health' },
+              { value: 'Gaming', label: 'Gaming' },
+              { value: 'Literature', label: 'Literature' },
+              { value: 'Fundraiser', label: 'Fundraiser' },
+            ]}
+            placeholder="Select a category"
+            disabled={!canEdit}
+          />
         </div>
         
         <div className="form-group">

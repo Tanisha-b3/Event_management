@@ -1,193 +1,265 @@
-/* ===================================
-   FEATURES - Modern Carousel Design
-   =================================== */
+/* features.css - Add these styles to your existing CSS */
 
+/* Carousel Dots */
+.carousel-dots {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+}
+
+.carousel-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.5);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+.carousel-dot:hover {
+  background-color: rgba(255, 255, 255, 0.8);
+  transform: scale(1.2);
+}
+
+.carousel-dot.active {
+  background-color: #ffffff;
+  width: 24px;
+  border-radius: 5px;
+}
+
+/* Ensure carousel wrapper has relative positioning */
 .carousel-wrapper {
   position: relative;
+  width: 100%;
+  max-height: 500px;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+/* Navigation buttons */
+.carousel-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  margin: var(--space-6) auto;
-  padding: 0 var(--space-4);
 }
 
+.carousel-nav-btn:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-nav-btn.prev {
+  left: 10px;
+}
+
+.carousel-nav-btn.next {
+  right: 10px;
+}
+
+/* Viewport and track */
 .carousel-viewport {
-  overflow: hidden;
   width: 100%;
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-xl);
-  background: var(--gradient-glass);
-  backdrop-filter: blur(12px);
+  overflow: hidden;
+  position: relative;
 }
 
 .carousel-track {
   display: flex;
-  transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.5s ease-in-out;
 }
 
 .carousel-slide {
   flex: 0 0 100%;
   position: relative;
+  height: 400px;
 }
 
 .carousel-slide img {
   width: 100%;
-  height: 400px;
+  height: 100%;
   object-fit: cover;
-  display: block;
-  border-radius: var(--radius-xl);
-  transition: transform 0.4s ease, filter 0.4s ease;
 }
 
-.carousel-slide img:hover {
-  transform: scale(1.02);
-  filter: brightness(1.1);
-}
-
-.carousel-nav-btn,
-.nav-btn3,
-.nav-btn1 {
+/* Text overlay */
+.text-overlay-k {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  font-size: 1.8rem;
-  color: var(--primary-600);
-  cursor: pointer;
-  box-shadow: var(--shadow-lg);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.carousel-nav-btn:hover,
-.nav-btn3:hover,
-.nav-btn1:hover {
-  background: var(--primary-600);
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
   color: white;
-  transform: translateY(-50%) scale(1.1);
-  box-shadow: var(--shadow-colored);
 }
 
-.carousel-nav-btn.prev,
-.nav-btn3 {
-  left: -20px;
-}
-
-.carousel-nav-btn.next,
-.nav-btn1 {
-  right: -20px;
-}
-
-/* Text Overlay */
-.text-overlay {
-  position: absolute;
-  bottom: var(--space-6);
-  left: var(--space-6);
-  right: var(--space-6);
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(12px);
+.text-overlay-k h2 {
   color: white;
-  padding: var(--space-6);
-  border-radius: var(--radius-lg);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  animation: slideUp 0.6s ease-out;
+  margin: 0 0 8px 0;
+  font-size: 1.5rem;
+  font-weight: 600;
 }
 
-.text-overlay h2 {
-  margin: 0 0 var(--space-2) 0;
-  font-size: var(--text-2xl);
-  font-weight: 700;
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.text-overlay p {
+.text-overlay-k p {
   margin: 0;
-  font-size: var(--text-base);
-  color: rgba(255, 255, 255, 0.9);
-  line-height: 1.6;
+  font-size: 0.9rem;
+  opacity: 0.9;
+  color: white;
 }
 
-/* Responsive */
+/* Responsive styles */
+@media (max-width: 1024px) {
+  .carousel-wrapper {
+    max-height: 350px;
+  }
+  
+  .carousel-slide {
+    height: 350px;
+  }
+}
+
 @media (max-width: 768px) {
-  .carousel-slide img {
-    height: 280px;
-  }
-
   .carousel-nav-btn {
-    width: 42px;
-    height: 42px;
-    font-size: 1.5rem;
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
   }
-
-  .carousel-nav-btn.prev {
-    left: -15px;
+  
+  .text-overlay-k h2 {
+    font-size: 1.2rem;
   }
-
-  .carousel-nav-btn.next {
-    right: -15px;
+  
+  .text-overlay-k p {
+    font-size: 0.8rem;
   }
+  
+  .carousel-dots {
+    bottom: 10px;
+  }
+  
+  .carousel-dot {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .carousel-dot.active {
+    width: 20px;
+  }
+  
+  .carousel-wrapper {
+    max-height: 300px;
+  }
+  
+  .carousel-slide {
+    height: 300px;
+  }
+}
 
+@media (max-width: 640px) {
+  .carousel-wrapper {
+    max-height: 250px;
+  }
+  
+  .carousel-slide {
+    height: 250px;
+  }
+  
   .text-overlay {
-    padding: var(--space-4);
-    bottom: var(--space-4);
-    left: var(--space-4);
-    right: var(--space-4);
+    padding: 12px;
   }
-
-  .text-overlay h2 {
-    font-size: var(--text-xl);
+  
+  .text-overlay-k h2 {
+    font-size: 1rem;
   }
-
-  .text-overlay p {
-    font-size: var(--text-sm);
+  
+  .text-overlay-k p {
+    font-size: 0.7rem;
   }
 }
 
 @media (max-width: 480px) {
   .carousel-wrapper {
-    padding: 0 var(--space-2);
+    max-height: 200px;
   }
-
-  .carousel-slide img {
-    height: 220px;
+  
+  .carousel-slide {
+    height: 200px;
   }
-
+  
   .carousel-nav-btn {
-    width: 38px;
-    height: 38px;
-    font-size: 1.3rem;
-  }
-
-  .carousel-nav-btn.prev {
-    left: -10px;
-  }
-
-  .carousel-nav-btn.next {
-    right: -10px;
-  }
-
-  .text-overlay {
-    padding: var(--space-3);
-  }
-
-  .text-overlay h2 {
-    font-size: var(--text-lg);
-  }
-
-  .text-overlay p {
-    font-size: var(--text-xs);
+    width: 28px;
+    height: 28px;
+    font-size: 18px;
   }
 }
 
+/* Optional: If you want an even smaller compact version */
+.carousel-wrapper.compact {
+  max-height: 400px;
+}
+
+.carousel-wrapper.compact .carousel-slide {
+  height: 300px;
+}
+
+.carousel-wrapper.compact .text-overlay-k {
+  padding: 12px;
+}
+
+.carousel-wrapper.compact .text-overlay-k h2 {
+  font-size: 1.2rem;
+  margin-bottom: 4px;
+}
+
+.carousel-wrapper.compact .text-overlay-k p {
+  font-size: 0.8rem;
+}
+
+@media (max-width: 768px) {
+  .carousel-wrapper.compact {
+    max-height: 220px;
+  }
+  
+  .carousel-wrapper.compact .carousel-slide {
+    height: 220px;
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel-wrapper.compact {
+    max-height: 180px;
+  }
+  
+  .carousel-wrapper.compact .carousel-slide {
+    height: 180px;
+  }
+  
+  .carousel-wrapper.compact .text-overlay-k {
+    padding: 8px;
+  }
+  
+  .carousel-wrapper.compact .text-overlay-k h2 {
+    font-size: 0.9rem;
+  }
+  
+  .carousel-wrapper.compact .text-overlay-k p {
+    font-size: 0.65rem;
+  }
+}
