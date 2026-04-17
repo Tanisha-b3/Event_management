@@ -6,56 +6,51 @@
 .rgm-overlay {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
   animation: rgm-fade-in 0.2s ease-out;
+  padding: 1rem;
+  overflow-y: auto; /* Allow overlay to scroll on mobile */
 }
 
 .rgm-container {
   position: relative;
   width: 100%;
   max-width: 28rem;
-  margin: 0 1rem;
+  margin: auto; /* Center with auto margins */
   background-color: #ffffff;
   border-radius: 1rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   overflow: hidden;
   max-height: 90vh;
   animation: rgm-zoom-in 0.2s ease-out;
-}
-
-@media (min-width: 640px) {
-  .rgm-container {
-    margin: 0;
-    max-width: 36rem;
-    height: calc(100vh - 40px);
-  }
-}
-
-/* Scrollable content area - FIXED SCROLLBAR */
-.rgm-content {
-  padding: 1.5rem;
-  max-height: calc(90vh - 1.5rem);
-  overflow-y: auto;
-  scroll-behavior: smooth;
+  display: flex;
+  flex-direction: column;
 }
 
 @media (min-width: 640px) {
   .rgm-container {
     margin: 0;
     max-width: 28rem;
-    height: calc(100vh - 20px);
+    max-height: 85vh; /* Better for desktop */
   }
+}
+
+/* Scrollable content area - FIXED SCROLLBAR */
+.rgm-content {
+  padding: 1.5rem;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  flex: 1; /* Take remaining space */
 }
 
 @media (min-width: 768px) {
   .rgm-content {
     padding: 2rem;
-    max-height: calc(100vh - 60px);
   }
 }
 
@@ -86,21 +81,9 @@
   scrollbar-color: #cbd5e1 #f1f1f1;
 }
 
-/* Dark mode scrollbar */
-[data-theme="dark"] .rgm-content::-webkit-scrollbar-track {
-  background: #1f2937;
-}
-
-[data-theme="dark"] .rgm-content::-webkit-scrollbar-thumb {
-  background: #4b5563;
-}
-
-[data-theme="dark"] .rgm-content::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
-}
-
-[data-theme="dark"] .rgm-content {
-  scrollbar-color: #4b5563 #1f2937;
+/* Better touch scrolling on iOS */
+.rgm-content {
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ============================================
@@ -108,8 +91,8 @@
    ============================================ */
 .rgm-close-btn {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: 0.75rem;
+  right: 0.75rem;
   width: 2rem;
   height: 2rem;
   display: flex;
@@ -124,21 +107,9 @@
   z-index: 20;
 }
 
-[data-theme="dark"] {
-  .rgm-close-btn {
-    background-color: #1f2937;
-  }
-}
-
 .rgm-close-btn:hover {
   background-color: #e5e7eb;
   transform: scale(1.05);
-}
-
-[data-theme="dark"] {
-  .rgm-close-btn:hover {
-    background-color: #374151;
-  }
 }
 
 .rgm-close-icon {
@@ -149,15 +120,6 @@
 
 .rgm-close-btn:hover .rgm-close-icon {
   color: #4b5563;
-}
-
-[data-theme="dark"] {
-  .rgm-close-icon {
-    color: #9ca3af;
-  }
-  .rgm-close-btn:hover .rgm-close-icon {
-    color: #d1d5db;
-  }
 }
 
 /* ============================================
@@ -199,24 +161,10 @@
   margin: 0;
 }
 
-[data-theme="dark"] {
-  .rgm-brand-title {
-    background: linear-gradient(135deg, #ffffff, #9ca3af);
-    -webkit-background-clip: text;
-    background-clip: text;
-  }
-}
-
 .rgm-subtitle {
   font-size: 0.875rem;
   color: #6b7280;
   margin-top: 0.25rem;
-}
-
-[data-theme="dark"] {
-  .rgm-subtitle {
-    color: #9ca3af;
-  }
 }
 
 /* ============================================
@@ -241,12 +189,6 @@
   z-index: 10;
 }
 
-[data-theme="dark"] {
-  .rgm-google-loader {
-    background-color: rgba(17, 24, 39, 0.8);
-  }
-}
-
 /* ============================================
    DIVIDER
    ============================================ */
@@ -261,12 +203,6 @@
   flex: 1;
   height: 1px;
   background-color: #e5e7eb;
-}
-
-[data-theme="dark"] {
-  .rgm-divider-line {
-    background-color: #374151;
-  }
 }
 
 .rgm-divider-text {
@@ -298,12 +234,6 @@
   color: #374151;
 }
 
-[data-theme="dark"] {
-  .rgm-label {
-    color: #d1d5db;
-  }
-}
-
 .rgm-input-group {
   position: relative;
 }
@@ -317,14 +247,7 @@
   color: #111827;
   font-size: 0.875rem;
   transition: all 0.2s ease;
-}
-
-[data-theme="dark"] {
-  .rgm-input {
-    border-color: #374151;
-    background-color: #1f2937;
-    color: #f9fafb;
-  }
+  -webkit-appearance: none; /* Remove default iOS styling */
 }
 
 .rgm-input:focus {
@@ -374,12 +297,6 @@
   color: #6b7280;
 }
 
-[data-theme="dark"] {
-  .rgm-password-toggle:hover {
-    color: #d1d5db;
-  }
-}
-
 /* ============================================
    ERROR MESSAGES & HINTS
    ============================================ */
@@ -408,12 +325,6 @@
   border-radius: 9999px;
   overflow: hidden;
   margin-bottom: 0.25rem;
-}
-
-[data-theme="dark"] {
-  .rgm-strength-bar {
-    background-color: #374151;
-  }
 }
 
 .rgm-strength-fill {
@@ -514,12 +425,6 @@
   margin-top: 0.5rem;
 }
 
-[data-theme="dark"] {
-  .rgm-terms {
-    color: #9ca3af;
-  }
-}
-
 .rgm-link-btn {
   color: #8b5cf6;
   font-weight: 500;
@@ -539,12 +444,6 @@
   font-size: 0.875rem;
   color: #6b7280;
   margin-top: 0.5rem;
-}
-
-[data-theme="dark"] {
-  .rgm-footer-link {
-    color: #9ca3af;
-  }
 }
 
 .rgm-footer-link-top {
@@ -585,15 +484,6 @@
   color: #4b5563;
 }
 
-[data-theme="dark"] {
-  .rgm-back-btn {
-    color: #9ca3af;
-  }
-  .rgm-back-btn:hover {
-    color: #d1d5db;
-  }
-}
-
 .rgm-otp-header {
   text-align: center;
   margin-bottom: 1.5rem;
@@ -606,21 +496,9 @@
   margin-bottom: 0.25rem;
 }
 
-[data-theme="dark"] {
-  .rgm-otp-title {
-    color: #f9fafb;
-  }
-}
-
 .rgm-otp-desc {
   font-size: 0.875rem;
   color: #6b7280;
-}
-
-[data-theme="dark"] {
-  .rgm-otp-desc {
-    color: #9ca3af;
-  }
 }
 
 .rgm-otp-methods {
@@ -646,13 +524,6 @@
   color: #6b7280;
 }
 
-[data-theme="dark"] {
-  .rgm-method-btn {
-    border-color: #374151;
-    color: #9ca3af;
-  }
-}
-
 .rgm-method-btn:hover:not(.rgm-method-disabled) {
   border-color: #a78bfa;
 }
@@ -661,13 +532,6 @@
   border-color: #8b5cf6;
   background-color: rgba(139, 92, 246, 0.1);
   color: #8b5cf6;
-}
-
-[data-theme="dark"] {
-  .rgm-method-active {
-    background-color: rgba(139, 92, 246, 0.2);
-    color: #a78bfa;
-  }
 }
 
 .rgm-method-disabled {

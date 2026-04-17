@@ -27,7 +27,7 @@
   animation: lxm-zoom-in 0.2s ease-out;
 }
 
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   .lxm-container {
     background-color: #111827;
   }
@@ -37,7 +37,7 @@
   .lxm-container {
     margin: 0;
   }
-}
+} */
 
 /* ============================================
    CLOSE BUTTON
@@ -60,21 +60,12 @@
   z-index: 10;
 }
 
-@media (prefers-color-scheme: dark) {
-  .lxm-close-btn {
-    background-color: #1f2937;
-  }
-}
 
 .lxm-close-btn:hover {
   background-color: #e5e7eb;
 }
 
-@media (prefers-color-scheme: dark) {
-  .lxm-close-btn:hover {
-    background-color: #374151;
-  }
-}
+
 
 .lxm-close-icon {
   width: 1rem;
@@ -86,14 +77,7 @@
   color: #4b5563;
 }
 
-@media (prefers-color-scheme: dark) {
-  .lxm-close-icon {
-    color: #9ca3af;
-  }
-  .lxm-close-btn:hover .lxm-close-icon {
-    color: #d1d5db;
-  }
-}
+
 
 /* ============================================
    CONTENT AREA
@@ -267,13 +251,7 @@
   transition: all 0.2s ease;
 }
 
-@media (prefers-color-scheme: dark) {
-  .lxm-input {
-    border-color: #374151;
-    background-color: #1f2937;
-    color: #f9fafb;
-  }
-}
+
 
 .lxm-input:focus {
   outline: none;
@@ -682,13 +660,7 @@
   transition: all 0.2s ease;
 }
 
-@media (prefers-color-scheme: dark) {
-  .lxm-dialog-input {
-    border-color: #374151;
-    background-color: #1f2937;
-    color: #f9fafb;
-  }
-}
+
 
 .lxm-dialog-input:focus {
   outline: none;
