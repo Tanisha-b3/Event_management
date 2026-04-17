@@ -1,36 +1,69 @@
 pipeline {
     agent any
 
+    environment {
+        NODE_ENV = 'production'
+    }
+
     stages {
 
-        stage('Clone Repo') {
+        stage('Clone Repository') {
             steps {
-                git 'YOUR_GITHUB_REPO_URL'
+                git 'https://github.com/Tanisha-b3/Event_management.git'
             }
         }
 
-        stage('Backend Build') {
+        stage('Install Backend Dependencies') {
             steps {
                 dir('backend') {
                     sh 'npm install'
-                    sh 'npm run build || echo "No build step"'
                 }
             }
         }
 
-        stage('Frontend Build') {
+        stage('Install Frontend Dependencies') {
             steps {
                 dir('frontend') {
                     sh 'npm install'
+                }
+            }
+        }
+
+        stage('Build Frontend') {
+            steps {
+                dir('frontend') {
                     sh 'npm run build'
                 }
             }
         }
 
-        stage('Deploy') {
+        stage('Start Backend (PM2)') {
             steps {
-                echo "Deploy step here"
+                dir('backend') {
+                    sh '''
+                    pm2 delete event-backend || true
+                    pm2 start index.js --name event-backend
+                    '''
+                }
             }
+        }
+
+        stage('Serve Frontend') {
+            steps {
+                sh '''
+                sudo rm -rf /var/www/html/*
+                sudo cp -r frontend/dist/* /var/www/html/
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Deployment Successful!'
+        }
+        failure {
+            echo '❌ Deployment Failed!'
         }
     }
 }
