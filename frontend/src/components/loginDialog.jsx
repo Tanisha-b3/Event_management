@@ -20,7 +20,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { GoogleLogin } from '@react-oauth/google';
 import socketService from '../utils/socketService';
-import './LoginDialog.css';
+import "./logindialog.css"
 import { changePassword, clearError, completeLoginWith2FA, googleLogin, resendLoginOTP, verifyLoginOTP } from '../store/slices/authSlice';
 import { FiArrowRight, FiCheckCircle, FiCornerDownLeft, FiEye, FiEyeOff, FiLoader, FiLock, FiMail, FiPhone, FiShield, FiZap } from 'react-icons/fi';
 
