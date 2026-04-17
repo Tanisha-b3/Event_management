@@ -1,9 +1,14 @@
-const express = require('express');
+import express from 'express';
+
 const router = express.Router();
-const Cart = require('../models/Cart');
-const Event = require('../models/Events');
-const { protect } = require('../middleware/Auth');
-const { emitToUser } = require('../socketHandler');
+
+import Cart from '../models/Cart.js';
+import Event from '../models/Events.js';
+import AuthMiddleware from '../middleware/Auth.js';
+import socketHandler from '../socketHandler.js';
+const { auth: protect } = AuthMiddleware;
+
+const { emitToUser } = socketHandler;
 
 // Helper to create cart notification
 const createCartNotification = async (userId, type, title, message, data = {}) => {
@@ -367,4 +372,4 @@ router.get('/summary', protect, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

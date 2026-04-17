@@ -1,5 +1,4 @@
-const twilio = require('twilio');
-
+import twilio from 'twilio';
 const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
 const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
 const TWILIO_PHONE_NUMBER = process.env.TWILIO_PHONE_NUMBER;
@@ -65,7 +64,7 @@ const sendEventReminderSMS = async (phone, eventName, date) => {
   return sendSMS({ to: phone, body: message });
 };
 
-module.exports = {
+export default {
   sendSMS,
   sendVerificationSMS,
   sendLoginOTP,

@@ -1,7 +1,11 @@
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+// import path from 'path';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const eventsDir = path.join(__dirname, '..', 'uploads', 'events');
 const avatarsDir = path.join(__dirname, '..', 'uploads', 'avatars');
@@ -44,5 +48,4 @@ const upload = multer({
   fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 }
 });
-
-module.exports = upload;
+export default upload;

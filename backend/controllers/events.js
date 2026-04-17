@@ -1,10 +1,13 @@
-const mongoose = require('mongoose');
-const Event = require('../models/Events.js');
-const Ticket = require('../models/Ticket.js');
-const User = require('../models/User');
-const Notification = require('../models/Notification');
-const { emitToUser, emitToAll } = require('../socketHandler');
-const { sendEmail } = require('./email');
+import mongoose from 'mongoose';
+
+import Event from '../models/Events.js';
+import Ticket from '../models/Ticket.js';
+import User from '../models/User.js';
+import Notification from '../models/Notification.js';
+
+import socketHandler from '../socketHandler.js';
+import { sendEmail } from './email.js';
+const { emitToUser, emitToAll } = socketHandler;
 
 const isValidObjectId = (id) => {
   return mongoose.Types.ObjectId.isValid(id);
@@ -21,7 +24,7 @@ const getDateStatus = (eventDate) => {
 };
 
 // Get all events with pagination
-exports.getEvents = async (req, res) => {
+const getEvents = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 12;
@@ -193,7 +196,7 @@ exports.getEvents = async (req, res) => {
 };
 
 // Get single event by ID
-exports.getEventById = async (req, res) => {
+export const getEventById = async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -242,7 +245,7 @@ exports.getEventById = async (req, res) => {
   }
 };
 
-exports.createEvent = async (req, res) => {
+export const createEvent = async (req, res) => {
   try {
     // console.log('Received event data:', req.body);
     // console.log('User creating event:', req.user);
@@ -357,7 +360,7 @@ exports.createEvent = async (req, res) => {
 
 // Update an event
 // Update an event
-exports.updateEvent = async (req, res) => {
+const updateEvent = async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -452,7 +455,7 @@ exports.updateEvent = async (req, res) => {
 };
 
 // Delete an event
-exports.deleteEvent = async (req, res) => {
+ const deleteEvent = async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -492,7 +495,7 @@ exports.deleteEvent = async (req, res) => {
 };
 
 // Get high-level stats for organiser/admin dashboards
-exports.getEventStats = async (req, res) => {
+ const getEventStats = async (req, res) => {
   try {
     const now = new Date();
 
@@ -545,7 +548,7 @@ exports.getEventStats = async (req, res) => {
 };
 
 // Get pending events (admin only)
-exports.getPendingEvents = async (req, res) => {
+ const getPendingEvents = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -578,7 +581,7 @@ exports.getPendingEvents = async (req, res) => {
 };
 
 // Approve event (admin only)
-exports.approveEvent = async (req, res) => {
+ const approveEvent = async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -625,7 +628,7 @@ exports.approveEvent = async (req, res) => {
 };
 
 // Reject event (admin only)
-exports.rejectEvent = async (req, res) => {
+ const rejectEvent = async (req, res) => {
   try {
     const { id } = req.params;
     const { reason } = req.body;
@@ -672,3 +675,15 @@ exports.rejectEvent = async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to reject event' });
   }
 };
+
+export default {
+  getEvents,
+  createEvent,
+  updateEvent,
+  deleteEvent,
+  getEventById, 
+  getEventStats,
+  getPendingEvents,
+  approveEvent,
+  rejectEvent
+}

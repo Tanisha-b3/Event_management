@@ -1,9 +1,10 @@
-const express = require('express');
-const router = express.Router();
-const Notification = require('../models/Notification');
-const { protect } = require('../middleware/Auth.js');
-const { emitToUser } = require('../socketHandler');
-
+import express from 'express'; 
+const router = express.Router(); 
+import Notification from '../models/Notification.js';
+import authMiddleware from '../middleware/Auth.js';
+const { auth: protect } = authMiddleware;
+import socketHandler from '../socketHandler.js';
+const { emitToUser } = socketHandler;
 // Get all notifications for user
 router.get('/', protect, async (req, res) => {
   try {
@@ -131,4 +132,4 @@ router.delete('/', protect, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

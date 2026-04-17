@@ -1,9 +1,13 @@
-const express = require('express');
+import express from 'express';
+import mongoose from 'mongoose';
+
 const router = express.Router();
-const { Message, Conversation } = require('../models/Message');
-const { protect } = require('../middleware/Auth.js');
-const { emitToUser } = require('../socketHandler');
-const mongoose = require('mongoose');
+
+import { Message, Conversation } from '../models/Message.js';
+import authMiddleware from '../middleware/Auth.js';
+const { auth: protect } = authMiddleware;
+import socketHandler from '../socketHandler.js';
+const { emitToUser } = socketHandler;
 
 // FIX 2: Normalize role to lowercase before comparing
 const canUserMessageRecipient = async (senderId, recipientId, senderRole) => {
@@ -384,4 +388,4 @@ router.get('/available-recipients', protect, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

@@ -6,10 +6,10 @@ import jwt from 'jsonwebtoken';
 
 import User from '../models/User.js';
 import Notification from '../models/Notification.js';
-
-import { emitToUser, emitToAll } from '../socketHandler.js';
+import socketHandler from '../socketHandler.js';
 import { sendEmail } from '../controllers/email.js';
-import { sendVerificationSMS, sendLoginOTP } from '../utils/smsSender.js';
+import smsSender from '../utils/smsSender.js';
+// import { sendVerificationSMS, sendLoginOTP } from '../utils/smsSender.js';
 import { OAuth2Client } from 'google-auth-library';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
@@ -41,7 +41,7 @@ const emitAuthEvent = async (user, action) => {
       role: user.role
     };
 
-    emitToUser(user._id, eventName, payload);
+    socketHandler.emitToUser(user._id, eventName, payload);
 
     const notification = new Notification({
       userId: user._id,
@@ -52,7 +52,7 @@ const emitAuthEvent = async (user, action) => {
     });
 
     await notification.save();
-    emitToUser(user._id, 'notification:new', notification);
+    socketHandler.emitToUser(user._id, 'notification:new', notification);
   } catch (error) {
     console.error('Auth socket emit error:', error.message);
   }
@@ -537,7 +537,7 @@ router.post('/send-2fa-otp', async (req, res) => {
 
     // Send OTP via email or SMS based on method
     if (otpMethod === 'phone' && phone) {
-      await sendLoginOTP(phone, otp);
+      await smsSender.sendLoginOTP(phone, otp);
     } else {
       console.log(`OTP for ${user.email}: ${otp}`);
     }
@@ -593,7 +593,7 @@ router.post('/resend-2fa-otp', async (req, res) => {
 
     // Send OTP via email or SMS based on method
     if (otpMethod === 'phone' && user.phone) {
-      await sendLoginOTP(user.phone, otp);
+      await smsSender.sendLoginOTP(user.phone, otp);
     } else {
       console.log(`OTP for ${user.email}: ${otp}`);
     }
@@ -767,7 +767,7 @@ router.post('/send-verification-otp', async (req, res) => {
 
     // Send OTP via email or SMS based on method
     if (otpMethod === 'phone' && phone) {
-      await sendVerificationSMS(phone, otp);
+      await smsSender.sendVerificationSMS(phone, otp);
     } else {
       console.log(`Verification OTP for ${user.email}: ${otp}`);
     }

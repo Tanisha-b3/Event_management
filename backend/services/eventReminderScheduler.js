@@ -1,7 +1,6 @@
-const Ticket = require('../models/Ticket');
-const nodemailer = require('nodemailer');
-const { google } = require('googleapis');
-
+import Ticket from '../models/Ticket.js';
+import nodemailer from 'nodemailer';
+import { google } from 'googleapis';
 const oAuth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
   process.env.CLIENT_SECRET,
@@ -125,4 +124,4 @@ function startReminderScheduler(intervalMs = 60 * 60 * 1000) {
   };
 }
 
-module.exports = { checkAndSendReminders, startReminderScheduler };
+export default { checkAndSendReminders, startReminderScheduler };

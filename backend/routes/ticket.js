@@ -1,12 +1,18 @@
-const express = require('express');
+import express from 'express';
+
 const router = express.Router();
-const Ticket = require('../models/Ticket.js');
-const Event = require('../models/Events.js');
-const Notification = require('../models/Notification.js');
-const { auth, authorizeRoles } = require('../middleware/Auth.js');
-const { emitToUser } = require('../socketHandler.js');
+
+import Ticket from '../models/Ticket.js';
+import Event from '../models/Events.js';
+import Notification from '../models/Notification.js';
+
+import authMiddleware from '../middleware/Auth.js';
+import socketHandler from '../socketHandler.js';
+const { auth, authorizeRoles } = authMiddleware;
+const { emitToUser } = socketHandler;
+
 // --- EMAIL CONTROLLER ---
-const { sendEmail } = require('../controllers/email');
+import { sendEmail } from '../controllers/email.js';
 // --- END EMAIL CONTROLLER ---
 
 // Admin: Get all tickets (for any event)
@@ -421,4 +427,4 @@ router.delete('/admin/:id', auth, authorizeRoles('organiser', 'admin'), async (r
   }
 });
 
-module.exports = router;
+export default router;

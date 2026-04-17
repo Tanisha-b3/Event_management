@@ -1,6 +1,6 @@
-const { Server } = require('socket.io');
-const jwt = require('jsonwebtoken');
-const Notification = require('./models/Notification');
+import { Server } from 'socket.io';
+import jwt from 'jsonwebtoken';
+import Notification from './models/Notification.js';
 
 let io;
 const userSockets = new Map(); // Map userId to Set of socket ids
@@ -421,7 +421,7 @@ const getOnlineUsers = () => {
   return Array.from(userSockets.keys());
 };
 
-module.exports = {
+export default {
   initializeSocket,
   emitToUser,
   emitToEvent,

@@ -1,9 +1,12 @@
-const express = require('express');
-const router = express.Router();
-const User = require('../models/User');
-const { auth, authorizeRoles, protect } = require('../middleware/Auth');
-const upload = require('../middleware/upload');
+import express from 'express';
 
+const router = express.Router();
+
+import User from '../models/User.js';
+import upload from '../middleware/upload.js';
+
+import authMiddleware from '../middleware/Auth.js';
+const { auth, authorizeRoles , protect} = authMiddleware;
 // Search users (for admin booking)
 router.get('/search', auth, authorizeRoles('admin', 'organiser'), async (req, res) => {
   try {
@@ -472,4 +475,4 @@ router.put('/profile', protect, upload.single('avatar'), async (req, res) => {
   return router.handle(req, res);
 });
 
-module.exports = router;
+export default router;

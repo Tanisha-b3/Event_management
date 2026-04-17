@@ -1,6 +1,6 @@
-const jwt = require('jsonwebtoken');
-const { OAuth2Client } = require('google-auth-library');
-const User = require('../models/User');
+import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
+import User from '../models/User.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
@@ -69,4 +69,4 @@ const authorizeRoles = (...roles) => (req, res, next) => {
   return next();
 };
 
-module.exports = { auth, authorizeRoles, protect: auth };
+export default { auth, authorizeRoles, protect: auth };

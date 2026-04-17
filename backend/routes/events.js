@@ -1,12 +1,15 @@
-const express = require('express');
-const router = express.Router();
-const mongoose = require('mongoose');
-const eventController = require('../controllers/events.js');
-const { auth, authorizeRoles } = require('../middleware/Auth.js');
-const Ticket = require('../models/Ticket.js');
-const Event = require('../models/Events.js');
-const upload = require('../middleware/upload.js');
+import express from 'express';
+import mongoose from 'mongoose';
 
+const router = express.Router();
+
+import eventController from '../controllers/events.js';
+
+import Ticket from '../models/Ticket.js';
+import Event from '../models/Events.js';
+import upload from '../middleware/upload.js';
+import authMiddleware from '../middleware/Auth.js';
+const { auth, authorizeRoles } = authMiddleware;
 
 router.get('/', auth, eventController.getEvents);
 router.get('/pending', auth, authorizeRoles('admin'), eventController.getPendingEvents);
@@ -128,4 +131,4 @@ router.put('/:id', auth, authorizeRoles('admin', 'organiser'), eventController.u
 
 router.delete('/:id', auth, authorizeRoles('admin', 'organiser'), eventController.deleteEvent);
 
-module.exports = router;
+export default router;

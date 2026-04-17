@@ -1,9 +1,13 @@
-const express = require('express');
+import express from 'express';
+
 const router = express.Router();
-const { sendEmail } = require('../controllers/email');
-const { auth } = require('../middleware/Auth');
+
+import { sendEmail } from '../controllers/email.js';
+import authMiddleware from '../middleware/Auth.js';
+
+const { auth } = authMiddleware;
 
 // POST /api/email
 router.post('/', auth, sendEmail);
 
-module.exports = router;
+export default router;

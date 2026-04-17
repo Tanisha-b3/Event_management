@@ -16,8 +16,8 @@ import favoritesRoutes from './routes/favorites.js';
 import userRoutes from './routes/users.js';
 import messageRoutes from './routes/messages.js';
 
-import { initializeSocket } from './socketHandler.js';
-import { startReminderScheduler } from './services/eventReminderScheduler.js';
+import socketHandler from './socketHandler.js';
+import cron from './services/eventReminderScheduler.js';
 
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -34,7 +34,7 @@ app.use(express.json());
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
-  'http://127.0.0.1:5173',
+  // 'http://127.0.0.1:5173',
   "http://localhost:4173/",
   "http://localhost:5174",
   
@@ -50,7 +50,7 @@ app.use(
 );
 
 // Initialize Socket.io
-const io = initializeSocket(server, allowedOrigins);
+const io = socketHandler.initializeSocket(server, allowedOrigins);
 
 // Make io available in routes
 app.set('io', io);
@@ -80,6 +80,8 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+
+
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('MongoDB Connected');
@@ -89,7 +91,7 @@ mongoose.connect(process.env.MONGO_URI)
       console.log(`Server running on port ${PORT}`);
       console.log('WebSocket server initialized');
       
-      startReminderScheduler(60 * 60 * 1000);
+      cron.startReminderScheduler(60 * 60 * 1000);
     });
   })
   .catch(err => {

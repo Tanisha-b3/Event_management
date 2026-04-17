@@ -1,8 +1,12 @@
-const express = require('express');
+import express from 'express';
+
 const router = express.Router();
-const Favorite = require('../models/Favorite');
-const Event = require('../models/Events');
-const { auth } = require('../middleware/Auth');
+
+import Favorite from '../models/Favorite.js';
+import Event from '../models/Events.js';
+
+import authMiddleware from '../middleware/Auth.js';
+const { auth, authorizeRoles } = authMiddleware;
 
 // Get all favorites for current user (paginated)
 router.get('/', auth, async (req, res) => {
@@ -106,4 +110,4 @@ router.delete('/:eventId', auth, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
