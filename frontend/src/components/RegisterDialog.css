@@ -36,7 +36,7 @@
   .rgm-container {
     margin: 0;
     max-width: 28rem;
-    max-height: 85vh; /* Better for desktop */
+    max-height:95vh; /* Better for desktop */
   }
 }
 
