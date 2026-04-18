@@ -19,4 +19,4 @@ spec:
             - containerPort: 5000
           env:
             - name: MONGO_URI
-              value: mongodb+srv://tanu:hYitUCaQy3S84rr7@cluster0.vvz9jv5.mongodb.net/?appName=Cluster0
+              value: MONGO_URI
