@@ -71,7 +71,8 @@ The **Event Management System** is a full-stack web application built with the *
 
 
 ## 📁 Project Structure
-``` Event_management/
+```bash
+Event_management/
 ├── backend/                  # Node.js + Express API
 │   ├── controllers/
 │   ├── middleware/
@@ -106,8 +107,7 @@ The **Event Management System** is a full-stack web application built with the *
 ├── .gitignore
 ├── package.json
 └── README.md
-
----
+```
 
 ## ⚙️ Local Setup (Without Docker)
 
@@ -326,6 +326,7 @@ kubectl port-forward svc/frontend 8080:80
 
 The `Jenkinsfile` at the repo root defines a full pipeline:
 Pipeline Stages:
+```bash
 ┌─────────────────────────────────┐
 │  1. Clone Repository            │  git pull from GitHub
 │  2. Install Backend Dependencies│  npm install in /backend
@@ -334,7 +335,7 @@ Pipeline Stages:
 │  5. Start Backend (PM2)         │  pm2 start server.js
 │  6. Serve Frontend              │  copy dist/ → /var/www/html
 └─────────────────────────────────┘
-
+```
 **Post-build:**
 - ✅ Success → `Deployment Successful!`
 - ❌ Failure → `Deployment Failed!`
