@@ -110,6 +110,19 @@ const Header = () => {
     setProfileMenuOpen(false);
   };
 
+  const getAvatarUrl = (user) => {
+    if (!user) return null;
+    if (user.avatar) {
+      return user.avatar.startsWith('http') 
+        ? user.avatar 
+        : `${import.meta.env.VITE_BASE_URL}${user.avatar}`;
+    }
+    return null;
+  };
+
+  const userAvatar = user ? getAvatarUrl(user) : null;
+  const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=6366f1&color=fff&bold=true`;
+
   return (
     <>
       <header 
@@ -156,12 +169,28 @@ const Header = () => {
                   {/* Profile Avatar with Dropdown */}
                   <div className="profile-menu-wrapper" ref={profileRef}>
                     <button 
-                      className={`user-avatar-k ${profileMenuOpen ? 'active' : ''}`}
+                      className={`user-avatar-l ${profileMenuOpen ? 'active' : ''}`}
                       onClick={() => setProfileMenuOpen((prev) => !prev)}
                       aria-label="Open profile menu"
                       aria-expanded={profileMenuOpen}
                     >
-                      {user?.name?.charAt(0) || '👤'}
+                     {userAvatar ? (
+  <img
+    src={userAvatar.startsWith('http') 
+      ? userAvatar 
+      : `${import.meta.env.VITE_API_URL}/${userAvatar}`
+    }
+    alt={user?.name}
+    className="avatar-img"
+    onError={(e) => {
+      e.target.style.display = "none";
+    }}
+  />
+) : null}
+
+<span className="avatar-fallback">
+  {user?.name?.charAt(0) || "👤"}
+</span>
                     </button>
 
                     {profileMenuOpen && (
@@ -169,7 +198,10 @@ const Header = () => {
                         {/* User info header */}
                         <div className="profile-dropdown-header">
                           <div className="profile-dropdown-avatar">
-                            {user?.name?.charAt(0) || '👤'}
+                            {userAvatar ? (
+                              <img src={userAvatar} alt={user?.name} className="avatar-img" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+                            ) : null}
+                            <span className="avatar-fallback" style={userAvatar ? { display: 'none' } : {}}>{user?.name?.charAt(0) || '👤'}</span>
                           </div>
                           <div className="profile-dropdown-info">
                             <span className="profile-dropdown-name">{user?.name || 'User'}</span>
@@ -246,7 +278,10 @@ const Header = () => {
           <div className="mobile-menu-header-k">
             <div className="mobile-user-info" onClick={() => handleNavigation('/profile')}>
               <div className="mobile-user-avatar">
-                {user?.name?.charAt(0) || '👤'}
+                {userAvatar ? (
+                  <img src={userAvatar} alt={user?.name} className="avatar-img" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+                ) : null}
+                <span className="avatar-fallback" style={userAvatar ? { display: 'none' } : {}}>{user?.name?.charAt(0) || '👤'}</span>
               </div>
               <div className="mobile-user-details">
                 <h3>{user?.name || 'User'}</h3>

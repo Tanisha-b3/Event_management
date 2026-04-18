@@ -219,9 +219,13 @@ export const verifyLoginOTP = createAsyncThunk(
 
 export const completeLoginWith2FA = createAsyncThunk(
   'auth/completeLoginWith2FA',
-  async ({ email, password, method }, { rejectWithValue }) => {
+  async ({ email, password, method, phone }, { rejectWithValue }) => {
     try {
-      const verifyResponse = await axios.post(`${API_URL}/auth/verify-password`, { email, password });
+      const verifyResponse = await axios.post(`${API_URL}/auth/verify-password`, { 
+        email, 
+        password,
+        phone 
+      });
       
       if (!verifyResponse.data.success) {
         return rejectWithValue(verifyResponse.data.error || 'Invalid credentials');
@@ -229,10 +233,13 @@ export const completeLoginWith2FA = createAsyncThunk(
       
       const { tempToken, user } = verifyResponse.data;
       
+      const otpMethod = method || (phone ? 'phone' : 'email');
+      const phoneForOtp = phone || user.phone;
+      
       await axios.post(`${API_URL}/auth/send-2fa-otp`, {
-        email,
-        phone: user.phone,
-        method
+        tempToken,
+        phone: phoneForOtp,
+        method: otpMethod
       });
       
       return { tempToken, user };

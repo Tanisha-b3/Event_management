@@ -43,6 +43,8 @@ function LoginDialog({ isOpen, onClose, onSwitchToRegister }) {
   const [changePwdLoading, setChangePwdLoading] = useState(false);
   const [changePwdMsg, setChangePwdMsg] = useState('');
   
+  const [loginMethod, setLoginMethod] = useState('email'); // 'email' or 'phone'
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [formData, setFormData] = useState({ 
     email: '', 
     password: '' 
@@ -52,7 +54,8 @@ function LoginDialog({ isOpen, onClose, onSwitchToRegister }) {
   const [focusedField, setFocusedField] = useState(null);
   const [touchedFields, setTouchedFields] = useState({ 
     email: false, 
-    password: false 
+    password: false,
+    phone: false 
   });
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   
@@ -131,9 +134,18 @@ function LoginDialog({ isOpen, onClose, onSwitchToRegister }) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }, []);
 
+  const isValidPhone = useCallback((phone) => {
+    return /^\d{10}$/.test(phone);
+  }, []);
+
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === 'phone') {
+      const digits = value.replace(/\D/g, '').slice(0, 10);
+      setPhoneNumber(digits);
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   }, []);
 
   const handleOtpChange = useCallback((e) => {
@@ -157,15 +169,21 @@ function LoginDialog({ isOpen, onClose, onSwitchToRegister }) {
     if (field === 'password') {
       return formData.password.length >= 6 ? 'valid' : 'invalid';
     }
+    if (field === 'phone') {
+      return phoneNumber && isValidPhone(phoneNumber) ? 'valid' : 'invalid';
+    }
     return '';
-  }, [touchedFields, formData, isValidEmail]);
+  }, [touchedFields, formData, isValidEmail, phoneNumber, isValidPhone]);
 
   const isFormValid = useCallback(() => {
+    if (loginMethod === 'phone') {
+      return phoneNumber && isValidPhone(phoneNumber) && formData.password.length >= 6;
+    }
     return formData.email && 
            formData.password && 
            isValidEmail(formData.email) &&
            formData.password.length >= 6;
-  }, [formData, isValidEmail]);
+  }, [formData, isValidEmail, phoneNumber, isValidPhone, loginMethod]);
 
   const handleLogin = async (e) => {
     if (e) {
@@ -179,15 +197,26 @@ function LoginDialog({ isOpen, onClose, onSwitchToRegister }) {
     
     if (isSubmittingRef.current) return;
     
-    setTouchedFields({ email: true, password: true });
+    setTouchedFields({ email: true, password: true, phone: true });
 
-    if (!formData.email || !formData.password) {
-      toast.error('Email and password are required');
-      return;
+    if (loginMethod === 'phone') {
+      if (!phoneNumber || !isValidPhone(phoneNumber)) {
+        toast.error('Please enter a valid 10-digit phone number');
+        return;
+      }
+    } else {
+      if (!formData.email || !formData.password) {
+        toast.error('Email and password are required');
+        return;
+      }
+      if (!isValidEmail(formData.email)) {
+        toast.error('Please enter a valid email address');
+        return;
+      }
     }
 
-    if (!isValidEmail(formData.email)) {
-      toast.error('Please enter a valid email address');
+    if (!formData.password) {
+      toast.error('Password is required');
       return;
     }
 
@@ -199,23 +228,24 @@ function LoginDialog({ isOpen, onClose, onSwitchToRegister }) {
     isSubmittingRef.current = true;
 
     try {
-      const result = await dispatch(completeLoginWith2FA({
-        email: formData.email.toLowerCase().trim(),
-        password: formData.password,
-        method: otpMethod
-      }));
+      const loginData = loginMethod === 'phone' 
+        ? { phone: phoneNumber, password: formData.password, method: 'phone' }
+        : { email: formData.email.toLowerCase().trim(), password: formData.password, method: otpMethod };
+      
+      const result = await dispatch(completeLoginWith2FA(loginData));
 
       if (completeLoginWith2FA.fulfilled.match(result)) {
         setTempToken(result.payload.tempToken);
         setUserEmailForOtp(result.payload.user.email);
         setUserPhoneForOtp(result.payload.user.phone || '');
+        setOtpMethod(loginMethod === 'phone' ? 'phone' : otpMethod);
         setShowOtpInput(true);
-        toast.info(`OTP sent to your ${otpMethod}`);
+        toast.info(`OTP sent to your ${loginMethod}`);
       } else {
         setDialog({ 
           open: true, 
           title: 'Login Failed', 
-          message: result.payload || 'Invalid email or password' 
+          message: result.payload || 'Invalid credentials' 
         });
         setFormData(prev => ({ ...prev, password: '' }));
       }
@@ -224,7 +254,7 @@ function LoginDialog({ isOpen, onClose, onSwitchToRegister }) {
       setDialog({ 
         open: true, 
         title: 'Login Failed', 
-        message: error.response?.data?.message || 'Invalid email or password' 
+        message: error.response?.data?.message || 'Invalid credentials' 
       });
       setFormData(prev => ({ ...prev, password: '' }));
     } finally {
@@ -464,26 +494,65 @@ function LoginDialog({ isOpen, onClose, onSwitchToRegister }) {
       {/* Login Form */}
       {!showOtpInput ? (
         <form onSubmit={handleLogin} onKeyPress={handleKeyPress} className="lxm-form">
-          <div className="lxm-field">
-            <label className="lxm-label">Email Address</label>
-            <div className="lxm-input-group">
-              <FiMail className="lxm-input-icon lxm-icon-left" />
-              <input
-                type="email"
-                name="email"
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleChange}
-                onFocus={() => handleFocus('email')}
-                onBlur={() => handleBlur('email')}
-                className="lxm-input"
-                required
-              />
-              {getFieldStatus('email') === 'valid' && (
-                <FiCheckCircle className="lxm-input-icon lxm-icon-right lxm-icon-valid" />
-              )}
-            </div>
+          <div className="lxm-method-toggle">
+            <button
+              type="button"
+              className={`lxm-method-toggle-btn ${loginMethod === 'email' ? 'lxm-method-toggle-active' : ''}`}
+              onClick={() => { setLoginMethod('email'); setTouchedFields(p => ({ ...p, email: false })); }}
+            >
+              <FiMail /> Email
+            </button>
+            <button
+              type="button"
+              className={`lxm-method-toggle-btn ${loginMethod === 'phone' ? 'lxm-method-toggle-active' : ''}`}
+              onClick={() => { setLoginMethod('phone'); setTouchedFields(p => ({ ...p, phone: false })); }}
+            >
+              <FiPhone /> Phone
+            </button>
           </div>
+
+          {loginMethod === 'email' ? (
+            <div className="lxm-field">
+              <label className="lxm-label">Email Address</label>
+              <div className="lxm-input-group">
+                <FiMail className="lxm-input-icon lxm-icon-left" />
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Enter your email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  onFocus={() => handleFocus('email')}
+                  onBlur={() => handleBlur('email')}
+                  className="lxm-input"
+                />
+                {getFieldStatus('email') === 'valid' && (
+                  <FiCheckCircle className="lxm-input-icon lxm-icon-right lxm-icon-valid" />
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="lxm-field">
+              <label className="lxm-label">Phone Number</label>
+              <div className="lxm-input-group">
+                <FiPhone className="lxm-input-icon lxm-icon-left" />
+                <input
+                  type="tel"
+                  name="phone"
+                  placeholder="Enter 10-digit mobile number"
+                  value={phoneNumber}
+                  onChange={handleChange}
+                  onFocus={() => handleFocus('phone')}
+                  onBlur={() => handleBlur('phone')}
+                  className="lxm-input"
+                  maxLength={10}
+                />
+                {getFieldStatus('phone') === 'valid' && (
+                  <FiCheckCircle className="lxm-input-icon lxm-icon-right lxm-icon-valid" />
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="lxm-field">
             <label className="lxm-label">Password</label>
@@ -559,7 +628,7 @@ function LoginDialog({ isOpen, onClose, onSwitchToRegister }) {
 
           <div className="lxm-otp-header">
             <h3 className="lxm-otp-title">Two-Factor Authentication</h3>
-            <p className="lxm-otp-desc">Enter the OTP sent to your {otpMethod}</p>
+            <p className="lxm-otp-desc">Enter the OTP sent to your {otpMethod === 'phone' ? 'phone number' : otpMethod}</p>
           </div>
 
           <div className="lxm-otp-methods">

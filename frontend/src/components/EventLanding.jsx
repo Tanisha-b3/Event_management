@@ -2,44 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  FaCalendarAlt,
-  FaMapMarkerAlt,
-  FaSearch,
-  FaUsers,
-  FaTicketAlt,
-  FaStar,
-  FaArrowRight,
-  FaChevronRight,
-  FaFire,
-  FaPlay,
-  FaQuoteLeft,
-  FaInstagram,
-  FaTwitter,
-  FaFacebook,
-  FaLinkedin,
-  FaCheckCircle,
-  FaClock,
-  FaHeart,
-  FaShareAlt,
-  FaBolt,
-  FaGlobe,
-  FaShieldAlt,
-  FaMobileAlt,
-  FaChartLine,
-  FaBell,
-  FaCamera,
-  FaMusic,
-  FaCode,
-  FaPalette,
-  FaUtensils,
-  FaRunning,
-  FaLaptop,
-  FaGraduationCap,
-  FaTrophy,
-  FaRocket,
-  FaRegStar,
-  FaTag,
-  FaPercent
+  FaCalendarAlt, FaMapMarkerAlt, FaSearch, FaUsers, FaTicketAlt, FaStar,
+  FaArrowRight, FaChevronRight, FaFire, FaPlay, FaQuoteLeft, FaInstagram,
+  FaTwitter, FaFacebook, FaLinkedin, FaCheckCircle, FaClock, FaHeart,
+  FaShareAlt, FaBolt, FaGlobe, FaShieldAlt, FaMobileAlt, FaChartLine,
+  FaBell, FaCamera, FaMusic, FaCode, FaPalette, FaUtensils, FaRunning,
+  FaLaptop, FaGraduationCap, FaTrophy, FaRocket, FaRegStar, FaTag,
+  FaPercent, FaLock, FaWifi, FaHeadphones, FaThumbsUp, FaEye, FaApple,
+  FaAndroid, FaChevronDown, FaEnvelope, FaVideo, FaMicrophone,
+  FaMapPin, FaGlobeAmericas
 } from 'react-icons/fa';
 import { fetchEvents } from '../store/slices/eventSlice';
 import './EventLanding.css';
@@ -62,7 +33,6 @@ const Counter = ({ end, suffix = '', duration = 2000 }) => {
   const [count, setCount] = useState(0);
   const ref = useRef(null);
   const started = useRef(false);
-
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting && !started.current) {
@@ -81,7 +51,6 @@ const Counter = ({ end, suffix = '', duration = 2000 }) => {
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
   }, [end, duration]);
-
   return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
 };
 
@@ -99,12 +68,13 @@ const useScrollReveal = (threshold = 0.1) => {
   return [ref, visible];
 };
 
-/* ── Ticker Component ── */
+/* ── Ticker ── */
 const Ticker = () => {
   const items = [
     '🎵 Music Festival – Austin TX', '💻 Tech Summit – SF', '🍔 Food Expo – NYC',
     '🎨 Art Show – LA', '⚽ Sports Gala – Chicago', '🎤 Comedy Night – Miami',
-    '🎪 Street Festival – Seattle', '🏃 Marathon – Boston', '🎬 Film Fest – Portland'
+    '🎪 Street Festival – Seattle', '🏃 Marathon – Boston', '🎬 Film Fest – Portland',
+    '🍷 Wine Tasting – Napa', '🎸 Rock Concert – Nashville', '🤖 AI Summit – Austin'
   ];
   return (
     <div className="ticker-wrap">
@@ -117,34 +87,46 @@ const Ticker = () => {
   );
 };
 
-/* ── Floating Orbs Background ── */
+/* ── Floating Orbs ── */
 const OrbsBg = () => (
   <div className="orbs-bg" aria-hidden="true">
     {[...Array(8)].map((_, i) => <div key={i} className={`orb orb-${i + 1}`} />)}
   </div>
 );
 
+/* ── FAQ Item ── */
+const FaqItem = ({ question, answer }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`faq-item ${open ? 'open' : ''}`}>
+      <button className="faq-question" onClick={() => setOpen(!open)}>
+        {question}
+        <FaChevronRight className="faq-chevron" />
+      </button>
+      <div className="faq-answer">{answer}</div>
+    </div>
+  );
+};
+
 /* ── Main Component ── */
 const EventLanding = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { events, loading } = useSelector((state) => state.events);
+
   const [heroText, setHeroText] = useState(0);
   const [featuredEvents, setFeaturedEvents] = useState([]);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [showRegisterDialog, setShowRegisterDialog] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
-  const [scrollY, setScrollY] = useState(0);
   const [navScrolled, setNavScrolled] = useState(false);
   const [likedEvents, setLikedEvents] = useState(new Set());
   const [activePricingTab, setActivePricingTab] = useState('monthly');
+  const [activeCityIdx, setActiveCityIdx] = useState(0);
+  const [emailValue, setEmailValue] = useState('');
 
-  // Scroll tracking
   useEffect(() => {
-    const onScroll = () => {
-      setScrollY(window.scrollY);
-      setNavScrolled(window.scrollY > 60);
-    };
+    const onScroll = () => setNavScrolled(window.scrollY > 60);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
@@ -155,7 +137,6 @@ const EventLanding = () => {
   const handleCloseRegister = () => setShowRegisterDialog(false);
   const handleSwitchToRegister = () => { setShowLoginDialog(false); setShowRegisterDialog(true); };
   const handleSwitchToLogin = () => { setShowRegisterDialog(false); setShowLoginDialog(true); };
-
   const toggleLike = (id) => {
     setLikedEvents(prev => {
       const next = new Set(prev);
@@ -166,14 +147,8 @@ const EventLanding = () => {
 
   const heroTexts = ['Discover Amazing Events', 'Find Your Next Experience', 'Create Unforgettable Memories', 'Connect With Your Tribe'];
 
-  useEffect(() => {
-    dispatch(fetchEvents({ limit: 6, status: 'active' }));
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (events?.length > 0) setFeaturedEvents(events.slice(0, 6));
-  }, [events]);
-
+  useEffect(() => { dispatch(fetchEvents({ limit: 6, status: 'active' })); }, [dispatch]);
+  useEffect(() => { if (events?.length > 0) setFeaturedEvents(events.slice(0, 6)); }, [events]);
   useEffect(() => {
     const interval = setInterval(() => setHeroText(p => (p + 1) % heroTexts.length), 3500);
     return () => clearInterval(interval);
@@ -181,7 +156,7 @@ const EventLanding = () => {
 
   const formatDate = (dateString) => new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
-  // ── Data ──
+  // ── DATA ──
   const featured = [
     { id: 1, title: 'Tech Summit 2026', category: 'Technology', date: '2026-05-15', location: 'San Francisco, CA', image: image10, attendees: 5000, price: 199, rating: 4.9 },
     { id: 2, title: 'Music Festival', category: 'Music', date: '2026-06-20', location: 'Austin, TX', image: image4, attendees: 15000, price: 89, rating: 4.8 },
@@ -211,41 +186,38 @@ const EventLanding = () => {
     { icon: <FaSearch />, title: 'Smart Discovery', description: 'AI-powered recommendations that learn your preferences and surface events you\'ll actually love.' },
     { icon: <FaTicketAlt />, title: 'Instant Booking', description: 'Zero friction ticket purchasing with encrypted payments and instant confirmation.' },
     { icon: <FaBell />, title: 'Smart Reminders', description: 'Never miss a moment with intelligent event reminders sent at just the right time.' },
-    { icon: <FaUsers />, title: 'Social Hub', description: 'See which friends are going, coordinate plans, and make new connections.' },
-    { icon: <FaMobileAlt />, title: 'Mobile First', description: 'Full-featured iOS & Android apps. Your event life, always in your pocket.' },
-    { icon: <FaChartLine />, title: 'Live Analytics', description: 'Real-time crowd insights, trending events, and attendance heatmaps.' },
-    { icon: <FaShieldAlt />, title: 'Secure & Trusted', description: 'Bank-level security for every transaction. Your data, fully protected.' },
+    { icon: <FaUsers />, title: 'Social Hub', description: 'See which friends are going, coordinate plans, and make new connections at every event.' },
+    { icon: <FaMobileAlt />, title: 'Mobile First', description: 'Full-featured iOS & Android apps. Your entire event life, always in your pocket.' },
+    { icon: <FaChartLine />, title: 'Live Analytics', description: 'Real-time crowd insights, trending events, and attendance heatmaps for organizers.' },
+    { icon: <FaShieldAlt />, title: 'Secure & Trusted', description: 'Bank-level security for every transaction. Your data is fully encrypted and protected.' },
     { icon: <FaBolt />, title: 'Instant Refunds', description: 'Hassle-free cancellations with automatic refund processing within 24 hours.' },
   ];
 
   const testimonials = [
     { name: 'Sarah Johnson', role: 'Event Enthusiast', company: 'Designer @ Figma', text: 'EventPro made it so easy to find and book tickets for my favorite concerts. The discovery algorithm is genuinely impressive — it found events I didn\'t even know I wanted to attend.', avatar: 'S', rating: 5 },
     { name: 'Michael Chen', role: 'Event Organizer', company: 'CEO @ TechMeetups', text: 'Managing events of 5,000+ attendees used to be chaos. EventPro\'s organizer dashboard gave us everything — real-time capacity, ticket analytics, attendee messaging. Truly enterprise-grade.', avatar: 'M', rating: 5 },
-    { name: 'Emily Davis', role: 'Brand Manager', company: 'Marketing @ Spotify', text: 'Our sponsored events saw 3x engagement vs other platforms. The targeting tools are phenomenal and the brand exposure is unmatched.', avatar: 'E', rating: 5 },
-    { name: 'James Rodriguez', role: 'Concert-goer', company: 'Music Producer', text: 'Discovered underground artists and intimate venues I never would\'ve found otherwise. EventPro is genuinely life-changing for music fans.', avatar: 'J', rating: 5 },
-    { name: 'Priya Nair', role: 'Tech Conference Host', company: 'CTO @ Vercel', text: 'The check-in flow is flawless. QR scanning, badge printing, live attendance counts — all from one screen. Our 2,000 attendee conference ran without a hitch.', avatar: 'P', rating: 5 },
-    { name: 'Alex Kim', role: 'Startup Founder', company: 'Founder @ DevTalks', text: 'Grew our community from 50 to 12,000 members in 18 months, entirely through EventPro events. The platform is our growth engine.', avatar: 'A', rating: 5 },
+    { name: 'Emily Davis', role: 'Brand Manager', company: 'Marketing @ Spotify', text: 'Our sponsored events saw 3x engagement vs other platforms. The targeting tools are phenomenal and the brand exposure across EventPro\'s network is simply unmatched.', avatar: 'E', rating: 5 },
+    { name: 'James Rodriguez', role: 'Concert-goer', company: 'Music Producer', text: 'Discovered underground artists and intimate venues I never would\'ve found otherwise. EventPro is genuinely life-changing for music fans who want something different.', avatar: 'J', rating: 5 },
+    { name: 'Priya Nair', role: 'Tech Conference Host', company: 'CTO @ Vercel', text: 'The check-in flow is flawless. QR scanning, badge printing, live attendance counts — all from one screen. Our 2,000 attendee conference ran without a single hitch.', avatar: 'P', rating: 5 },
+    { name: 'Alex Kim', role: 'Startup Founder', company: 'Founder @ DevTalks', text: 'Grew our community from 50 to 12,000 members in 18 months, entirely through EventPro events. The platform is absolutely our growth engine.', avatar: 'A', rating: 5 },
   ];
 
   const pricingPlans = [
     {
       name: 'Explorer', icon: <FaRegStar />, color: '#64748b',
-      monthly: 0, annual: 0,
-      desc: 'Perfect for discovering events',
+      monthly: 0, annual: 0, desc: 'Perfect for discovering events',
       features: ['Browse all public events', 'Save up to 10 events', 'Basic notifications', 'Standard support'],
       cta: 'Start Free'
     },
     {
       name: 'Pro', icon: <FaBolt />, color: '#f59e0b',
-      monthly: 12, annual: 9,
-      desc: 'For power event-goers', popular: true,
+      monthly: 12, annual: 9, desc: 'For power event-goers', popular: true,
       features: ['Unlimited event saves', 'Early access tickets', 'Priority notifications', 'Group booking (10 seats)', 'Exclusive member deals', '24/7 priority support'],
       cta: 'Get Pro'
     },
     {
       name: 'Organizer', icon: <FaTrophy />, color: '#6366f1',
-      monthly: 49, annual: 39,
-      desc: 'Scale your events business',
+      monthly: 49, annual: 39, desc: 'Scale your events business',
       features: ['Unlimited event creation', 'Advanced analytics dashboard', 'Custom branded pages', 'API access', 'Dedicated account manager', 'White-label options', 'Team seats (5 users)'],
       cta: 'Start Organizing'
     }
@@ -267,6 +239,52 @@ const EventLanding = () => {
 
   const brands = ['Spotify', 'Airbnb', 'Google', 'Stripe', 'Shopify', 'Notion', 'Figma', 'Vercel'];
 
+  // ── NEW DATA ──
+  const liveEvents = [
+    { title: 'Global Dev Summit', location: 'San Francisco + Online', viewers: '12,430', bg: 'linear-gradient(135deg,#2563eb,#7c3aed)', icon: '💻' },
+    { title: 'Jazz Night Live', location: 'New Orleans, LA', viewers: '8,912', bg: 'linear-gradient(135deg,#db2777,#ea580c)', icon: '🎷' },
+    { title: 'Startup Pitch Finals', location: 'New York, NY', viewers: '5,287', bg: 'linear-gradient(135deg,#059669,#2563eb)', icon: '🚀' },
+    { title: 'Food & Culture Expo', location: 'Chicago, IL', viewers: '4,103', bg: 'linear-gradient(135deg,#ea580c,#d97706)', icon: '🍜' },
+    { title: 'AI Art Exhibition', location: 'Los Angeles + Virtual', viewers: '9,651', bg: 'linear-gradient(135deg,#7c3aed,#db2777)', icon: '🎨' },
+    { title: 'Wellness Weekend', location: 'Sedona, AZ', viewers: '3,440', bg: 'linear-gradient(135deg,#059669,#0891b2)', icon: '🧘' },
+  ];
+
+  const cities = [
+    { name: 'New York', country: 'USA', flag: '🇺🇸', count: '4,200+ events', x: '22%', y: '28%' },
+    { name: 'London', country: 'UK', flag: '🇬🇧', count: '3,800+ events', x: '42%', y: '20%' },
+    { name: 'Tokyo', country: 'Japan', flag: '🇯🇵', count: '2,900+ events', x: '78%', y: '32%' },
+    { name: 'Sydney', country: 'Australia', flag: '🇦🇺', count: '1,600+ events', x: '82%', y: '72%' },
+    { name: 'São Paulo', country: 'Brazil', flag: '🇧🇷', count: '2,100+ events', x: '30%', y: '65%' },
+    { name: 'Mumbai', country: 'India', flag: '🇮🇳', count: '1,900+ events', x: '64%', y: '42%' },
+  ];
+
+  const appPerks = [
+    { icon: <FaBell />, text: 'Instant ticket alerts & real-time updates' },
+    { icon: <FaWifi />, text: 'Offline ticket access — no signal needed' },
+    { icon: <FaCamera />, text: 'Share memories & event highlights instantly' },
+    { icon: <FaHeadphones />, text: 'Exclusive in-app audio content & artist interviews' },
+  ];
+
+  const partners = [
+    { logo: '🎵', name: 'SoundCloud', desc: 'Music streaming & artist discovery platform' },
+    { logo: '🏨', name: 'Marriott', desc: 'Preferred hotel partner for event travelers' },
+    { logo: '🚗', name: 'Uber', desc: 'Seamless rides to & from every event' },
+    { logo: '🍕', name: 'DoorDash', desc: 'Pre-event meals & exclusive food deals' },
+    { logo: '📸', name: 'Canva', desc: 'Design event posters & promo materials' },
+    { logo: '💳', name: 'Stripe', desc: 'Secure, instant payment processing' },
+    { logo: '📧', name: 'Mailchimp', desc: 'Event email marketing & audience tools' },
+    { logo: '☁️', name: 'AWS', desc: 'Cloud infrastructure powering EventPro' },
+  ];
+
+  const faqs = [
+    { question: 'How do I get my tickets after booking?', answer: 'Your tickets are delivered instantly via email and also available in your EventPro app under "My Tickets". They include a QR code for easy check-in — no printing required.' },
+    { question: 'Can I get a refund if I can\'t attend?', answer: 'Yes! Our flexible refund policy allows you to request a full refund up to 48 hours before the event starts. Refunds are processed automatically within 24 hours to your original payment method.' },
+    { question: 'How do I create and host my own event?', answer: 'Simply create a free Organizer account, click "Create Event", and fill in your event details. You can go live in under 10 minutes. We handle ticket sales, check-in, and payments.' },
+    { question: 'Is EventPro available in my country?', answer: 'EventPro currently operates in 40+ countries across North America, Europe, Asia-Pacific, and Latin America. We\'re expanding rapidly — sign up to get notified when we launch in your region.' },
+    { question: 'What payment methods do you accept?', answer: 'We accept all major credit/debit cards (Visa, Mastercard, Amex), PayPal, Apple Pay, Google Pay, and select cryptocurrencies. All transactions are SSL encrypted and secure.' },
+    { question: 'Is there a fee for free events?', answer: 'No! For free events, EventPro charges zero fees — for organizers and attendees alike. For paid events, we charge a small service fee (typically 2–5%) which is displayed clearly at checkout.' },
+  ];
+
   // Scroll reveal refs
   const [statsRef, statsVisible] = useScrollReveal();
   const [featuresRef, featuresVisible] = useScrollReveal();
@@ -279,19 +297,17 @@ const EventLanding = () => {
 
       {/* ── NAV ── */}
       <nav className={`landing-nav ${navScrolled ? 'nav-scrolled' : ''}`}>
-        <div 
-            className="app-title-container" 
-          >
-            <h1 className="app-title">EventPro</h1>
-            <div className="app-badge">EP</div>
-          </div>
-
+        <div className="app-title-container-k">
+          <h1 className="app-title-k">EventPro</h1>
+          <div className="app-badge-k">EP</div>
+        </div>
         <div className="landing-nav-links">
           <a href="#features">Features</a>
           <a href="#events">Events</a>
           <a href="#how">How It Works</a>
           <a href="#pricing">Pricing</a>
           <a href="#testimonials">Reviews</a>
+          <a href="#faq">FAQ</a>
         </div>
         <div className="landing-nav-actions">
           <button className="btn-login" onClick={handleOpenLogin}>Login</button>
@@ -302,11 +318,9 @@ const EventLanding = () => {
       </nav>
 
       {/* ── TICKER ── */}
-      <div className="ticker-container">
-        <Ticker />
-      </div>
-<br/>
-<br/>
+      <div className="ticker-container"><Ticker /></div>
+      <br /><br />
+
       {/* ── HERO ── */}
       <section className="landing-hero">
         <div className="hero-bg-grid" aria-hidden="true" />
@@ -336,7 +350,7 @@ const EventLanding = () => {
             </button>
           </div>
           <div className="hero-tags">
-            {['🎵 Music Festivals', '💻 Tech Conferences', '🍕 Food Events', '🏃 Marathons', '🎨 Art Shows'].map((t, i) => (
+            {['🎵 Music Festivals', '💻 Tech Conferences', '🍕 Food Events', '🏃 Marathons', '🎨 Art Shows', '🎤 Comedy Nights'].map((t, i) => (
               <span key={i} className="hero-tag">{t}</span>
             ))}
           </div>
@@ -383,24 +397,15 @@ const EventLanding = () => {
           </div>
           <div className="hero-float-card float-card-1">
             <FaCheckCircle className="float-icon green" />
-            <div>
-              <strong>Ticket Confirmed!</strong>
-              <span>Tech Summit 2026</span>
-            </div>
+            <div><strong>Ticket Confirmed!</strong><span>Tech Summit 2026</span></div>
           </div>
           <div className="hero-float-card float-card-2">
             <FaFire className="float-icon orange" />
-            <div>
-              <strong>Trending Now</strong>
-              <span>2,340 views today</span>
-            </div>
+            <div><strong>Trending Now</strong><span>2,340 views today</span></div>
           </div>
           <div className="hero-float-card float-card-3">
             <FaUsers className="float-icon blue" />
-            <div>
-              <strong>+128 joined</strong>
-              <span>in the last hour</span>
-            </div>
+            <div><strong>+128 joined</strong><span>in the last hour</span></div>
           </div>
         </div>
       </section>
@@ -532,6 +537,39 @@ const EventLanding = () => {
         </div>
       </section>
 
+      {/* ── 🔴 LIVE NOW SECTION ── */}
+      <section className="live-section">
+        <div className="live-inner">
+          <div className="live-header">
+            <h2>Happening <em>Right Now</em></h2>
+            <div className="live-badge-now">
+              <span className="live-dot" />
+              LIVE EVENTS
+            </div>
+          </div>
+          <div className="live-grid">
+            {liveEvents.map((ev, i) => (
+              <div key={i} className="live-card">
+                <div className="live-card-icon" style={{ background: ev.bg }}>
+                  <span style={{ fontSize: '1.4rem' }}>{ev.icon}</span>
+                </div>
+                <div className="live-card-body">
+                  <h4>{ev.title}</h4>
+                  <p><FaMapMarkerAlt style={{ marginRight: '0.3rem', fontSize: '0.7rem' }} />{ev.location}</p>
+                  <div className="live-card-meta">
+                    <div className="live-viewers">
+                      <span className="live-viewers-dot" />
+                      {ev.viewers} watching
+                    </div>
+                    <button className="live-join-btn" onClick={handleOpenLogin}>Join Live</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── HOW IT WORKS ── */}
       <section className="how-section" id="how" ref={howRef}>
         <div className="section-header-k">
@@ -549,6 +587,50 @@ const EventLanding = () => {
               {i < howItWorks.length - 1 && <div className="how-connector" />}
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ── 🌍 CITY SPOTLIGHT ── */}
+      <section className="city-section">
+        <div className="city-inner">
+          <div className="city-layout">
+            <div className="city-content-left">
+              <div className="section-header-k">
+                <span className="section-tag"><FaGlobeAmericas /> Global Reach</span>
+                <h2>Events in Every<br /><em>Corner of the World</em></h2>
+                <p>From Mumbai to Manhattan, EventPro connects you with extraordinary experiences worldwide.</p>
+              </div>
+              <div className="city-list">
+                {cities.map((city, i) => (
+                  <div key={i} className={`city-item ${activeCityIdx === i ? 'active' : ''}`} onClick={() => setActiveCityIdx(i)}>
+                    <div className="city-item-left">
+                      <span className="city-flag">{city.flag}</span>
+                      <div>
+                        <div className="city-name">{city.name}</div>
+                        <div className="city-country">{city.country}</div>
+                      </div>
+                    </div>
+                    <span className="city-count">{city.count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="city-visual">
+              <div className="city-map-grid" />
+              <div className="city-dots-container">
+                {cities.map((city, i) => (
+                  <div key={i} className="city-dot" style={{ left: city.x, top: city.y }}>
+                    <div className="city-dot-ring" style={{ background: activeCityIdx === i ? '#f59e0b' : '#6366f1' }} onClick={() => setActiveCityIdx(i)} />
+                    {activeCityIdx === i && <div className="city-dot-label">{city.name} • {city.count}</div>}
+                  </div>
+                ))}
+              </div>
+              <div className="city-map-label">
+                <strong>{cities[activeCityIdx].flag} {cities[activeCityIdx].name}</strong>
+                <span>{cities[activeCityIdx].count}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -618,6 +700,136 @@ const EventLanding = () => {
         </div>
       </section>
 
+      {/* ── 📱 APP DOWNLOAD ── */}
+      <section className="app-section">
+        <div className="app-inner">
+          <div className="app-content">
+            <span className="section-tag" style={{ marginBottom: '1.5rem', display: 'inline-flex' }}><FaMobileAlt /> Mobile App</span>
+            <h2>Your Events.<br /><em>Always in Your Pocket.</em></h2>
+            <p>Download the EventPro app and get instant ticket access, real-time updates, and a curated feed of events wherever you are.</p>
+            <div className="app-perks">
+              {appPerks.map((perk, i) => (
+                <div key={i} className="app-perk">
+                  <div className="app-perk-icon">{perk.icon}</div>
+                  <span>{perk.text}</span>
+                </div>
+              ))}
+            </div>
+            <div className="app-store-btns">
+              <button className="app-store-btn" onClick={handleOpenRegister}>
+                <FaApple className="app-store-icon" />
+                <div className="app-store-text">
+                  <small>Download on the</small>
+                  <strong>App Store</strong>
+                </div>
+              </button>
+              <button className="app-store-btn" onClick={handleOpenRegister}>
+                <FaAndroid className="app-store-icon" />
+                <div className="app-store-text">
+                  <small>Get it on</small>
+                  <strong>Google Play</strong>
+                </div>
+              </button>
+            </div>
+          </div>
+          <div className="app-visual">
+            <div className="app-phone-glow" />
+            <div className="app-phone">
+              <div className="app-phone-screen">
+                <div className="phone-notif">
+                  <strong>🎟 Ticket Confirmed!</strong>
+                  Tech Summit 2026 · May 15 · SF
+                </div>
+                <div className="phone-card-mini">
+                  <img src={image4} alt="event" />
+                  <div className="phone-card-mini-label">🎵 Music Festival — Austin TX</div>
+                </div>
+                <div className="phone-card-mini">
+                  <img src={image3} alt="event" />
+                  <div className="phone-card-mini-label">🍔 Food Expo — NYC</div>
+                </div>
+                <div className="phone-notif">
+                  <strong>🔥 Selling Fast!</strong>
+                  Coachella 2026 — 94% sold
+                </div>
+              </div>
+            </div>
+            <div className="app-float-rating">
+              <div className="app-float-rating-stars">
+                {[...Array(5)].map((_, i) => <FaStar key={i} />)}
+              </div>
+              <strong>4.9 / 5.0</strong>
+              <span>120K+ reviews</span>
+            </div>
+            <div className="app-float-dl">
+              <strong><FaArrowRight /> 2M+ Downloads</strong>
+              <span>iOS & Android</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 🤝 PARTNERS ── */}
+      <section className="partner-section">
+        <div className="section-header-k">
+          <span className="section-tag"><FaThumbsUp /> Partners</span>
+          <h2>Powered by the <em>Best in the Business</em></h2>
+          <p>We partner with world-class brands to give you a seamless experience</p>
+        </div>
+        <div className="partner-grid">
+          {partners.map((p, i) => (
+            <div key={i} className="partner-card">
+              <div className="partner-logo">{p.logo}</div>
+              <div className="partner-name">{p.name}</div>
+              <div className="partner-desc">{p.desc}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── ❓ FAQ ── */}
+      <section className="faq-section" id="faq">
+        <div className="section-header-k">
+          <span className="section-tag">FAQ</span>
+          <h2>Got Questions?<br /><em>We've Got Answers.</em></h2>
+          <p>Everything you need to know about EventPro</p>
+        </div>
+        <div className="faq-inner">
+          <div className="faq-list">
+            {faqs.map((faq, i) => (
+              <FaqItem key={i} question={faq.question} answer={faq.answer} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 📧 NEWSLETTER ── */}
+      <section className="newsletter-section">
+        <div className="newsletter-inner">
+          <span className="section-tag" style={{ marginBottom: '1.25rem', display: 'inline-flex' }}><FaEnvelope /> Newsletter</span>
+          <h2>Get the Best Events<br />Delivered to Your Inbox</h2>
+          <p>Join 400,000+ subscribers who get weekly curated event picks, exclusive early access deals, and insider guides — never spam.</p>
+          <div className="newsletter-form">
+            <input
+              type="email"
+              className="newsletter-input"
+              placeholder="Enter your email address..."
+              value={emailValue}
+              onChange={e => setEmailValue(e.target.value)}
+            />
+            <button className="newsletter-btn">Subscribe</button>
+          </div>
+          <p className="newsletter-note">
+            <FaLock style={{ fontSize: '0.7rem' }} /> No spam ever. Unsubscribe anytime. Your privacy is protected.
+          </p>
+          <div className="newsletter-categories">
+            {['🎵 Music', '💻 Tech', '🎨 Art', '🍔 Food', '⚽ Sports', '🎓 Education', '💼 Business'].map((cat, i) => (
+              <span key={i} className="newsletter-chip">{cat}</span>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── CTA ── */}
       <section className="landing-cta">
         <div className="cta-bg-lines" aria-hidden="true" />
@@ -645,11 +857,11 @@ const EventLanding = () => {
       <footer className="landing-footer">
         <div className="footer-content">
           <div className="footer-brand-k">
-            <div className="footer-logo">
+            <div className="footer-logo-k">
               <span className="logo-icon">EP</span>
               <span className="logo-text">EventPro</span>
             </div>
-            <p>Your gateway to extraordinary events, curated for every taste and occasion.</p>
+            <p>Your gateway to extraordinary events, curated for every taste and occasion. Discover. Book. Experience.</p>
             <div className="footer-social">
               <a href="#" aria-label="Instagram"><FaInstagram /></a>
               <a href="#" aria-label="Twitter"><FaTwitter /></a>
@@ -698,6 +910,7 @@ const EventLanding = () => {
             <span className="footer-badge">🔒 SSL Secured</span>
             <span className="footer-badge">✅ SOC 2 Compliant</span>
             <span className="footer-badge">🌍 GDPR Ready</span>
+            <span className="footer-badge">🏆 Award Winning</span>
           </div>
         </div>
       </footer>

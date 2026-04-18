@@ -282,6 +282,11 @@ function Messages() {
     }
   };
 
+  // 🔥 Get other participant (outside JSX, before return)
+const otherUser = selectedConversation?.participants?.find(
+  (p) => String(p._id) !== String(currentUserId)
+);
+
   const handleInputBlur = () => {
     if (selectedConversation?._id || selectedConversation?.id) {
       const convId = selectedConversation._id || selectedConversation.id;
@@ -387,117 +392,202 @@ function Messages() {
   )}
 </div>
       </div>
-
-      <div className="messages-chat">
-        {selectedConversation ? (
-          <>
-            <div className="chat-header">
-              <div className="chat-user-info">
-                <div className="chat-avatar-large">
-                  <img
-                    src={`${import.meta.env.VITE_BASE_URL}${selectedConversation.avatar}`}
-                    alt={selectedConversation.name || 'User'}
-                    className="avatar-image"
-                    onError={(e) => {
-                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedConversation.name || 'User')}&background=6366f1&color=fff&bold=true`;
-                    }}
-                  />
-                </div>
-                <div>
-                  <h3 className="chat-user-name">{selectedConversation.name}</h3>
-                </div>
-              </div>
-              <div className="chat-header-actions">
-                <button className="chat-action-btn" title="Video call">📹</button>
-                <button className="chat-action-btn" title="Voice call">📞</button>
-                <button className="chat-action-btn" onClick={() => setShowDetails(!showDetails)} title="Info">+</button>
-              </div>
-            </div>
-
-            <div className="chat-messages">
-              {messagesLoading ? (
-                <div className="loading-messages">Loading messages...</div>
-              ) : (
-                <>
-                  {messages.map((msg, idx) => {
-                    // FIX: compare sender ID against currentUserId (backend no longer sends 'me')
-                    const senderId = msg.sender?._id?.toString() || msg.sender?.toString() || msg.sender;
-                    const isMe = currentUserId && senderId && senderId === currentUserId.toString();
-                    return (
-                      <div key={msg.id || idx} className={`message-wrapper ${isMe ? 'sent-wrapper' : 'received-wrapper'}`}>
-                        <div className={`message ${isMe ? 'sent' : 'received'}`}>
-                          {!isMe && <div className="message-sender-name">{msg.senderName}</div>}
-                          <div className="message-text">{msg.text}</div>
-                          <div className="message-info">
-                            <span className="message-time">{msg.time}</span>
-                            {isMe && (
-                              <span className="message-status">
-                                {msg.status === 'read'
-                                  ? <FaCheckCircle className="read" />
-                                  : <FaCheckCircle />}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  <div ref={messagesEndRef} />
-                </>
-              )}
-            </div>
-
-            <div className="chat-input-area">
-              <button className="input-tool" title="Attach">📎</button>
-              <button className="input-tool" title="Emoji">😊</button>
-              <input
-                type="text"
-                placeholder="Type your message..."
-                value={newMessage}
-                onChange={handleInputChange}
-                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                onBlur={handleInputBlur}
-                className="chat-input"
-              />
-              <button
-                onClick={handleSendMessage}
-                disabled={!newMessage.trim()}
-                className="send-btn"
-              >
-                <FaPaperPlane />
-              </button>
-            </div>
-
-            {showDetails && (
-              <div className="chat-details-panel">
-                <div className="details-header">
-                  <h4>Details</h4>
-                  <button onClick={() => setShowDetails(false)} className="close-details"><FaTimes /></button>
-                </div>
-                <div className="details-body">
-                  <div className="detail-row">
-                    <FaUserCircle />
-                    <div><label>Participant</label><p>{selectedConversation.name}</p></div>
-                  </div>
-                  <div className="detail-row">
-                    <FaClock />
-                    <div><label>Started</label><p>{formatTime(selectedConversation.time)}</p></div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="no-chat-selected">
-            <div className="no-chat-icon"><FaEnvelope /></div>
-            <h3>Select a conversation</h3>
-            <p>Choose a conversation from the list to start messaging</p>
-            <button onClick={() => setShowNewConvModal(true)} className="start-chat-btn">
-              <FaPlus /> Start New Conversation
-            </button>
+<div className="messages-chat">
+  {selectedConversation ? (
+    <>
+      {/* ================= HEADER ================= */}
+      <div className="chat-header">
+        <div className="chat-user-info">
+          
+          {/* Avatar */}
+          <div className="chat-avatar-large">
+            <img
+              src={
+                otherUser?.avatar
+                  ? otherUser.avatar.startsWith("http")
+                    ? otherUser.avatar
+                    : `${import.meta.env.VITE_BASE_URL}${otherUser.avatar}`
+                  : `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                      otherUser?.name || "User"
+                    )}&background=6366f1&color=fff`
+              }
+              alt={otherUser?.name || "User"}
+              className="avatar-image"
+              onError={(e) => {
+                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                  otherUser?.name || "User"
+                )}`;
+              }}
+            />
           </div>
+
+          {/* Name */}
+          <div>
+            <h3 className="chat-user-name">
+              {otherUser?.name || "User"}
+            </h3>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="chat-header-actions">
+          <button className="chat-action-btn">📹</button>
+          <button className="chat-action-btn">📞</button>
+          <button
+            className="chat-action-btn"
+            onClick={() => setShowDetails(!showDetails)}
+          >
+            +
+          </button>
+        </div>
+      </div>
+
+      {/* ================= MESSAGES ================= */}
+      <div className="chat-messages">
+        {messagesLoading ? (
+          <div className="loading-messages">Loading messages...</div>
+        ) : (
+          <>
+            {messages.map((msg, idx) => {
+              const senderId =
+                typeof msg.sender === "object"
+                  ? msg.sender._id
+                  : msg.sender;
+
+              const isMe =
+                String(senderId) === String(currentUserId);
+
+              return (
+                <div
+                  key={msg._id || idx}
+                  className={`message-wrapper ${
+                    isMe ? "sent-wrapper" : "received-wrapper"
+                  }`}
+                >
+                  <div
+                    className={`message ${
+                      isMe ? "sent" : "received"
+                    }`}
+                  >
+                    {!isMe && (
+                      <div className="message-sender-name">
+                        {msg.sender?.name ||
+                          msg.senderName ||
+                          otherUser?.name ||
+                          "User"}
+                      </div>
+                    )}
+
+                    <div className="message-text">
+                      {msg.text}
+                    </div>
+
+                    <div className="message-info">
+                      <span className="message-time">
+                        {msg.time}
+                      </span>
+
+                      {isMe && (
+                        <span className="message-status">
+                          <FaCheckCircle
+                            className={
+                              msg.status === "read"
+                                ? "read"
+                                : ""
+                            }
+                          />
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            <div ref={messagesEndRef} />
+          </>
         )}
       </div>
+
+      {/* ================= INPUT ================= */}
+      <div className="chat-input-area">
+        <button className="input-tool">📎</button>
+        <button className="input-tool">😊</button>
+
+        <input
+          type="text"
+          placeholder="Type your message..."
+          value={newMessage}
+          onChange={handleInputChange}
+          onKeyDown={(e) =>
+            e.key === "Enter" && handleSendMessage()
+          }
+          onBlur={handleInputBlur}
+          className="chat-input"
+        />
+
+        <button
+          onClick={handleSendMessage}
+          disabled={!newMessage.trim()}
+          className="send-btn"
+        >
+          <FaPaperPlane />
+        </button>
+      </div>
+
+      {/* ================= DETAILS PANEL ================= */}
+      {showDetails && (
+        <div className="chat-details-panel">
+          <div className="details-header">
+            <h4>Details</h4>
+            <button
+              onClick={() => setShowDetails(false)}
+              className="close-details"
+            >
+              <FaTimes />
+            </button>
+          </div>
+
+          <div className="details-body">
+            <div className="detail-row">
+              <FaUserCircle />
+              <div>
+                <label>Participant</label>
+                <p>{otherUser?.name}</p>
+              </div>
+            </div>
+
+            <div className="detail-row">
+              <FaClock />
+              <div>
+                <label>Started</label>
+                <p>
+                  {formatTime(selectedConversation.time)}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  ) : (
+      <div className="no-chat-selected">
+        <div className="no-chat-icon">
+          <FaEnvelope />
+        </div>
+        <h3>Select a conversation</h3>
+        <p>
+          Choose a conversation from the list to start messaging
+        </p>
+        <button
+          onClick={() => setShowNewConvModal(true)}
+          className="start-chat-btn"
+        >
+          <FaPlus /> Start New Conversation
+        </button>
+      </div>
+  )}
+</div>
 
       {showNewConvModal && (
         <div className="modal-overlay" onClick={() => setShowNewConvModal(false)}>

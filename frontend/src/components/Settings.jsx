@@ -35,6 +35,8 @@ function Settings() {
   const themeState = useSelector((state) => state.theme);
   const dispatch = useDispatch();
 
+  const [imgError, setImgError] = useState(false);
+
   const [activeTab, setActiveTab] = useState('profile');
   const [saving, setSaving] = useState(false);
   const [editingField, setEditingField] = useState(null);
@@ -180,13 +182,14 @@ function Settings() {
     { id: 'privacy', label: 'Privacy', icon: FaLock, description: 'Control your data visibility' },
     { id: 'appearance', label: 'Appearance', icon: FaPalette, description: 'Customize your experience' },
   ];
+  console.log(settings)
 
   return (
     <div className="settings-container">
       <div className="settings-wrapper">
         {/* Header */}
         <div className="settings-header">
-          <button onClick={() => navigate(-1)} className="back-button">
+          <button onClick={() => navigate(-1)} className="btn-back">
             <FaArrowLeft />
             <span>Back</span>
           </button>
@@ -202,15 +205,21 @@ function Settings() {
         <div className="settings-card">
           {/* Sidebar */}
           <div className="settings-sidebar">
-            <div className="user-summary">
-              <div className="user-avatar">
-                {settings.avatar ? (
-                  <img src={settings.avatar} alt={settings.name} />
-                ) : (
-                  <FaUserCircle />
-                )}
-              </div>
-              <div className="user-info">
+            <div className="user-summary-k">
+             <div className="user-avatar-k">
+  {settings.avatar && !imgError ? (
+    <img
+      src={
+        settings.avatar ? `${import.meta.env.VITE_API_URL}/${settings.avatar}` : ''
+      }
+      alt={settings.name}
+      onError={() => setImgError(true)}
+    />
+  ) : (
+    <FaUserCircle />
+  )}
+</div>
+              <div className="user-info-k">
                 <h3>{settings.name || 'Guest User'}</h3>
                 <p>{settings.email}</p>
               </div>

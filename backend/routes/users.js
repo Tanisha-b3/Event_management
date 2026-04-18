@@ -139,7 +139,15 @@ router.put('/profile/me', protect, (req, res, next) => {
           user.email = email;
         }
         if (name && name.trim()) user.name = name.trim();
-        if (phone !== undefined) user.phone = phone;
+        if (phone !== undefined) {
+          if (phone) {
+            const phoneTaken = await User.findOne({ phone, isDeleted: false, _id: { $ne: req.user.id } });
+            if (phoneTaken) {
+              return res.status(400).json({ success: false, error: 'Phone number already in use' });
+            }
+          }
+          user.phone = phone;
+        }
         if (bio !== undefined) user.bio = bio;
         if (location !== undefined) user.location = location;
         if (avatar && avatar !== user.avatar) user.avatar = avatar;

@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
   role: { type: String, enum: ['admin', 'booker', 'organiser'], default: 'booker' },
   authProvider: { type: String, enum: ['local', 'google'], default: 'local' },
   avatar: { type: String, default: '' },
-  phone: { type: String, default: '' },
+  phone: { type: String, default: '', sparse: true },
   location: { type: String, default: '' },
   bio: { type: String, maxlength: 300, default: '' },
   status: { type: String, enum: ['active', 'inactive', 'banned', 'pending'], default: 'pending' },

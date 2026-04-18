@@ -185,8 +185,18 @@ router.post('/register', async (req, res) => {
     }
 
     const normalizedEmail = email.toLowerCase().trim();
+    const normalizedPhone = phone ? phone.trim() : '';
 
-    // Check if email already exists (including pending)
+    if (normalizedPhone) {
+      const phoneExists = await User.findOne({ phone: normalizedPhone, status: { $ne: 'deleted' } });
+      if (phoneExists) {
+        return res.status(400).json({
+          success: false,
+          error: 'Phone number already in use'
+        });
+      }
+    }
+
     const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(400).json({
@@ -436,17 +446,29 @@ function generateOTP(length = 6) {
 // Verify password and get temp token
 router.post('/verify-password', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, phone } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ success: false, error: 'Email and password are required' });
+    if (!password) {
+      return res.status(400).json({ success: false, error: 'Password is required' });
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
-    const user = await User.findOne({ email: normalizedEmail }).select('+password');
-
-    if (!user || user.isDeleted) {
-      return res.status(401).json({ success: false, error: 'Invalid email or password' });
+    let user;
+    
+    if (phone) {
+      // Phone-based login
+      user = await User.findOne({ phone }).select('+password');
+      if (!user || user.isDeleted) {
+        return res.status(401).json({ success: false, error: 'Invalid phone number or password' });
+      }
+    } else if (email) {
+      // Email-based login
+      const normalizedEmail = email.toLowerCase().trim();
+      user = await User.findOne({ email: normalizedEmail }).select('+password');
+      if (!user || user.isDeleted) {
+        return res.status(401).json({ success: false, error: 'Invalid email or password' });
+      }
+    } else {
+      return res.status(400).json({ success: false, error: 'Email or phone is required' });
     }
 
     if (user.status === 'banned') {
@@ -455,7 +477,7 @@ router.post('/verify-password', async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ success: false, error: 'Invalid email or password' });
+      return res.status(401).json({ success: false, error: phone ? 'Invalid phone number or password' : 'Invalid email or password' });
     }
 
     // Generate temp token for 2FA
@@ -513,8 +535,10 @@ router.post('/send-2fa-otp', async (req, res) => {
       user = await User.findOne({ _id: decoded.id });
     } else if (email) {
       user = await User.findOne({ email: email.toLowerCase().trim() });
+    } else if (phone) {
+      user = await User.findOne({ phone });
     } else {
-      return res.status(400).json({ success: false, error: 'Email or temp token is required' });
+      return res.status(400).json({ success: false, error: 'Email, phone, or temp token is required' });
     }
 
     if (!user) {

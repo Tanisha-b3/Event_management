@@ -1,0 +1,51 @@
+version: "3.8"
+
+services:
+  # ================= BACKEND =================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: event-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend/uploads:/app/uploads
+    depends_on:
+      - mongo
+    networks:
+      - app-network
+
+  # ================= FRONTEND (NGINX) =================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: event-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  # ================= DATABASE =================
+  mongo:
+    image: mongo:6
+    container_name: event-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - app-network
+
+# ================= VOLUMES =================
+volumes:
+  mongo_data:
+
+# ================= NETWORK =================
+networks:
+  app-network:
+    driver: bridge

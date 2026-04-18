@@ -1,6 +1,6 @@
 import express from 'express';
 import mongoose from 'mongoose';
-
+import  User from '../models/User.js';
 const router = express.Router();
 
 import { Message, Conversation } from '../models/Message.js';
@@ -11,7 +11,7 @@ const { emitToUser } = socketHandler;
 
 // FIX 2: Normalize role to lowercase before comparing
 const canUserMessageRecipient = async (senderId, recipientId, senderRole) => {
-  const User = require('../models/User');
+  // const User = require('../models/User');
   const recipient = await User.findById(recipientId);
   if (!recipient) return false;
   const role = senderRole?.toLowerCase();
@@ -168,7 +168,6 @@ router.post('/conversations', protect, async (req, res) => {
     const userRole = req.user.role;
     const userId = req.user.id;
 
-    const User = require('../models/User');
     const recipient = await User.findById(recipientId);
 
     if (!recipient) {
@@ -352,7 +351,7 @@ router.get('/users/search', protect, async (req, res) => {
       userQuery.role = { $in: ['admin', 'organiser'] };
     }
 
-    const users = await require('../models/User').find(userQuery)
+    const users = await User.find(userQuery)
       .select('name email avatar role')
       .limit(10);
 
@@ -377,7 +376,7 @@ router.get('/available-recipients', protect, async (req, res) => {
       query.role = { $in: ['admin', 'organiser'] };
     }
 
-    const users = await require('../models/User').find(query)
+    const users = await User.find(query)
       .select('name email avatar role')
       .sort('name');
 

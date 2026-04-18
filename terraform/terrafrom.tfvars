@@ -1,0 +1,26 @@
+aws_region         = "us-east-1"
+environment       = "production"
+project_name      = "event-management"
+
+vpc_cidr           = "10.0.0.0/16"
+public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]
+private_subnet_cidrs = ["10.0.11.0/24", "10.0.12.0/24"]
+availability_zones = ["us-east-1a", "us-east-1b"]
+
+instance_type  = "t3.micro"
+instance_count = 1
+
+enable_nat_gateway = true
+enable_flow_logs   = true
+
+# SSH public key content (paste your public key here)
+ssh_public_key = ""
+
+# AMI ID (choose appropriate AMI for your region)
+ami_id = "ami-0c55b159cbfafe1f0"
+
+tags = {
+  Environment = "production"
+  Project     = "event-management"
+  ManagedBy   = "Terraform"
+}

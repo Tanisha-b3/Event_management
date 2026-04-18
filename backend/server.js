@@ -27,6 +27,9 @@ const __dirname = dirname(__filename);
 const app = express();
 const server = http.createServer(app);
 
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Middleware
 app.use(express.json());
 
