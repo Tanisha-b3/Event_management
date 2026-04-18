@@ -68,7 +68,7 @@ The **Event Management System** is a full-stack web application built with the *
 | **Infrastructure** | AWS EC2 (Ubuntu 24.04 LTS), Terraform |
 | **Deployment** | Vercel (frontend), Docker Hub (`tanishab3/event-backend`, `tanishab3/event-frontend`) |
 
----
+```bash
 
 ## 📁 Project Structure
 ``` Event_management/
