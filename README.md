@@ -71,7 +71,7 @@ The **Event Management System** is a full-stack web application built with the *
 ---
 
 ## 📁 Project Structure
-Event_management/
+``` Event_management/
 ├── backend/                  # Node.js + Express API
 │   ├── controllers/
 │   ├── middleware/
