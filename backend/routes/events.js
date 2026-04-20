@@ -18,9 +18,9 @@ router.get('/', auth, eventController.getEvents);
 
 router.get('/featured', async (req, res) => {
   try {
-    const { limit = 6, category, status = 'active' } = req.query;
+    const { limit = 6, category } = req.query;
     
-    let query = { status };
+    let query = {};
     
     // Filter by category if provided
     if (category && category !== 'all') {

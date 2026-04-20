@@ -256,7 +256,7 @@ const EventCard = React.memo(({ event, index, onManage, onView, canManage, forma
   const isInView = useInView(ref, { once: true, margin: '-60px' });
   const [isHovered, setIsHovered] = useState(false);
   const [isFaved, setIsFaved] = useState(false);
-
+console.log('Rendering EventCard:', event);
   useEffect(() => {
     if (isInView) controls.start('visible');
   }, [isInView, controls]);
@@ -484,7 +484,7 @@ const Dashboard = () => {
   } = useSelector((state) => state.events);
 
   const { user, isAuthenticated } = useSelector((state) => state.auth);
-
+console.log(reduxEvents);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('events');
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -569,6 +569,7 @@ const Dashboard = () => {
       setUpdatingStatus(false);
     }
   }, [selectedEvent, canManageEvent, setSelectedEvent]);
+console.log('Dashboard render - selectedEvent:', selectedEvent);
 
   useEffect(() => {
     const isOrg = userRole === 'organiser' || userRole === 'admin';

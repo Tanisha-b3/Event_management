@@ -234,7 +234,7 @@ const EventLanding = () => {
     ...ev,
     date: ev.date ? new Date(ev.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'TBA',
     sold: Math.min(100, Math.round(((ev.ticketsSold || 0) / (ev.capacity || 1)) * 100)),
-    image: ev.imageUrl || (ev.imageName ? `http://localhost:5000/uploads/events/${ev.imageName}` : ev.image)
+    image: ev.imageUrl || (ev.imageName ? `${import.meta.env.VITE_BASE_URL || 'http://localhost:5000'}/uploads/events/${ev.imageName}` : ev.image)
   }));
 
   const howItWorks = [
@@ -489,7 +489,7 @@ const EventLanding = () => {
               <div key={event._id || event.id || i} className="event-card-landing" style={{ animationDelay: `${i * 0.1}s` }}>
                 <div className="event-card-image">
                   <img 
-                    src={event.imageUrl || event.image || (event.imageName ? `http://localhost:5000/uploads/events/${event.imageName}` : image10)} 
+                    src={event.imageUrl || event.image || (event.imageName ? `${import.meta.env.VITE_BASE_URL || 'http://localhost:5000'}/uploads/events/${event.imageName}` : image10)} 
                     alt={event.title} 
                     onError={(e) => { e.target.src = image10; }}
                   />

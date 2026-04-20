@@ -7,18 +7,12 @@ import Notification from '../models/Notification.js';
 
 import socketHandler from '../socketHandler.js';
 import { sendEmail } from './emailController.js';
-import { cacheGet, cacheSet, cacheDel, getOrSetCache, getCacheKey, CACHE_TTL } from '../utils/cache.js';
 
 import aiService from '../services/aiService.js';
 const { emitToUser, emitToAll } = socketHandler;
 
 const isValidObjectId = (id) => {
   return mongoose.Types.ObjectId.isValid(id);
-};
-
-const getEventsCacheKey = (query) => {
-  const params = new URLSearchParams(query).toString();
-  return getCacheKey('events', params || 'all');
 };
 
 const getDateStatus = (eventDate) => {
@@ -44,8 +38,6 @@ const getEvents = async (req, res) => {
     const search = req.query.search;
     const location = req.query.location;
     const filterType = req.query.filterType;
-
-    const cacheKey = getEventsCacheKey(req.query);
 
     let query = {};
     
@@ -120,35 +112,15 @@ const getEvents = async (req, res) => {
     
     // console.log('🔍 Final MongoDB query:', JSON.stringify(query, null, 2));
 
-    const isCacheable = !myEvents && !isAdmin && !isOrganiser && !search && page === 1;
-
     let events, total;
-    if (isCacheable && limit === 12) {
-      const cached = await cacheGet(cacheKey);
-      if (cached) {
-        console.log(`Events cache hit: ${cacheKey}`);
-        return res.json(cached);
-      }
-      console.log(`Events cache miss: ${cacheKey}, fetching from DB`);
-
-      [events, total] = await Promise.all([
-        Event.find(query)
-          .sort({ date: 1, createdAt: -1 })
-          .skip(skip)
-          .limit(limit)
-          .lean(),
-        Event.countDocuments(query)
-      ]);
-    } else {
-      [events, total] = await Promise.all([
-        Event.find(query)
-          .sort({ date: 1, createdAt: -1 })
-          .skip(skip)
-          .limit(limit)
-          .lean(),
-        Event.countDocuments(query)
-      ]);
-    }
+    [events, total] = await Promise.all([
+      Event.find(query)
+        .sort({ date: 1, createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Event.countDocuments(query)
+    ]);
 
     // console.log(`✅ Found ${events.length} events out of ${total} total (Page ${page} of ${Math.ceil(total / limit)})`);
 
@@ -213,10 +185,6 @@ const getEvents = async (req, res) => {
       pagination,
       filters: { category, search, location, filterType, myEvents }
     };
-
-    if (isCacheable && limit === 12) {
-      await cacheSet(cacheKey, response, CACHE_TTL.eventsList);
-    }
 
     res.json(response);
   } catch (err) {
@@ -351,8 +319,6 @@ export const createEvent = async (req, res) => {
     const event = new Event(eventData);
     const newEvent = await event.save();
 
-    await cacheDel('events:*', 'trending:events');
-
     // Notify all admins (except the creator if admin)
     const admins = await User.find({ role: 'admin', isDeleted: false });
     for (const admin of admins) {
@@ -476,8 +442,6 @@ const updateEvent = async (req, res) => {
       });
     }
 
-    await cacheDel('events:*', 'trending:events');
-
     res.status(200).json({
       success: true,
       message: 'Event updated successfully',
@@ -523,8 +487,6 @@ const updateEvent = async (req, res) => {
         message: 'Event not found'
       });
     }
-
-    await cacheDel('events:*', 'trending:events');
 
     res.status(200).json({
       success: true,
@@ -729,20 +691,6 @@ const updateEvent = async (req, res) => {
 
 const getTrendingEvents = async (req, res) => {
   try {
-    const cacheKey = getCacheKey('trending', 'events');
-
-    try {
-      const cached = await cacheGet(cacheKey);
-      if (cached) {
-        console.log('Trending events cache hit');
-        return res.json(cached);
-      }
-    } catch (cacheErr) {
-      console.warn('Cache unavailable, fetching from DB');
-    }
-
-    console.log('Trending events cache miss, fetching from DB');
-
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
@@ -779,7 +727,6 @@ const getTrendingEvents = async (req, res) => {
 
     const trending = eventsWithScore.slice(0, 10);
     const response = { success: true, events: trending };
-    await cacheSet(cacheKey, response, CACHE_TTL.trendingEvents);
 
     res.json(response);
   } catch (err) {
