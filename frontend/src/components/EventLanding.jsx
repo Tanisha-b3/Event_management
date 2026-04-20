@@ -12,13 +12,12 @@ import {
   FaAndroid, FaChevronDown, FaEnvelope, FaVideo, FaMicrophone,
   FaMapPin, FaGlobeAmericas
 } from 'react-icons/fa';
-import { fetchEvents } from '../store/slices/eventSlice';
+import { fetchFeaturedEvents } from '../store/slices/eventSlice';
 import './EventLanding.css';
 import image10 from "../assets/image10.jpg";
 import image3 from "../assets/image3.jpg";
 import image4 from "../assets/image4.jpg";
 import image8 from "../assets/image8.jpg";
-import loginImage from "../assets/loginImage.jpg";
 import LoginDialog from './loginDialog';
 import RegisterDialog from './RegisterDialog';
 
@@ -112,10 +111,9 @@ const FaqItem = ({ question, answer }) => {
 const EventLanding = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { events, loading } = useSelector((state) => state.events);
+  const { featuredEvents, featuredLoading } = useSelector((state) => state.events);
 
   const [heroText, setHeroText] = useState(0);
-  const [featuredEvents, setFeaturedEvents] = useState([]);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [showRegisterDialog, setShowRegisterDialog] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
@@ -131,12 +129,18 @@ const EventLanding = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // Fetch featured events on component mount
+  useEffect(() => {
+    dispatch(fetchFeaturedEvents({ limit: 6, category: activeCategory === 'All' ? 'all' : activeCategory, sortBy: 'date' }));
+  }, [dispatch, activeCategory]);
+
   const handleOpenLogin = () => setShowLoginDialog(true);
   const handleCloseLogin = () => setShowLoginDialog(false);
   const handleOpenRegister = () => setShowRegisterDialog(true);
   const handleCloseRegister = () => setShowRegisterDialog(false);
   const handleSwitchToRegister = () => { setShowLoginDialog(false); setShowRegisterDialog(true); };
   const handleSwitchToLogin = () => { setShowRegisterDialog(false); setShowLoginDialog(true); };
+  
   const toggleLike = (id) => {
     setLikedEvents(prev => {
       const next = new Set(prev);
@@ -147,22 +151,25 @@ const EventLanding = () => {
 
   const heroTexts = ['Discover Amazing Events', 'Find Your Next Experience', 'Create Unforgettable Memories', 'Connect With Your Tribe'];
 
-  useEffect(() => { dispatch(fetchEvents({ limit: 6, filterType: 'active' })); }, [dispatch]);
-  useEffect(() => { if (events?.length > 0) setFeaturedEvents(events.slice(0, 6)); }, [events]);
   useEffect(() => {
     const interval = setInterval(() => setHeroText(p => (p + 1) % heroTexts.length), 3500);
     return () => clearInterval(interval);
   }, [heroTexts.length]);
 
-  const formatDate = (dateString) => new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const formatDate = (dateString) => {
+    if (!dateString) return 'TBA';
+    return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
 
-  // ── DATA ──
-  const featured = [
-    { id: 1, title: 'Tech Summit 2026', category: 'Technology', date: '2026-05-15', location: 'San Francisco, CA', image: image10, attendees: 5000, price: 199, rating: 4.9 },
-    { id: 2, title: 'Music Festival', category: 'Music', date: '2026-06-20', location: 'Austin, TX', image: image4, attendees: 15000, price: 89, rating: 4.8 },
-    { id: 3, title: 'Food & Wine Expo', category: 'Food', date: '2026-07-10', location: 'New York, NY', image: image3, attendees: 3000, price: 65, rating: 4.7 },
-    { id: 4, title: 'Art Gallery Opening', category: 'Art', date: '2026-08-05', location: 'Los Angeles, CA', image: image8, attendees: 800, price: 45, rating: 4.9 },
+  // Fallback data for when API is loading or returns empty
+  const fallbackEvents = [
+    { _id: '1', title: 'Tech Summit 2026', category: 'Technology', date: '2026-05-15', location: 'San Francisco, CA', image: image10, attendees: 5000, ticketPrice: 199, rating: 4.9 },
+    { _id: '2', title: 'Music Festival', category: 'Music', date: '2026-06-20', location: 'Austin, TX', image: image4, attendees: 15000, ticketPrice: 89, rating: 4.8 },
+    { _id: '3', title: 'Food & Wine Expo', category: 'Food', date: '2026-07-10', location: 'New York, NY', image: image3, attendees: 3000, ticketPrice: 65, rating: 4.7 },
+    { _id: '4', title: 'Art Gallery Opening', category: 'Art', date: '2026-08-05', location: 'Los Angeles, CA', image: image8, attendees: 800, ticketPrice: 45, rating: 4.9 },
   ];
+
+  const displayEvents = featuredEvents?.length > 0 ? featuredEvents : fallbackEvents;
 
   const stats = [
     { value: 50000, suffix: '+', label: 'Events Hosted' },
@@ -223,17 +230,12 @@ const EventLanding = () => {
     }
   ];
 
-  const upcomingHighlights = featuredEvents.length > 0 ? featuredEvents.slice(0, 4).map(ev => ({
-      ...ev,
-      date: new Date(ev.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      sold: Math.min(100, Math.round(((ev.ticketsSold || 0) / (ev.capacity || 1)) * 100)),
-      image: ev.image || ev.imageName ? `http://localhost:5000/uploads/events/${ev.imageName || ev.image}` : null
-    })) : [
-      { title: 'Coachella Valley Music', date: 'Apr 11–20', location: 'Indio, CA', category: 'Music', sold: 94, image: image4 },
-      { title: 'AI & Future Summit', date: 'May 3', location: 'San Jose, CA', category: 'Tech', sold: 78, image: image10 },
-      { title: 'NYC Restaurant Week', date: 'Jun 15–30', location: 'New York, NY', category: 'Food', sold: 61, image: image3 },
-      { title: 'Contemporary Art Basel', date: 'Jul 8–12', location: 'Miami, FL', category: 'Art', sold: 45, image: image8 },
-    ];
+  const upcomingHighlights = displayEvents.slice(0, 4).map(ev => ({
+    ...ev,
+    date: ev.date ? new Date(ev.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'TBA',
+    sold: Math.min(100, Math.round(((ev.ticketsSold || 0) / (ev.capacity || 1)) * 100)),
+    image: ev.imageUrl || (ev.imageName ? `http://localhost:5000/uploads/events/${ev.imageName}` : ev.image)
+  }));
 
   const howItWorks = [
     { step: '01', title: 'Create Your Profile', desc: 'Tell us your interests and location. Takes 60 seconds. No spam, ever.', icon: <FaUsers /> },
@@ -244,11 +246,10 @@ const EventLanding = () => {
 
   const brands = ['Spotify', 'Airbnb', 'Google', 'Stripe', 'Shopify', 'Notion', 'Figma', 'Vercel'];
 
-  // ── NEW DATA ──
   const liveEvents = [
-    { title: 'Global Dev Summit', location: 'San Francisco + Online', viewers: '12,430', bg: 'linear-gradient(135deg,#2563eb,#7c3aed)', icon: '💻' },
+    { title: 'Global Dev Summit', location: 'San Francisco + Online', viewers: '12,430', bg: 'linear-gradient(135deg,#6366f1,#7c3aed)', icon: '💻' },
     { title: 'Jazz Night Live', location: 'New Orleans, LA', viewers: '8,912', bg: 'linear-gradient(135deg,#db2777,#ea580c)', icon: '🎷' },
-    { title: 'Startup Pitch Finals', location: 'New York, NY', viewers: '5,287', bg: 'linear-gradient(135deg,#059669,#2563eb)', icon: '🚀' },
+    { title: 'Startup Pitch Finals', location: 'New York, NY', viewers: '5,287', bg: 'linear-gradient(135deg,#059669,#6366f1)', icon: '🚀' },
     { title: 'Food & Culture Expo', location: 'Chicago, IL', viewers: '4,103', bg: 'linear-gradient(135deg,#ea580c,#d97706)', icon: '🍜' },
     { title: 'AI Art Exhibition', location: 'Los Angeles + Virtual', viewers: '9,651', bg: 'linear-gradient(135deg,#7c3aed,#db2777)', icon: '🎨' },
     { title: 'Wellness Weekend', location: 'Sedona, AZ', viewers: '3,440', bg: 'linear-gradient(135deg,#059669,#0891b2)', icon: '🧘' },
@@ -471,39 +472,57 @@ const EventLanding = () => {
           ))}
         </div>
         <div className="events-grid">
-          {(featuredEvents.length > 0 ? featuredEvents : featured).map((event, i) => (
-            <div key={event._id || event.id || i} className="event-card-landing" style={{ animationDelay: `${i * 0.1}s` }}>
-              <div className="event-card-image">
-                <img src={event.image || event.imageName ? `http://localhost:5000/uploads/events/${event.imageName || event.image}` : event.image} alt={event.title} />
-                <div className="event-card-badges">
-                  <span className="category-badge">{CATEGORY_ICONS[event.category]} {event.category}</span>
-                  <span className="hot-badge"><FaFire /> Trending</span>
-                </div>
-                <button className={`like-btn ${likedEvents.has(event.id) ? 'liked' : ''}`} onClick={() => toggleLike(event.id)}>
-                  <FaHeart />
-                </button>
-                <div className="event-price-tag">${event.price}</div>
-              </div>
-              <div className="event-card-content">
-                <div className="event-rating">
-                  {[...Array(5)].map((_, j) => <FaStar key={j} className={j < Math.floor(event.rating) ? 'star-filled' : 'star-empty'} />)}
-                  <span>{event.rating}</span>
-                </div>
-                <h3>{event.title}</h3>
-                <div className="event-meta-landing">
-                  <span><FaCalendarAlt /> {formatDate(event.date)}</span>
-                  <span><FaMapMarkerAlt /> {event.location}</span>
-                </div>
-                <div className="event-card-footer">
-                  <span className="attendees"><FaUsers /> {event.attendees.toLocaleString()}+ going</span>
-                  <button className="btn-icon" onClick={handleOpenLogin}><FaArrowRight /></button>
+          {featuredLoading ? (
+            // Loading skeletons
+            [...Array(4)].map((_, i) => (
+              <div key={i} className="event-card-landing skeleton">
+                <div className="event-card-image skeleton-image"></div>
+                <div className="event-card-content">
+                  <div className="skeleton-title"></div>
+                  <div className="skeleton-meta"></div>
+                  <div className="skeleton-footer"></div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            displayEvents.map((event, i) => (
+              <div key={event._id || event.id || i} className="event-card-landing" style={{ animationDelay: `${i * 0.1}s` }}>
+                <div className="event-card-image">
+                  <img 
+                    src={event.imageUrl || event.image || (event.imageName ? `http://localhost:5000/uploads/events/${event.imageName}` : image10)} 
+                    alt={event.title} 
+                    onError={(e) => { e.target.src = image10; }}
+                  />
+                  <div className="event-card-badges">
+                    <span className="category-badge">{CATEGORY_ICONS[event.category] || '🎉'} {event.category}</span>
+                    <span className="hot-badge"><FaFire /> Trending</span>
+                  </div>
+                  <button className={`like-btn ${likedEvents.has(event._id) ? 'liked' : ''}`} onClick={() => toggleLike(event._id)}>
+                    <FaHeart />
+                  </button>
+                  <div className="event-price-tag">${event.ticketPrice || event.price || 0}</div>
+                </div>
+                <div className="event-card-content">
+                  <div className="event-rating">
+                    {[...Array(5)].map((_, j) => <FaStar key={j} className={j < Math.floor(event.rating || 4.5) ? 'star-filled' : 'star-empty'} />)}
+                    <span>{event.rating || 4.5}</span>
+                  </div>
+                  <h3>{event.title}</h3>
+                  <div className="event-meta-landing">
+                    <span><FaCalendarAlt /> {formatDate(event.date)}</span>
+                    <span><FaMapMarkerAlt /> {event.location}</span>
+                  </div>
+                  <div className="event-card-footer">
+                    <span className="attendees"><FaUsers /> {(event.attendees || 0).toLocaleString()}+ going</span>
+                    <button className="btn-icon" onClick={() => navigate(`/event/${event._id}`)}><FaArrowRight /></button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
         <div className="section-cta">
-          <button className="btn-outline" onClick={handleOpenLogin}>View All Events <FaChevronRight /></button>
+          <button className="btn-outline" onClick={() => navigate('/discover')}>View All Events <FaChevronRight /></button>
         </div>
       </section>
 
@@ -517,7 +536,7 @@ const EventLanding = () => {
           {upcomingHighlights.map((event, i) => (
             <div key={i} className="upcoming-card" style={{ animationDelay: `${i * 0.12}s` }}>
               <div className="upcoming-img">
-                <img src={event.image} alt={event.title} />
+                <img src={event.image || image10} alt={event.title} />
                 <div className="upcoming-overlay">
                   <span className="upcoming-category">{event.category}</span>
                 </div>
@@ -535,14 +554,15 @@ const EventLanding = () => {
                   <span>{event.sold}% sold</span>
                   <span className={event.sold > 80 ? 'selling-fast' : ''}>{event.sold > 80 ? '🔥 Selling fast!' : 'Available'}</span>
                 </div>
-                <button className="upcoming-btn" onClick={handleOpenLogin}>Get Tickets</button>
+                <button className="upcoming-btn" onClick={() => navigate(`/event/${event._id}`)}>Get Tickets</button>
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── 🔴 LIVE NOW SECTION ── */}
+      {/* Rest of the sections remain the same... */}
+      {/* ── LIVE NOW SECTION ── */}
       <section className="live-section">
         <div className="live-inner">
           <div className="live-header">
@@ -589,13 +609,12 @@ const EventLanding = () => {
               <div className="how-icon">{step.icon}</div>
               <h3>{step.title}</h3>
               <p>{step.desc}</p>
-              {i < howItWorks.length - 1 && <div className="how-connector" />}
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── 🌍 CITY SPOTLIGHT ── */}
+      {/* ── CITY SPOTLIGHT ── */}
       <section className="city-section">
         <div className="city-inner">
           <div className="city-layout">
@@ -705,7 +724,7 @@ const EventLanding = () => {
         </div>
       </section>
 
-      {/* ── 📱 APP DOWNLOAD ── */}
+      {/* ── APP DOWNLOAD ── */}
       <section className="app-section">
         <div className="app-inner">
           <div className="app-content">
@@ -774,7 +793,7 @@ const EventLanding = () => {
         </div>
       </section>
 
-      {/* ── 🤝 PARTNERS ── */}
+      {/* ── PARTNERS ── */}
       <section className="partner-section">
         <div className="section-header-k">
           <span className="section-tag"><FaThumbsUp /> Partners</span>
@@ -792,7 +811,7 @@ const EventLanding = () => {
         </div>
       </section>
 
-      {/* ── ❓ FAQ ── */}
+      {/* ── FAQ ── */}
       <section className="faq-section" id="faq">
         <div className="section-header-k">
           <span className="section-tag">FAQ</span>
@@ -808,7 +827,7 @@ const EventLanding = () => {
         </div>
       </section>
 
-      {/* ── 📧 NEWSLETTER ── */}
+      {/* ── NEWSLETTER ── */}
       <section className="newsletter-section">
         <div className="newsletter-inner">
           <span className="section-tag" style={{ marginBottom: '1.25rem', display: 'inline-flex' }}><FaEnvelope /> Newsletter</span>

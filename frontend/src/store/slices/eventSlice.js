@@ -26,17 +26,35 @@ export const fetchEvents = createAsyncThunk(
       const queryString = params.toString();
       const url = `${API_URL}/events${queryString ? `?${queryString}` : ''}`;
       
-      // console.log('📡 Fetching events from:', url);
-      
       const config = getAuthToken(getState);
       const response = await axios.get(url, config);
-      
-      // console.log('📥 Response:', response.data);
       
       return response.data;
     } catch (error) {
       console.error('❌ Error fetching events:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch events');
+    }
+  }
+);
+
+export const fetchFeaturedEvents = createAsyncThunk(
+  'events/fetchFeatured',
+  async ({ limit = 6, category = 'all', sortBy = 'date' } = {}, { rejectWithValue }) => {
+    try {
+      const params = new URLSearchParams();
+      params.append('limit', limit);
+      if (category && category !== 'all') params.append('category', category);
+      params.append('sortBy', sortBy);
+      
+      const url = `${API_URL}/events/featured?${params.toString()}`;
+      console.log('📡 Fetching featured events from:', url);
+      
+      const response = await axios.get(url);
+      
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error fetching featured events:', error);
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch featured events');
     }
   }
 );
@@ -232,6 +250,7 @@ const eventSlice = createSlice({
   name: 'events',
   initialState: {
     events: [],
+    featuredEvents: [],
     myEvents: [],
     pendingEvents: [],
     trendingEvents: [],
@@ -242,6 +261,7 @@ const eventSlice = createSlice({
     loading: false,
     error: null,
     approvalLoading: false,
+    featuredLoading: false,
     filters: {
       category: '',
       date: '',
@@ -273,6 +293,9 @@ const eventSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    clearFeaturedEvents: (state) => {
+      state.featuredEvents = [];
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -287,12 +310,26 @@ const eventSlice = createSlice({
         if (action.payload.pagination) {
           state.pagination = action.payload.pagination;
         }
-        
       })
       .addCase(fetchEvents.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
         console.error('❌ Redux: Events fetch failed', action.payload);
+      })
+      
+      // Fetch Featured Events
+      .addCase(fetchFeaturedEvents.pending, (state) => {
+        state.featuredLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchFeaturedEvents.fulfilled, (state, action) => {
+        state.featuredLoading = false;
+        state.featuredEvents = action.payload.events || [];
+      })
+      .addCase(fetchFeaturedEvents.rejected, (state, action) => {
+        state.featuredLoading = false;
+        state.error = action.payload;
+        console.error('❌ Redux: Featured events fetch failed', action.payload);
       })
       
       // Fetch Event By ID
@@ -345,6 +382,10 @@ const eventSlice = createSlice({
           if (state.currentEvent?._id === updatedEvent._id) {
             state.currentEvent = updatedEvent;
           }
+          
+          // Also update in featuredEvents if present
+          const featuredIndex = state.featuredEvents.findIndex((e) => e._id === updatedEvent._id);
+          if (featuredIndex !== -1) state.featuredEvents[featuredIndex] = updatedEvent;
         }
       })
       .addCase(updateEvent.rejected, (state, action) => {
@@ -362,6 +403,7 @@ const eventSlice = createSlice({
         const deletedId = action.payload;
         state.events = state.events.filter((e) => e._id !== deletedId);
         state.myEvents = state.myEvents.filter((e) => e._id !== deletedId);
+        state.featuredEvents = state.featuredEvents.filter((e) => e._id !== deletedId);
         if (state.currentEvent?._id === deletedId) {
           state.currentEvent = null;
         }
@@ -496,5 +538,13 @@ const eventSlice = createSlice({
   },
 });
 
-export const { setFilters, clearFilters, setCurrentEvent, clearCurrentEvent, clearError } = eventSlice.actions;
+export const { 
+  setFilters, 
+  clearFilters, 
+  setCurrentEvent, 
+  clearCurrentEvent, 
+  clearError,
+  clearFeaturedEvents 
+} = eventSlice.actions;
+
 export default eventSlice.reducer;
