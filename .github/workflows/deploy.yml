@@ -1,0 +1,62 @@
+name: Deploy MERN App
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: Production
+
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "🚀 Deploying..."
+
+            cd Event_management || git clone https://github.com/Tanisha-b3/Event_management.git
+            cd Event_management
+            git pull origin main
+
+            # BACKEND
+            cd backend
+            npm install
+
+            cat <<EOT > .env
+            MONGO_URI=${{ secrets.MONGO_URI }}
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            CLIENT_SECRET=${{ secrets.CLIENT_SECRET }}
+            REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}
+            ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            EMAIL=${{ secrets.EMAIL }}
+            TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}
+            TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}
+            TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}
+            FRONTEND_URL=http://${{ secrets.EC2_HOST }}
+            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+            EOT
+
+            pm2 restart backend || pm2 start server.js --name backend
+
+            # FRONTEND
+            cd ../frontend
+            npm install
+
+            cat <<EOT > .env
+            VITE_API_URL=/api
+            VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+            EOT
+
+            npm run build
+
+            sudo rm -rf /var/www/html/*
+            sudo cp -r dist/* /var/www/html/
+
+            sudo systemctl restart nginx
+
+            echo "✅ Done"
