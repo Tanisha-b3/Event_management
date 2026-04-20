@@ -31,8 +31,6 @@ const __dirname = dirname(__filename);
 
 // Ensure logs directory exists
 if (process.env.NODE_ENV === 'development') {
-  const fs = await import('fs');
-  const path = await import('path');
 
   const logsDir = path.join('logs');
 
