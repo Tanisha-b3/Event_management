@@ -104,7 +104,7 @@ const SwipeCard = ({ card, onSwipe, onCardClick, onAddToCart, index, totalCards,
       }}
       whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
     >
-      {/* Image Section */}
+      Image Section
       <div className="sc__imageContainer">
         {card?.image ? (
           <motion.img

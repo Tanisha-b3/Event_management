@@ -111,7 +111,22 @@
   --font-display: 'Poppins', system-ui, sans-serif;
 }
 
-/* Dark mode support */
+
+/* Black theme support: force dark/black theme when .themeblack is present */
+.themeblack {
+  --border-primary: var(--ed-border-dark);
+  --border-color: var(--ed-border-dark);
+  --bg-card: #11151c;
+  --bg-tertiary: #090b10;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #64748b;
+  --gradient-mesh: linear-gradient(135deg, #1e293b, #0f172a);
+  --shadow-card: 0 4px 14px rgba(0,0,0,0.7);
+  --shadow-card-hover: 0 8px 24px rgba(0,0,0,0.85);
+}
+
+/* Dark mode support (system) */
 @media (prefers-color-scheme: dark) {
   :root {
     --border-primary: var(--ed-border-dark);

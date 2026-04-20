@@ -150,15 +150,6 @@ margin-bottom: 0.75rem;
   margin-top: 0.25rem;
 }
 
-[data-theme="dark"] .lxm-brand-title {
-  background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-}
-
-[data-theme="dark"] .lxm-subtitle {
-  color: #9ca3af;
-}
 
 
 
@@ -184,9 +175,6 @@ margin-bottom: 0.75rem;
   z-index: 10;
 }
 
-[data-theme="dark"] .lxm-google-loader {
-  background-color: rgba(17, 24, 39, 0.8);
-}
 
 /* ============================================
    DIVIDER
@@ -352,17 +340,6 @@ margin-bottom: 0.75rem;
   color: #8b5cf6;
 }
 
-[data-theme="dark"] {
-  .lxm-method-toggle-btn {
-    border-color: #374151;
-    background: #1f2937;
-    color: #9ca3af;
-  }
-  .lxm-method-toggle-active {
-    background-color: rgba(139, 92, 246, 0.2);
-    color: #a78bfa;
-  }
-}
 
 /* ============================================
    INPUT ERROR STATE
@@ -587,12 +564,6 @@ margin-bottom: 0.75rem;
   color: #6b7280;
 }
 
-[data-theme="dark"] {
-  .lxm-method-btn {
-    border-color: #374151;
-    color: #9ca3af;
-  }
-}
 
 .lxm-method-btn:hover:not(.lxm-method-disabled) {
   border-color: #a78bfa;
@@ -604,12 +575,7 @@ margin-bottom: 0.75rem;
   color: #8b5cf6;
 }
 
-[data-theme="dark"] {
-  .lxm-method-active {
-    background-color: rgba(139, 92, 246, 0.2);
-    color: #a78bfa;
-  }
-}
+
 
 .lxm-method-disabled {
   opacity: 0.5;

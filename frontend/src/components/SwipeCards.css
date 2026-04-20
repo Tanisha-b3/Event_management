@@ -124,7 +124,7 @@
   height: 560px;
 }
 
-.sc__ghost {
+/* .sc__ghost {
   position: absolute;
   bottom: 0;
   left: 50%;
@@ -134,7 +134,7 @@
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.9));
   backdrop-filter: blur(2px);
   border: 1px solid rgba(99, 102, 241, 0.2);
-}
+} */
 
 .sc__ghost--back {
   transform: translateX(-50%) scale(0.94) translateY(12px);
