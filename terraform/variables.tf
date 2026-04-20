@@ -86,10 +86,6 @@ variable "ssh_public_key" {
   default     = ""
 }
 
-variable "instance_type" {
-  default = "t2.micro"
-}
-
 variable "key_name" {}
 
 variable "repo_url" {
