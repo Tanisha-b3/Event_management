@@ -477,3 +477,35 @@
   border-color: #334155;
   color: #94a3b8;
 }
+
+[data-theme="dark"] .discussion-author {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .discussion-date {
+  color: #64748b;
+}
+
+[data-theme="dark"] .discussion-content {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .discussion-action-btn {
+  color: #64748b;
+}
+
+[data-theme="dark"] .discussion-comment-author {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .discussion-comment-date {
+  color: #64748b;
+}
+
+[data-theme="dark"] .discussion-comment-text {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .discussion-empty {
+  color: #64748b;
+}

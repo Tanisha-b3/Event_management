@@ -245,6 +245,18 @@
   color: #94a3b8;
 }
 
+[data-theme="dark"] .item-name {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .item-details {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .item-meta .MuiTypography-caption {
+  color: #94a3b8;
+}
+
 [data-theme="dark"] .cart-drawer-item-price {
   color: #f8fafc;
 }
@@ -582,6 +594,10 @@
 .meta-icon {
   font-size: 14px !important;
   color: var(--cart-text-muted);
+}
+
+[data-theme="dark"] .meta-icon {
+  color: #94a3b8;
 }
 
 .item-actions {

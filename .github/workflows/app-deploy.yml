@@ -1,0 +1,51 @@
+name: Custom App Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  app-deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+
+      - name: Archive app for deployment
+        run: |
+          tar -czf app.tar.gz frontend/dist backend package.json
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+      - name: Terraform Init
+        run: terraform -chdir=aws-terraform init
+
+      - name: Get EC2 Public IP
+        id: ec2ip
+        run: |
+          IP=$(terraform -chdir=aws-terraform output -raw instance_public_ip)
+          echo "INSTANCE_IP=$IP" >> $GITHUB_ENV
+
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+
+      - name: Copy app and deploy script to EC2
+        env:
+          INSTANCE_IP: ${{ env.INSTANCE_IP }}
+        run: |
+          scp -o StrictHostKeyChecking=no app.tar.gz ubuntu@$INSTANCE_IP:/home/ubuntu/app.tar.gz
+          scp -o StrictHostKeyChecking=no aws-terraform/deploy.sh ubuntu@$INSTANCE_IP:/home/ubuntu/deploy.sh
+          ssh -o StrictHostKeyChecking=no ubuntu@$INSTANCE_IP 'chmod +x /home/ubuntu/deploy.sh && /home/ubuntu/deploy.sh'

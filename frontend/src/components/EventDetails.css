@@ -1196,6 +1196,18 @@
   color: var(--ed-title, #1e293b);
 }
 
+[data-theme="dark"] .evd-section {
+  background: var(--ed-card-dark, #1e293b);
+}
+
+[data-theme="dark"] .evd-section-header {
+  border-bottom-color: var(--ed-border-dark, #334155);
+}
+
+[data-theme="dark"] .evd-section-header h3 {
+  color: var(--ed-text-primary, #f8fafc);
+}
+
 /* =====================================================
    EVENT DETAILS CSS — Modern Event Page Design
    Ticket Selection & Booking System
@@ -2051,6 +2063,10 @@
   margin-top: 3rem;
   padding-top: 2rem;
   border-top: 1px solid var(--clr-border);
+}
+
+[data-theme="dark"] .evd-section {
+  border-top-color: var(--clr-border);
 }
 
 /* Responsive Design */
