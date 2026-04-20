@@ -8,7 +8,7 @@ const { emitToUser } = socketHandler;
 // Get all notifications for user
 router.get('/', protect, async (req, res) => {
   try {
-    const { page = 1, limit = 20, unreadOnly = false } = req.query;
+    const { page = 1, limit = 50, unreadOnly = false } = req.query;
 
     // ALWAYS filter by userId to prevent seeing other users' notifications
     const userId = req.user.id;

@@ -16,7 +16,7 @@ const eventSchema = new mongoose.Schema({
   ticketsSold: { type: Number, default: 0, min: 0 },
   capacity: { type: Number, default: 100, min: 1 },
   revenue: { type: Number, default: 0, min: 0 },
-  status: { type: String, enum: ['active', 'cancelled', 'completed', 'soldout', 'upcoming', 'pending'], default: 'pending' },
+  status: { type: String, enum: ['active', 'cancelled', 'completed', 'soldout', 'upcoming', 'pending', "paused"], default: 'pending' },
   approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   approvedAt: { type: Date },
   rejectionReason: { type: String },
@@ -29,6 +29,8 @@ const eventSchema = new mongoose.Schema({
   time: { type: String, default: '10:00 AM - 5:00 PM' },
   imageName: { type: String },
   views: { type: Number, default: 0 },
+  bookings: { type: Number, default: 0 },
+  likes: { type: Number, default: 0 },
   ticketTypes: [ticketTypeSchema]
 });
 

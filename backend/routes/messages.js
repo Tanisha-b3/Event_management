@@ -11,7 +11,6 @@ const { emitToUser } = socketHandler;
 
 // FIX 2: Normalize role to lowercase before comparing
 const canUserMessageRecipient = async (senderId, recipientId, senderRole) => {
-  // const User = require('../models/User');
   const recipient = await User.findById(recipientId);
   if (!recipient) return false;
   const role = senderRole?.toLowerCase();

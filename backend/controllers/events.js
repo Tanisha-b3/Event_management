@@ -6,11 +6,19 @@ import User from '../models/User.js';
 import Notification from '../models/Notification.js';
 
 import socketHandler from '../socketHandler.js';
-import { sendEmail } from './email.js';
+import { sendEmail } from './emailController.js';
+import { cacheGet, cacheSet, cacheDel, getOrSetCache, getCacheKey, CACHE_TTL } from '../utils/cache.js';
+import logger from '../utils/logger.js';
+import aiService from '../services/aiService.js';
 const { emitToUser, emitToAll } = socketHandler;
 
 const isValidObjectId = (id) => {
   return mongoose.Types.ObjectId.isValid(id);
+};
+
+const getEventsCacheKey = (query) => {
+  const params = new URLSearchParams(query).toString();
+  return getCacheKey('events', params || 'all');
 };
 
 const getDateStatus = (eventDate) => {
@@ -37,7 +45,7 @@ const getEvents = async (req, res) => {
     const location = req.query.location;
     const filterType = req.query.filterType;
 
-  
+    const cacheKey = getEventsCacheKey(req.query);
 
     let query = {};
     
@@ -112,15 +120,35 @@ const getEvents = async (req, res) => {
     
     // console.log('🔍 Final MongoDB query:', JSON.stringify(query, null, 2));
 
-    // Execute query with pagination
-    const [events, total] = await Promise.all([
-      Event.find(query)
-        .sort({ date: 1, createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      Event.countDocuments(query)
-    ]);
+    const isCacheable = !myEvents && !isAdmin && !isOrganiser && !search && page === 1;
+
+    let events, total;
+    if (isCacheable && limit === 12) {
+      const cached = await cacheGet(cacheKey);
+      if (cached) {
+        logger.info(`Events cache hit: ${cacheKey}`);
+        return res.json(cached);
+      }
+      logger.info(`Events cache miss: ${cacheKey}, fetching from DB`);
+
+      [events, total] = await Promise.all([
+        Event.find(query)
+          .sort({ date: 1, createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .lean(),
+        Event.countDocuments(query)
+      ]);
+    } else {
+      [events, total] = await Promise.all([
+        Event.find(query)
+          .sort({ date: 1, createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .lean(),
+        Event.countDocuments(query)
+      ]);
+    }
 
     // console.log(`✅ Found ${events.length} events out of ${total} total (Page ${page} of ${Math.ceil(total / limit)})`);
 
@@ -179,14 +207,20 @@ const getEvents = async (req, res) => {
 
     // console.log('📄 Pagination response:', pagination);
 
-    res.json({
+    const response = {
       success: true,
       events: eventsWithDetails,
       pagination,
       filters: { category, search, location, filterType, myEvents }
-    });
+    };
+
+    if (isCacheable && limit === 12) {
+      await cacheSet(cacheKey, response, CACHE_TTL.eventsList);
+    }
+
+    res.json(response);
   } catch (err) {
-    console.error('Error in getEvents:', err);
+    logger.error('Error in getEvents:', { error: err.message });
     res.status(500).json({ 
       success: false, 
       message: 'Failed to fetch events',
@@ -208,13 +242,23 @@ export const getEventById = async (req, res) => {
     }
 
     const event = await Event.findById(id).lean();
-    
+
     if (!event) {
       return res.status(404).json({
         success: false,
         message: 'Event not found'
       });
     }
+
+    await Event.findByIdAndUpdate(id, { $inc: { views: 1 } });
+
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const viewsScore = (event.views || 0) * 1;
+    const bookingsScore = (event.bookings || 0) * 5;
+    const likesScore = (event.likes || 0) * 3;
+    const recencyBonus = event.createdAt && new Date(event.createdAt) > thirtyDaysAgo ? 10 : 0;
+    const trendingScore = Math.round((viewsScore + bookingsScore + likesScore + recencyBonus) * 100) / 100;
 
     // Get organizer name
     let organizerName = event.organizer;
@@ -229,7 +273,8 @@ export const getEventById = async (req, res) => {
       ...event,
       organizer: organizerName,
       availableTickets: Math.max(0, (event.capacity || 0) - (event.ticketsSold || 0)),
-      attendees: event.ticketsSold || 0
+      attendees: event.ticketsSold || 0,
+      trendingScore
     };
 
     res.status(200).json({
@@ -237,7 +282,7 @@ export const getEventById = async (req, res) => {
       event: eventObj
     });
   } catch (err) {
-    console.error(`Error fetching event ${req.params.id}:`, err);
+    logger.error(`Error fetching event ${req.params.id}:`, { error: err.message });
     res.status(500).json({
       success: false,
       message: 'Server error while fetching event'
@@ -305,6 +350,8 @@ export const createEvent = async (req, res) => {
 
     const event = new Event(eventData);
     const newEvent = await event.save();
+
+    await cacheDel('events:*', 'trending:events');
 
     // Notify all admins (except the creator if admin)
     const admins = await User.find({ role: 'admin', isDeleted: false });
@@ -429,6 +476,8 @@ const updateEvent = async (req, res) => {
       });
     }
 
+    await cacheDel('events:*', 'trending:events');
+
     res.status(200).json({
       success: true,
       message: 'Event updated successfully',
@@ -467,13 +516,15 @@ const updateEvent = async (req, res) => {
     }
 
     const event = await Event.findByIdAndDelete(id);
-    
+
     if (!event) {
       return res.status(404).json({
         success: false,
         message: 'Event not found'
       });
     }
+
+    await cacheDel('events:*', 'trending:events');
 
     res.status(200).json({
       success: true,
@@ -676,14 +727,333 @@ const updateEvent = async (req, res) => {
   }
 };
 
+const getTrendingEvents = async (req, res) => {
+  try {
+    const cacheKey = getCacheKey('trending', 'events');
+
+    try {
+      const cached = await cacheGet(cacheKey);
+      if (cached) {
+        logger.info('Trending events cache hit');
+        return res.json(cached);
+      }
+    } catch (cacheErr) {
+      logger.warn('Cache unavailable, fetching from DB');
+    }
+
+    logger.info('Trending events cache miss, fetching from DB');
+
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    // Get both active future events AND recent active past events
+    const events = await Event.find({
+      status: 'active',
+      $or: [
+        { date: { $gte: now } },
+        { date: { $gte: thirtyDaysAgo } }
+      ]
+    }).lean();
+
+    // If no events with strict filter, get all active events
+    let finalEvents = events;
+    if (events.length === 0) {
+      finalEvents = await Event.find({ status: 'active' }).limit(20).lean();
+    }
+
+    const eventsWithScore = finalEvents.map(event => {
+      const viewsScore = (event.views || 0) * 1;
+      const bookingsScore = (event.bookings || 0) * 5;
+      const likesScore = (event.likes || 0) * 3;
+      const recencyBonus = event.createdAt && new Date(event.createdAt) > thirtyDaysAgo ? 10 : 0;
+
+      const trendingScore = viewsScore + bookingsScore + likesScore + recencyBonus;
+
+      return {
+        ...event,
+        trendingScore: Math.round(trendingScore * 100) / 100
+      };
+    });
+
+    eventsWithScore.sort((a, b) => b.trendingScore - a.trendingScore);
+
+    const trending = eventsWithScore.slice(0, 10);
+    const response = { success: true, events: trending };
+    await cacheSet(cacheKey, response, CACHE_TTL.trendingEvents);
+
+    res.json(response);
+  } catch (err) {
+    logger.error('Error fetching trending events:', { error: err.message });
+    res.status(500).json({ success: false, message: 'Failed to fetch trending events' });
+  }
+};
+
+const getOrganizerDashboard = async (req, res) => {
+  try {
+    const userId = req.user?.id || req.user?._id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const userIdObj = new mongoose.Types.ObjectId(userId);
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const [myEvents] = await Promise.all([
+      Event.find({
+        $or: [{ organizerId: userIdObj }, { createdBy: userIdObj }]
+      })
+    ]);
+
+    const eventIds = myEvents.map(e => e._id);
+    const totalEvents = myEvents.length;
+    const activeEvents = myEvents.filter(e => e.status === 'active').length;
+
+    let totalRevenue = 0;
+    let totalTicketsSold = 0;
+    let monthlyRevenue = 0;
+    let monthlyTickets = 0;
+
+    myEvents.forEach(event => {
+      totalRevenue += event.revenue || 0;
+      totalTicketsSold += event.ticketsSold || 0;
+
+      const eventDate = new Date(event.createdAt);
+      if (eventDate >= startOfMonth) {
+        monthlyRevenue += event.revenue || 0;
+        monthlyTickets += event.ticketsSold || 0;
+      }
+    });
+
+    const totalCapacity = myEvents.reduce((sum, e) => sum + (e.capacity || 0), 0);
+    const conversionRate = totalCapacity > 0 ? (totalTicketsSold / totalCapacity) * 100 : 0;
+
+    const ticketSalesData = await Ticket.aggregate([
+      {
+        $match: {
+          eventId: { $in: eventIds },
+          isCancelled: { $ne: true },
+          createdAt: { $gte: last30Days }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: '%Y-%m-%d', date: '$createdAt' }
+          },
+          tickets: { $sum: '$quantity' },
+          revenue: { $sum: { $multiply: ['$price', '$quantity'] } }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    const salesGraph = ticketSalesData.map(day => ({
+      date: day._id,
+      tickets: day.tickets,
+      revenue: day.revenue
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        overview: {
+          totalEvents,
+          activeEvents,
+          totalRevenue,
+          monthlyRevenue,
+          totalTicketsSold,
+          monthlyTickets,
+          conversionRate: Math.round(conversionRate * 10) / 10
+        },
+        salesGraph,
+        recentEvents: myEvents.slice(0, 5).map(e => ({
+          _id: e._id,
+          title: e.title,
+          date: e.date,
+          ticketsSold: e.ticketsSold,
+          revenue: e.revenue,
+          status: e.status,
+          views: e.views,
+          likes: e.likes
+        }))
+      }
+    });
+  } catch (err) {
+    logger.error('Error fetching organizer dashboard:', { error: err.message });
+    res.status(500).json({ success: false, message: 'Failed to fetch dashboard' });
+  }
+};
+
+export const generateDescription = async (req, res) => {
+  try {
+    const { title, category, date, location, time, ticketPrice, capacity } = req.body;
+
+    if (!title || !category || !date || !location) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: title, category, date, location'
+      });
+    }
+
+    const description = await aiService.generateEventDescription({
+      title,
+      category,
+      date,
+      location,
+      time,
+      ticketPrice: parseFloat(ticketPrice) || 0,
+      capacity: parseInt(capacity) || 100
+    });
+
+    res.json({
+      success: true,
+      description
+    });
+  } catch (err) {
+    logger.error('Error generating description:', { error: err.message });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate description'
+    });
+  }
+};
+
+export const getRecommendations = async (req, res) => {
+  try {
+    const { categories, interests, location, budget } = req.body;
+    const limit = parseInt(req.query.limit) || 5;
+
+    const userPreferences = { categories, interests, location, budget };
+
+    const now = new Date();
+    const events = await Event.find({
+      status: 'active',
+      date: { $gte: now }
+    }).lean();
+
+    if (events.length === 0) {
+      return res.json({ success: true, recommendations: [] });
+    }
+
+    const recommendations = await aiService.getEventRecommendations(
+      userPreferences,
+      events,
+      limit
+    );
+
+    res.json({
+      success: true,
+      recommendations
+    });
+  } catch (err) {
+    logger.error('Error getting recommendations:', { error: err.message });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get recommendations'
+    });
+  }
+};
+
+export const searchEvents = async (req, res) => {
+  try {
+    const { q, limit: limitParam } = req.query;
+    const limit = parseInt(limitParam) || 12;
+
+    if (!q || !q.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Search query required'
+      });
+    }
+
+    const hasOpenAI = process.env.OPENAI_API_KEY;
+    const hasGroq = process.env.GROQ_API_KEY;
+
+    if (!hasOpenAI && !hasGroq) {
+      const searchRegex = { $regex: q.trim(), $options: 'i' };
+      const events = await Event.find({
+        status: 'active',
+        $or: [
+          { title: searchRegex },
+          { description: searchRegex },
+          { category: searchRegex },
+          { location: searchRegex }
+        ]
+      })
+        .sort({ date: 1 })
+        .limit(limit)
+        .lean();
+
+      return res.json({
+        success: true,
+        events,
+        query: q,
+        searchType: 'keyword'
+      });
+    }
+
+    if (hasOpenAI) {
+      const now = new Date();
+      const allEvents = await Event.find({
+        status: 'active',
+        date: { $gte: now }
+      }).lean();
+
+      const result = await aiService.semanticSearch(q, allEvents, limit);
+
+      return res.json({
+        success: true,
+        events: result.events,
+        query: q,
+        searchType: 'semantic'
+      });
+    }
+
+    const searchRegex = { $regex: q.trim(), $options: 'i' };
+    const events = await Event.find({
+      status: 'active',
+      $or: [
+        { title: searchRegex },
+        { description: searchRegex },
+        { category: searchRegex },
+        { location: searchRegex }
+      ]
+    })
+      .sort({ date: 1 })
+      .limit(limit)
+      .lean();
+
+    res.json({
+      success: true,
+      events,
+      query: q,
+      searchType: 'keyword'
+    });
+  } catch (err) {
+    logger.error('Error searching events:', { error: err.message });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to search events'
+    });
+  }
+};
+
 export default {
   getEvents,
   createEvent,
   updateEvent,
   deleteEvent,
-  getEventById, 
+  getEventById,
   getEventStats,
   getPendingEvents,
   approveEvent,
-  rejectEvent
+  rejectEvent,
+  getTrendingEvents,
+  getOrganizerDashboard,
+  generateDescription,
+  getRecommendations,
+  searchEvents
 }

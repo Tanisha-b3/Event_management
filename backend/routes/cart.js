@@ -7,6 +7,7 @@ import Event from '../models/Events.js';
 import AuthMiddleware from '../middleware/Auth.js';
 import socketHandler from '../socketHandler.js';
 const { auth: protect } = AuthMiddleware;
+import Notification from '../models/Notification.js';
 
 const { emitToUser } = socketHandler;
 
@@ -19,7 +20,7 @@ const createCartNotification = async (userId, type, title, message, data = {}) =
       return null;
     }
     
-    const Notification = require('../models/Notification');
+    // const Notification = require('../models/Notification');
     const notification = new Notification({
       userId, // Ensure this is the correct user's ID
       type,

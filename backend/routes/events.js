@@ -11,7 +11,64 @@ import upload from '../middleware/upload.js';
 import authMiddleware from '../middleware/Auth.js';
 const { auth, authorizeRoles } = authMiddleware;
 
+
+
+
 router.get('/', auth, eventController.getEvents);
+
+router.get('/featured', async (req, res) => {
+  try {
+    const { limit = 6, category, status = 'active' } = req.query;
+    
+    let query = { status };
+    
+    // Filter by category if provided
+    if (category && category !== 'all') {
+      query.category = category;
+    }
+    
+    // Get events with filters, sorted by date (upcoming first)
+    const events = await Event.find(query)
+      .select('title description date location category ticketPrice imageName imageUrl status attendees capacity createdAt')
+      .sort({ date: 1, createdAt: -1 }) // Upcoming events first, then newest
+      .limit(parseInt(limit))
+      .lean();
+    
+    // Format events for landing page
+    const formattedEvents = events.map(event => ({
+      _id: event._id,
+      title: event.title,
+      description: event.description?.substring(0, 150) + (event.description?.length > 150 ? '...' : ''),
+      date: event.date,
+      location: event.location,
+      category: event.category,
+      ticketPrice: event.ticketPrice,
+      image: event.image || event.imageName ? `/uploads/events/${event.imageName || event.imageUrl}` : null,
+      status: event.status,
+      attendees: event.attendees || 0,
+      capacity: event.capacity || 0,
+      availableSeats: Math.max(0, (event.capacity || 0) - (event.attendees || 0))
+    }));
+    
+    res.json({
+      success: true,
+      events: formattedEvents,
+      total: events.length
+    });
+  } catch (err) {
+    console.error('Error fetching featured events:', err);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to fetch featured events' 
+    });
+  }
+});
+
+router.get('/trending', eventController.getTrendingEvents);
+router.get('/search', eventController.searchEvents);
+router.get('/recommendations', eventController.getRecommendations);
+router.post('/ai/describe', auth, authorizeRoles('admin', 'organiser'), eventController.generateDescription);
+router.get('/dashboard', auth, authorizeRoles('organiser', 'admin'), eventController.getOrganizerDashboard);
 router.get('/pending', auth, authorizeRoles('admin'), eventController.getPendingEvents);
 router.get('/stats/overview', auth, authorizeRoles('admin', 'organiser'), eventController.getEventStats);
 router.get('/:id', eventController.getEventById);
@@ -27,6 +84,32 @@ router.get('/:id/attendees', auth, authorizeRoles('admin', 'organiser'), async (
   } catch (err) {
     console.error('Error fetching attendees:', err);
     res.status(500).json({ success: false, error: 'Failed to fetch attendees' });
+  }
+});
+
+router.post('/:id/notify', auth, authorizeRoles('admin', 'organiser'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { message, recipientType } = req.body;
+
+    const event = await Event.findById(id).populate('attendees');
+    if (!event) {
+      return res.status(404).json({ success: false, error: 'Event not found' });
+    }
+
+    const tickets = await Ticket.find({ eventId: id, isCancelled: { $ne: true } });
+    let recipients = tickets;
+
+    if (recipientType === 'checked-in') {
+      recipients = tickets.filter(t => t.checkedIn);
+    } else if (recipientType === 'not-checked-in') {
+      recipients = tickets.filter(t => !t.checkedIn);
+    }
+
+    res.json({ success: true, message: `Notification queued for ${recipients.length} attendees` });
+  } catch (err) {
+    console.error('Error sending notification:', err);
+    res.status(500).json({ success: false, error: 'Failed to send notification' });
   }
 });
 

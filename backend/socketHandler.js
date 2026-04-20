@@ -1,6 +1,7 @@
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import Notification from './models/Notification.js';
+import Cart from './models/Cart.js';
 
 let io;
 const userSockets = new Map(); // Map userId to Set of socket ids
@@ -25,15 +26,17 @@ const initializeSocket = (server, allowedOrigins) => {
     
     if (!token) {
       socket.userId = null;
+      console.log(`[SOCKET] No token provided`);
       return next();
     }
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       socket.userId = decoded.id || decoded.userId;
+      console.log(`[SOCKET] Auth successful, userId: ${socket.userId}`);
       next();
     } catch (err) {
-      console.log('Socket auth failed:', err.message);
+      console.log(`[SOCKET] Auth failed:`, err.message);
       socket.userId = null;
       next();
     }
@@ -52,7 +55,7 @@ const initializeSocket = (server, allowedOrigins) => {
 
   io.on('connection', (socket) => {
     const userId = socket.userId ? socket.userId.toString() : null;
-    console.log(`Socket connected: ${socket.id}, User: ${userId || 'anonymous'}`);
+    console.log(`[SOCKET] Connected: ${socket.id}, User: ${userId || 'anonymous'}`);
 
     // Register authenticated user
     if (userId) {
@@ -62,10 +65,12 @@ const initializeSocket = (server, allowedOrigins) => {
       userSockets.get(userId).add(socket.id);
       
       socket.join(`user:${userId}`);
-      console.log(`User ${userId} joined room user:${userId}`);
+      console.log(`[SOCKET] User ${userId} joined room user:${userId}`);
       
       // Broadcast online status
       socket.broadcast.emit('user:status', { userId, status: 'online' });
+    } else {
+      console.log(`[SOCKET] Anonymous connection - no userID from token`);
     }
 
     // ==================== CHAT EVENT HANDLERS (FIXED) ====================
@@ -229,7 +234,6 @@ const initializeSocket = (server, allowedOrigins) => {
     socket.on('cart:summary', async () => {
       if (userId) {
         try {
-          const Cart = require('./models/Cart');
           const cart = await Cart.findOne({ userId });
           const summary = {
             itemCount: cart?.items?.length || 0,
@@ -388,8 +392,10 @@ const initializeSocket = (server, allowedOrigins) => {
 const emitToUser = (userId, event, data) => {
   if (io) {
     const userIdStr = userId.toString();
-    console.log(`Emitting ${event} to user:${userIdStr}`);
+    console.log(`[SOCKET] Emitting "${event}" to user:${userIdStr}`, data);
     io.to(`user:${userIdStr}`).emit(event, data);
+  } else {
+    console.log(`[SOCKET] io not initialized, cannot emit`);
   }
 };
 

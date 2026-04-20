@@ -78,6 +78,12 @@ router.post('/', auth, async (req, res) => {
       eventId: event._id,
     };
 
+    const existingFavorite = await Favorite.findOne({ user: req.user.id, event: event._id });
+
+    if (!existingFavorite) {
+      await Event.findByIdAndUpdate(event._id, { $inc: { likes: 1 } });
+    }
+
     const favorite = await Favorite.findOneAndUpdate(
       { user: req.user.id, event: event._id },
       { event: event._id, eventSnapshot: snapshot },
@@ -100,6 +106,11 @@ router.delete('/:eventId', auth, async (req, res) => {
     const { eventId } = req.params;
     if (!eventId) {
       return res.status(400).json({ message: 'eventId is required' });
+    }
+
+    const existingFavorite = await Favorite.findOne({ user: req.user.id, event: eventId });
+    if (existingFavorite) {
+      await Event.findByIdAndUpdate(eventId, { $inc: { likes: -1 } });
     }
 
     await Favorite.findOneAndDelete({ user: req.user.id, event: eventId });

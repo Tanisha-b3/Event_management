@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import Notification from '../models/Notification.js';
 import socketHandler from '../socketHandler.js';
-import { sendEmail } from '../controllers/email.js';
+import { sendEmail } from '../controllers/emailController.js';
 import smsSender from '../utils/smsSender.js';
 // import { sendVerificationSMS, sendLoginOTP } from '../utils/smsSender.js';
 import { OAuth2Client } from 'google-auth-library';
@@ -146,10 +146,15 @@ router.post('/google', async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        phone: user.phone,
+        bio: user.bio,
+        location: user.location,
         role: user.role,
         avatar: payload?.picture || user.avatar,
         authProvider: user.authProvider,
-        status: user.status
+        status: user.status,
+        privacy: user.privacy,
+        notifications: user.notifications
       }
     });
   } catch (err) {
@@ -386,10 +391,15 @@ router.get('/verify', async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        phone: user.phone,
+        bio: user.bio,
+        location: user.location,
         role: user.role,
         authProvider: user.authProvider,
         status: user.status,
-        avatar: user.avatar
+        avatar: user.avatar,
+        privacy: user.privacy,
+        notifications: user.notifications
       }
     });
   } catch (error) {
@@ -429,7 +439,15 @@ router.post('/refresh-token', async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
+        phone: user.phone,
+        bio: user.bio,
+        location: user.location,
+        role: user.role,
+        authProvider: user.authProvider,
+        status: user.status,
+        avatar: user.avatar,
+        privacy: user.privacy,
+        notifications: user.notifications
       }
     });
   } catch (error) {
@@ -504,7 +522,12 @@ router.post('/verify-password', async (req, res) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
-        role: user.role
+        role: user.role,
+        avatar: user.avatar,
+        bio: user.bio,
+        location: user.location,
+        privacy: user.privacy,
+        notifications: user.notifications
       }
     });
   } catch (err) {
@@ -549,6 +572,8 @@ router.post('/send-2fa-otp', async (req, res) => {
     const otp = generateOTP();
     const expiresAt = new Date(Date.now() + OTP_EXPIRE_MINUTES * 60 * 1000);
 
+
+    console.log(otp)
     await User.updateOne(
       { _id: user._id },
       {
@@ -699,7 +724,11 @@ router.post('/verify-2fa', async (req, res) => {
         authProvider: user.authProvider,
         status: user.status,
         avatar: user.avatar,
-        phone: user.phone
+        phone: user.phone,
+        bio: user.bio,
+        location: user.location,
+        privacy: user.privacy,
+        notifications: user.notifications
       }
     });
   } catch (err) {
@@ -932,7 +961,11 @@ router.post('/verify-registration-otp', async (req, res) => {
         authProvider: user.authProvider,
         status: 'active',
         avatar: user.avatar,
-        phone: user.phone
+        phone: user.phone,
+        bio: user.bio,
+        location: user.location,
+        privacy: user.privacy,
+        notifications: user.notifications
       }
     });
   } catch (err) {

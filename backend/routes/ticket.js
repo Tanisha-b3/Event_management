@@ -12,7 +12,7 @@ const { auth, authorizeRoles } = authMiddleware;
 const { emitToUser } = socketHandler;
 
 // --- EMAIL CONTROLLER ---
-import { sendEmail } from '../controllers/email.js';
+import { sendEmail } from '../controllers/emailController.js';
 // --- END EMAIL CONTROLLER ---
 
 // Admin: Get all tickets (for any event)
@@ -170,6 +170,7 @@ router.post('/admin/book', auth, authorizeRoles('organiser', 'admin'), async (re
     event.ticketsSold = totalRequested;
     event.attendees = currentAttendees + qty;
     event.revenue = currentRevenue + (ticketPrice * qty);
+    event.bookings = (event.bookings || 0) + 1;
     await event.save();
 
     await createTicketNotification(
@@ -306,6 +307,7 @@ router.post('/', auth, authorizeRoles('booker', 'organiser', 'admin'), async (re
     event.ticketsSold = totalRequested;
     event.attendees = currentAttendees + qty;
     event.revenue = currentRevenue + (ticketPrice * qty);
+    event.bookings = (event.bookings || 0) + 1;
     await event.save();
 
     // Send notification to user
