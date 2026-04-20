@@ -1,4 +1,4 @@
-name: Terraform Infra
+name: Terraform terraform
 
 on:
   workflow_dispatch:
@@ -23,11 +23,11 @@ jobs:
           aws-region: ap-south-1
 
       - name: Terraform Init
-        run: cd infra && terraform init
+        run: cd terraform && terraform init
 
       - name: Terraform Apply
         run: |
-          cd infra
+          cd terraform
           terraform apply -auto-approve \
             -var="mongo_uri=${{ secrets.MONGO_URI }}" \
             -var="jwt_secret=${{ secrets.JWT_SECRET }}" \
