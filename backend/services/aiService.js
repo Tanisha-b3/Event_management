@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import logger from '../utils/logger.js';
+
 
 const openai = new OpenAI({
   apiKey: process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY,
@@ -9,7 +9,7 @@ const openai = new OpenAI({
 const generateEmbedding = async (text) => {
   try {
     if (process.env.GROQ_API_KEY) {
-      logger.info('Groq does not support embeddings, using keyword search fallback');
+      console.log('Groq does not support embeddings, using keyword search fallback');
       return null;
     }
     const response = await openai.embeddings.create({
@@ -18,7 +18,7 @@ const generateEmbedding = async (text) => {
     });
     return response.data[0].embedding;
   } catch (error) {
-    logger.error('Embedding generation error:', error.message);
+    console.error('Embedding generation error:', error.message);
     throw error;
   }
 };
@@ -34,7 +34,7 @@ const chatCompletion = async (messages, temperature = 0.7) => {
     });
     return response.choices[0].message.content;
   } catch (error) {
-    logger.error('Chat completion error:', error.message);
+    console.error('Chat completion error:', error.message);
     throw error;
   }
 };
@@ -117,7 +117,7 @@ Return ONLY a JSON array of indices (e.g., [1,3,5]) ordered by best match. No ot
       .slice(0, limit)
       .map(i => events[i - 1]);
   } catch (error) {
-    logger.error('Recommendation error:', error.message);
+    console.error('Recommendation error:', error.message);
     return events.slice(0, limit);
   }
 };
@@ -149,7 +149,7 @@ export const semanticSearch = async (query, events, limit = 12) => {
       searchType: 'semantic'
     };
   } catch (error) {
-    logger.error('Semantic search error:', error.message);
+    console.error('Semantic search error:', error.message);
     throw error;
   }
 };

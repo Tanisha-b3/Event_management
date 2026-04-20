@@ -1,5 +1,4 @@
 import { connectRedis } from './redisClient.js';
-import logger from './logger.js';
 
 const DEFAULT_TTL = 300;
 
@@ -24,7 +23,7 @@ export const cacheGet = async (key) => {
 
     return JSON.parse(data);
   } catch (err) {
-    logger.error(`Cache get error for key ${key}:`, { error: err.message });
+    console.error(`Cache get error for key ${key}:`, { error: err.message });
     return null;
   }
 };
@@ -37,7 +36,7 @@ export const cacheSet = async (key, data, ttl = DEFAULT_TTL) => {
     await client.setEx(key, ttl, JSON.stringify(data));
     return true;
   } catch (err) {
-    logger.error(`Cache set error for key ${key}:`, { error: err.message });
+    console.error(`Cache set error for key ${key}:`, { error: err.message });
     return false;
   }
 };
@@ -63,7 +62,7 @@ export const cacheDel = async (...keys) => {
     }
     return true;
   } catch (err) {
-    logger.error(`Cache delete error:`, { error: err.message });
+    console.error(`Cache delete error:`, { error: err.message });
     return false;
   }
 };
@@ -79,7 +78,7 @@ export const cacheDelByPattern = async (pattern) => {
     }
     return true;
   } catch (err) {
-    logger.error(`Cache delete by pattern error:`, { error: err.message });
+    console.error(`Cache delete by pattern error:`, { error: err.message });
     return false;
   }
 };
@@ -87,11 +86,11 @@ export const cacheDelByPattern = async (pattern) => {
 export const getOrSetCache = async (key, fetcher, ttl = DEFAULT_TTL) => {
   const cached = await cacheGet(key);
   if (cached) {
-    logger.info(`Cache hit: ${key}`);
+    console.log(`Cache hit: ${key}`);
     return cached;
   }
 
-  logger.info(`Cache miss: ${key}, fetching from DB`);
+  console.log(`Cache miss: ${key}, fetching from DB`);
   const data = await fetcher();
 
   if (data) {

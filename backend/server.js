@@ -3,7 +3,7 @@ import express from 'express';
 import helmet from 'helmet';
 import fs from 'fs';
 import path from 'path';
-import logger from './utils/logger.js';
+
 import { requestLogger, errorLogger } from './middleware/requestLogger.js';
 import mongoose from 'mongoose';
 import cors from 'cors';
@@ -28,16 +28,6 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-// Ensure logs directory exists
-// if (process.env.NODE_ENV === 'development') {
-
-//   const logsDir = path.join('logs');
-
-//   if (!fs.existsSync(logsDir)) {
-//     fs.mkdirSync(logsDir, { recursive: true });
-//   }
-// }
 
 // Initialize app
 const app = express();
@@ -95,7 +85,7 @@ app.set('io', io);
 
 
 app.get('/', (req, res) => { 
-  logger.info('Health check route hit');
+  console.log('Health check route hit');
   res.send('EventPro API is running');
 });
 
@@ -133,16 +123,16 @@ import { initQueue } from './jobs/queue.js';
 
 mongoose.connect(process.env.MONGO_URI)
   .then(async () => {
-    logger.info('MongoDB Connected');
+    console.log('MongoDB Connected');
     const PORT = process.env.PORT || 5000;
     server.listen(PORT, async () => {
-      logger.info(`Server running on port ${PORT}`);
-      logger.info('WebSocket server initialized');
+      console.log(`Server running on port ${PORT}`);
+      console.log('WebSocket server initialized');
       cron.startReminderScheduler(60 * 60 * 1000);
       await initQueue();
     });
   })
   .catch(err => {
-    logger.error('MongoDB connection error:', err);
+    console.error('MongoDB connection error:', err);
     process.exit(1);
   });

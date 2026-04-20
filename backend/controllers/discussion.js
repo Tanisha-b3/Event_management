@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 import Discussion from '../models/Discussion.js';
 import Event from '../models/Events.js';
-import logger from '../utils/logger.js';
+
 
 const isValidObjectId = (id) => {
   return mongoose.Types.ObjectId.isValid(id);
@@ -31,7 +31,7 @@ export const getDiscussions = async (req, res) => {
       pagination: { page, limit, total, pages: Math.ceil(total / limit) }
     });
   } catch (err) {
-    logger.error('Error fetching discussions:', { error: err.message });
+    console.error('Error fetching discussions:', { error: err.message });
     res.status(500).json({ success: false, message: 'Failed to fetch discussions' });
   }
 };
@@ -49,7 +49,7 @@ export const getDiscussionById = async (req, res) => {
 
     res.json({ success: true, discussion });
   } catch (err) {
-    logger.error('Error fetching discussion:', { error: err.message });
+    console.error('Error fetching discussion:', { error: err.message });
     res.status(500).json({ success: false, message: 'Failed to fetch discussion' });
   }
 };
@@ -80,7 +80,7 @@ export const createDiscussion = async (req, res) => {
 
     res.status(201).json({ success: true, discussion });
   } catch (err) {
-    logger.error('Error creating discussion:', { error: err.message });
+    console.error('Error creating discussion:', { error: err.message });
     res.status(500).json({ success: false, message: 'Failed to create discussion' });
   }
 };
@@ -112,7 +112,7 @@ export const updateDiscussion = async (req, res) => {
 
     res.json({ success: true, discussion });
   } catch (err) {
-    logger.error('Error updating discussion:', { error: err.message });
+    console.error('Error updating discussion:', { error: err.message });
     res.status(500).json({ success: false, message: 'Failed to update discussion' });
   }
 };
@@ -134,7 +134,7 @@ export const deleteDiscussion = async (req, res) => {
 
     res.json({ success: true, message: 'Discussion deleted' });
   } catch (err) {
-    logger.error('Error deleting discussion:', { error: err.message });
+    console.error('Error deleting discussion:', { error: err.message });
     res.status(500).json({ success: false, message: 'Failed to delete discussion' });
   }
 };
@@ -181,7 +181,7 @@ export const addComment = async (req, res) => {
 
     res.status(201).json({ success: true, discussion });
   } catch (err) {
-    logger.error('Error adding comment:', { error: err.message });
+    console.error('Error adding comment:', { error: err.message });
     res.status(500).json({ success: false, message: 'Failed to add comment' });
   }
 };
@@ -219,7 +219,7 @@ export const updateComment = async (req, res) => {
 
     res.json({ success: true, discussion });
   } catch (err) {
-    logger.error('Error updating comment:', { error: err.message });
+    console.error('Error updating comment:', { error: err.message });
     res.status(500).json({ success: false, message: 'Failed to update comment' });
   }
 };
@@ -264,7 +264,7 @@ export const deleteComment = async (req, res) => {
 
     res.json({ success: true, message: 'Comment deleted' });
   } catch (err) {
-    logger.error('Error deleting comment:', { error: err.message });
+    console.error('Error deleting comment:', { error: err.message });
     res.status(500).json({ success: false, message: 'Failed to delete comment' });
   }
 };
@@ -292,7 +292,7 @@ export const likeDiscussion = async (req, res) => {
 
     res.json({ success: true, likes: discussion.likes, liked: !alreadyLiked });
   } catch (err) {
-    logger.error('Error liking discussion:', { error: err.message });
+    console.error('Error liking discussion:', { error: err.message });
     res.status(500).json({ success: false, message: 'Failed to like discussion' });
   }
 };

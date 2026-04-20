@@ -1,12 +1,11 @@
 // backend/middleware/requestLogger.js
-import logger from '../utils/logger.js';
 
 export const requestLogger = (req, res, next) => {
   const start = process.hrtime();
   res.on('finish', () => {
     const diff = process.hrtime(start);
     const responseTime = (diff[0] * 1e3 + diff[1] / 1e6).toFixed(2); // ms
-    logger.info(`${req.method} ${req.originalUrl} ${res.statusCode} - ${responseTime} ms`, {
+    console.log(`${req.method} ${req.originalUrl} ${res.statusCode} - ${responseTime} ms`, {
       method: req.method,
       url: req.originalUrl,
       status: res.statusCode,
@@ -19,7 +18,7 @@ export const requestLogger = (req, res, next) => {
 };
 
 export const errorLogger = (err, req, res, next) => {
-  logger.error(`Error: ${err.message}`, {
+  console.error(`Error: ${err.message}`, {
     method: req.method,
     url: req.originalUrl,
     status: res.statusCode,

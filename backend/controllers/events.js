@@ -8,7 +8,7 @@ import Notification from '../models/Notification.js';
 import socketHandler from '../socketHandler.js';
 import { sendEmail } from './emailController.js';
 import { cacheGet, cacheSet, cacheDel, getOrSetCache, getCacheKey, CACHE_TTL } from '../utils/cache.js';
-import logger from '../utils/logger.js';
+
 import aiService from '../services/aiService.js';
 const { emitToUser, emitToAll } = socketHandler;
 
@@ -126,10 +126,10 @@ const getEvents = async (req, res) => {
     if (isCacheable && limit === 12) {
       const cached = await cacheGet(cacheKey);
       if (cached) {
-        logger.info(`Events cache hit: ${cacheKey}`);
+        console.log(`Events cache hit: ${cacheKey}`);
         return res.json(cached);
       }
-      logger.info(`Events cache miss: ${cacheKey}, fetching from DB`);
+      console.log(`Events cache miss: ${cacheKey}, fetching from DB`);
 
       [events, total] = await Promise.all([
         Event.find(query)
@@ -220,7 +220,7 @@ const getEvents = async (req, res) => {
 
     res.json(response);
   } catch (err) {
-    logger.error('Error in getEvents:', { error: err.message });
+    console.error('Error in getEvents:', { error: err.message });
     res.status(500).json({ 
       success: false, 
       message: 'Failed to fetch events',
@@ -282,7 +282,7 @@ export const getEventById = async (req, res) => {
       event: eventObj
     });
   } catch (err) {
-    logger.error(`Error fetching event ${req.params.id}:`, { error: err.message });
+    console.error(`Error fetching event ${req.params.id}:`, { error: err.message });
     res.status(500).json({
       success: false,
       message: 'Server error while fetching event'
@@ -734,14 +734,14 @@ const getTrendingEvents = async (req, res) => {
     try {
       const cached = await cacheGet(cacheKey);
       if (cached) {
-        logger.info('Trending events cache hit');
+        console.log('Trending events cache hit');
         return res.json(cached);
       }
     } catch (cacheErr) {
-      logger.warn('Cache unavailable, fetching from DB');
+      console.warn('Cache unavailable, fetching from DB');
     }
 
-    logger.info('Trending events cache miss, fetching from DB');
+    console.log('Trending events cache miss, fetching from DB');
 
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -783,7 +783,7 @@ const getTrendingEvents = async (req, res) => {
 
     res.json(response);
   } catch (err) {
-    logger.error('Error fetching trending events:', { error: err.message });
+    console.error('Error fetching trending events:', { error: err.message });
     res.status(500).json({ success: false, message: 'Failed to fetch trending events' });
   }
 };
@@ -882,7 +882,7 @@ const getOrganizerDashboard = async (req, res) => {
       }
     });
   } catch (err) {
-    logger.error('Error fetching organizer dashboard:', { error: err.message });
+    console.error('Error fetching organizer dashboard:', { error: err.message });
     res.status(500).json({ success: false, message: 'Failed to fetch dashboard' });
   }
 };
@@ -913,7 +913,7 @@ export const generateDescription = async (req, res) => {
       description
     });
   } catch (err) {
-    logger.error('Error generating description:', { error: err.message });
+    console.error('Error generating description:', { error: err.message });
     res.status(500).json({
       success: false,
       message: 'Failed to generate description'
@@ -949,7 +949,7 @@ export const getRecommendations = async (req, res) => {
       recommendations
     });
   } catch (err) {
-    logger.error('Error getting recommendations:', { error: err.message });
+    console.error('Error getting recommendations:', { error: err.message });
     res.status(500).json({
       success: false,
       message: 'Failed to get recommendations'
@@ -1033,7 +1033,7 @@ export const searchEvents = async (req, res) => {
       searchType: 'keyword'
     });
   } catch (err) {
-    logger.error('Error searching events:', { error: err.message });
+    console.error('Error searching events:', { error: err.message });
     res.status(500).json({
       success: false,
       message: 'Failed to search events'
