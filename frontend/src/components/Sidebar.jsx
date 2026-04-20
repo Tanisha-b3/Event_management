@@ -27,11 +27,15 @@ import {
   Search,
   History,
   Help,
+  TrendingUp,
+  Swipe,
 } from '@mui/icons-material';
 
 const organizerItems = [
   { text: 'Create Event', icon: <Add />, path: '/create-event' },
-  { text: 'Analytics', icon: <Analytics />, path: '/analytics' },
+  { text: 'Organizer Dashboard', icon: <Analytics />, path: '/organizer' },
+  { text: 'Trending Events', icon: <TrendingUp />, path: '/trending' },
+  { text: 'Swipe Discovery', icon: <Swipe />, path: '/swipe' },
 ];
 
 const Sidebar = ({ open, onClose, variant = 'temporary' }) => {

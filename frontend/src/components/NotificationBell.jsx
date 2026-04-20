@@ -89,7 +89,9 @@ const NotificationBell = () => {
   
   // Check auth from localStorage to ensure it's available
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return !!localStorage.getItem('token');
+    const token = localStorage.getItem('token');
+    console.log('[NotificationBell] Initial token:', token ? 'present' : 'missing');
+    return !!token;
   });
 
   const [anchorEl, setAnchorEl] = useState(null);
@@ -260,13 +262,25 @@ const NotificationBell = () => {
   }, []);
 
   useEffect(() => {
-    // console.log('NotificationBell mounted, isAuthenticated:', isAuthenticated);
-    // console.log('Token in localStorage:', !!localStorage.getItem('token'));
-    if (isAuthenticated) {
-      dispatch(fetchNotifications());
-    }
-  }, [dispatch, isAuthenticated]);
+  if (isAuthenticated) {
+    console.log('🔄 Refresh detected, fetching notifications...');
+    dispatch(fetchNotifications())
+      .unwrap()
+      .then((data) => {
+        console.log('✅ Notifications fetched:', data);
+        console.log('📊 Unread count:', data?.filter(n => !n.read).length);
+      })
+      .catch((error) => {
+        console.error('❌ Failed to fetch:', error);
+      });
+  }
+}, [dispatch, isAuthenticated]);
 
+// Also log when Redux state updates
+useEffect(() => {
+  console.log('📦 Redux notifications updated:', notifications);
+  console.log('🔔 Unread count in Redux:', unreadCount);
+}, [notifications, unreadCount]);
   // Note: Socket notifications are handled globally in socketService.js
   // No need to duplicate the listener here
 
@@ -440,7 +454,7 @@ const NotificationBell = () => {
           </Box>
         ) : (
           <List sx={{ p: 0, maxHeight: 400, overflowY: 'auto' }}>
-            {notifications.slice(0, 15).map((notification) => (
+            {notifications.slice(0, 50).map((notification) => (
               <ListItem
                 key={notification._id}
                 onClick={() => handleNotificationClick(notification)}

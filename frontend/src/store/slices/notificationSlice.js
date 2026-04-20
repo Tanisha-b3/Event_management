@@ -10,18 +10,17 @@ export const fetchNotifications = createAsyncThunk(
       const state = getState();
       const token = state.auth?.token;
       
+      console.log('[fetchNotifications] Token:', token ? 'present' : 'missing');
       
       if (!token) {
-        console.log('No token, returning empty notifications');
+        console.log('[fetchNotifications] No token, returning empty notifications');
         return [];
       }
       const response = await axios.get(`${API_URL}/notifications`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       
-     
-      
-      // Handle different response formats
+      console.log('[fetchNotifications] Response:', response.data);
       let notifications = [];
       if (Array.isArray(response.data)) {
         notifications = response.data;

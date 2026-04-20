@@ -9,7 +9,15 @@ import { toast } from 'react-toastify';
 const AdminEventApproval = () => {
   const navigate = useNavigate();
   const { mode: reduxMode } = useSelector((state) => state.theme);
-  const isDark = reduxMode === 'dark' || localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const [isDark, setIsDark] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) return savedTheme === 'dark';
+    return reduxMode === 'dark';
+  });
+
+  useEffect(() => {
+    setIsDark(reduxMode === 'dark' || localStorage.getItem('theme') === 'dark');
+  }, [reduxMode]);
   
   const [pendingEvents, setPendingEvents] = useState([]);
   const [loading, setLoading] = useState(true);

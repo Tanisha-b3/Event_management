@@ -99,6 +99,34 @@ export const deleteEvent = createAsyncThunk(
   }
 );
 
+export const generateEventDescription = createAsyncThunk(
+  'events/generateDescription',
+  async (eventData, { rejectWithValue, getState }) => {
+    try {
+      const token = getState().auth.token;
+      const response = await axios.post(`${API_URL}/events/ai/describe`, eventData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to generate description');
+    }
+  }
+);
+
+export const searchEvents = createAsyncThunk(
+  'events/search',
+  async ({ q, limit = 12 } = {}, { rejectWithValue }) => {
+    try {
+      const params = new URLSearchParams({ q, limit });
+      const response = await axios.get(`${API_URL}/events/search?${params}`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Search failed');
+    }
+  }
+);
+
 export const fetchMyEvents = createAsyncThunk(
   'events/fetchMyEvents',
   async (_, { rejectWithValue, getState }) => {
@@ -129,6 +157,39 @@ export const fetchPendingEvents = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch pending events');
+    }
+  }
+);
+
+export const fetchTrendingEvents = createAsyncThunk(
+  'events/fetchTrending',
+  async (_, { rejectWithValue }) => {
+    try {
+      const url = `${import.meta.env.VITE_API_URL}/events/trending`;
+      console.log("Fetching from:", url);
+
+      const response = await axios.get(url);
+      return response.data;
+    } catch (error) {
+      console.error("Trending API error:", error);
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to fetch trending events'
+      );
+    }
+  }
+);
+
+export const fetchOrganizerDashboard = createAsyncThunk(
+  'events/fetchDashboard',
+  async (_, { rejectWithValue, getState }) => {
+    try {
+      const token = getState().auth.token;
+      const response = await axios.get(`${API_URL}/events/dashboard`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch dashboard');
     }
   }
 );
@@ -173,7 +234,11 @@ const eventSlice = createSlice({
     events: [],
     myEvents: [],
     pendingEvents: [],
+    trendingEvents: [],
+    recommendations: [],
+    searchResults: [],
     currentEvent: null,
+    dashboard: null,
     loading: false,
     error: null,
     approvalLoading: false,
@@ -363,6 +428,69 @@ const eventSlice = createSlice({
       })
       .addCase(rejectEvent.rejected, (state, action) => {
         state.approvalLoading = false;
+        state.error = action.payload;
+      })
+
+      // Fetch Trending Events
+      .addCase(fetchTrendingEvents.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchTrendingEvents.fulfilled, (state, action) => {
+        state.loading = false;
+        // Handle different response formats
+        const payload = action.payload;
+        if (Array.isArray(payload)) {
+          state.trendingEvents = payload;
+        } else if (payload?.events) {
+          state.trendingEvents = payload.events;
+        } else if (payload?.data) {
+          state.trendingEvents = Array.isArray(payload.data) ? payload.data : payload.data.events || [];
+        } else {
+          state.trendingEvents = [];
+        }
+      })
+      .addCase(fetchTrendingEvents.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Fetch Organizer Dashboard
+      .addCase(fetchOrganizerDashboard.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchOrganizerDashboard.fulfilled, (state, action) => {
+        state.loading = false;
+        state.dashboard = action.payload.data;
+      })
+      .addCase(fetchOrganizerDashboard.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Generate Description
+      .addCase(generateEventDescription.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(generateEventDescription.fulfilled, (state, action) => {
+        state.loading = false;
+        state.generatedDescription = action.payload.description;
+      })
+      .addCase(generateEventDescription.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Search Events
+      .addCase(searchEvents.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(searchEvents.fulfilled, (state, action) => {
+        state.loading = false;
+        state.searchResults = action.payload.events || [];
+      })
+      .addCase(searchEvents.rejected, (state, action) => {
+        state.loading = false;
         state.error = action.payload;
       });
   },

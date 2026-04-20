@@ -10,6 +10,7 @@ import favoritesReducer from './slices/favoritesSlice';
 import ordersReducer from './slices/ordersSlice';
 import analyticsReducer from './slices/analyticsSlice';
 import messagesReducer from './slices/messagesSlice';
+import discussionReducer from './slices/discussionSlice';
 
 export const store = configureStore({
   reducer: {
@@ -24,6 +25,7 @@ export const store = configureStore({
     orders: ordersReducer,
     analytics: analyticsReducer,
     messages: messagesReducer,
+    discussions: discussionReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

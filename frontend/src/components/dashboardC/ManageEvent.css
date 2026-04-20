@@ -663,70 +663,196 @@
 }
 
 /* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-  .manage-event-container {
-    background: linear-gradient(135deg, #0f172a, #1e293b);
-  }
+[data-theme="dark"] .manage-event-container {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+}
 
-  .manage-header h2 {
-    background: linear-gradient(135deg, #f1f5f9, #cbd5e1);
-    -webkit-background-clip: text;
-    background-clip: text;
-  }
+[data-theme="dark"] .manage-header h2 {
+  background: linear-gradient(135deg, #f1f5f9, #cbd5e1);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
 
-  .stat-card,
-  .attendees-section,
-  .sales-chart,
-  .ticket-types,
-  .messages-section {
-    background: #1e293b;
-    border-color: rgba(255, 255, 255, 0.1);
-  }
+[data-theme="dark"] .btn-back {
+  background: #334155;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+}
 
-  .stat-card h3,
-  .attendees-section h3,
-  .sales-section h3,
-  .messages-section h3 {
-    color: #f1f5f9;
-  }
+[data-theme="dark"] .btn-back:hover {
+  background: #3b4a63;
+  border-color: #60a5fa;
+  color: #60a5fa;
+}
 
-  .stat-value {
-    color: #f1f5f9;
-  }
+[data-theme="dark"] .manage-tabs {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(255, 255, 255, 0.06);
+}
 
-  .table-header {
-    background: linear-gradient(135deg, #334155, #1e293b);
-    color: #f1f5f9;
-  }
+[data-theme="dark"] .tab-button {
+  color: #94a3b8;
+}
 
-  .row-item {
-    color: #cbd5e1;
-  }
+[data-theme="dark"] .tab-button:hover {
+  background: rgba(37, 99, 235, 0.15);
+  color: #60a5fa;
+}
 
-  .table-row:hover {
-    background: #334155;
-  }
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .attendees-section,
+[data-theme="dark"] .sales-chart,
+[data-theme="dark"] .ticket-types,
+[data-theme="dark"] .messages-section {
+  background: #1e293b;
+  border-color: rgba(255, 255, 255, 0.1);
+}
 
-  .search-input,
-  .message-input,
-  .recipient-select {
-    background: #334155;
-    border-color: rgba(255, 255, 255, 0.1);
-    color: #f1f5f9;
-  }
+[data-theme="dark"] .stat-card h3,
+[data-theme="dark"] .attendees-section h3,
+[data-theme="dark"] .sales-section h3,
+[data-theme="dark"] .messages-section h3,
+[data-theme="dark"] .sales-chart h4,
+[data-theme="dark"] .ticket-types h4 {
+  color: #f1f5f9;
+}
 
-  .template-card,
-  .ticket-card {
-    background: linear-gradient(135deg, #334155, #1e293b);
-  }
+[data-theme="dark"] .stat-value {
+  color: #f1f5f9;
+}
 
-  .btn-back {
-    background: #334155;
-    color: #cbd5e1;
-  }
+[data-theme="dark"] .stat-subtext {
+  color: #94a3b8;
+}
 
-  .btn-back:hover {
-    background: #3b4a63;
-    color: #60a5fa;
-  }
+[data-theme="dark"] .progress-bar {
+  background: #334155;
+}
+
+[data-theme="dark"] .btn-small {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .btn-small:hover {
+  background: #334155;
+  border-color: #60a5fa;
+  color: #60a5fa;
+}
+
+[data-theme="dark"] .btn-action {
+  background: linear-gradient(135deg, #1e293b, #334155);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .btn-action:hover {
+  border-color: #60a5fa;
+  color: #60a5fa;
+}
+
+[data-theme="dark"] .table-header {
+  background: linear-gradient(135deg, #334155, #1e293b);
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .table-row {
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .row-item {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .table-row:hover {
+  background: #334155;
+}
+
+[data-theme="dark"] .search-input {
+  background: #334155;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .search-input::placeholder {
+  color: #64748b;
+}
+
+[data-theme="dark"] .search-input:focus {
+  background: #3b4a63;
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
+}
+
+[data-theme="dark"] .template-card,
+[data-theme="dark"] .ticket-card {
+  background: linear-gradient(135deg, #334155, #1e293b);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .template-card:hover,
+[data-theme="dark"] .ticket-card:hover {
+  border-color: #60a5fa;
+}
+
+[data-theme="dark"] .template-card h5,
+[data-theme="dark"] .ticket-info h5 {
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .template-card p,
+[data-theme="dark"] .ticket-info p {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .message-input {
+  background: #334155;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .message-input:focus {
+  background: #3b4a63;
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
+}
+
+[data-theme="dark"] .recipient-select {
+  background: #334155;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+[data-theme="dark"] .btn-primary:hover:not(:disabled) {
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+}
+
+[data-theme="dark"] .chart-bar {
+  background: linear-gradient(180deg, #3b82f6, #2563eb);
+}
+
+[data-theme="dark"] .chart-label {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .ticket-stats p {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .empty .row-item {
+  color: #64748b;
+}
+
+[data-theme="dark"] .message-templates h4,
+[data-theme="dark"] .new-message h4 {
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .muted {
+  color: #94a3b8;
 }

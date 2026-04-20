@@ -1,11 +1,53 @@
-/* ===================================
-   EVENTPRO HEADER - MODERN MAXIMALIST
-   Ultra-Enhanced Premium Design System
-   =================================== */
+/* User Avatar Large - For Header Profile Button */
+.user-avatar-l {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--border-secondary);
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--trans-base);
+  font-size: 1.3rem;
+  color: white;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-glow-primary);
+  padding: 0;
+  outline: none;
+  border-style: solid;
+  box-sizing: border-box;
+  background-clip: padding-box;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
 
-/* ===================================
-   ADVANCED CSS VARIABLES & TOKENS
-   =================================== */
+.user-avatar-l .avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.user-avatar-l .avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 1.3rem;
+  color: white;
+}
+
+.user-avatar-l:hover {
+  transform: scale(1.08);
+  border-color: var(--primary-400);
+  box-shadow: 0 0 32px rgba(99, 102, 241, 0.6);
+}
+
 
 :root {
   /* Typography - Distinctive & Characterful */
@@ -491,7 +533,7 @@ body.menu-open {
 }
 
 /* User Avatar - Ultra-Premium */
-.user-avatar-l {
+/* .user-avatar {
   width: 48px;
   height: 48px;
   border-radius: 50%;
@@ -509,14 +551,14 @@ body.menu-open {
   box-shadow: var(--shadow-glow-primary);
 }
 
-.user-avatar-l .avatar-img {
+.user-avatar .avatar-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit:contain;
   border-radius: 50%;
 }
 
-.user-avatar-l .avatar-fallback {
+.user-avatar .avatar-fallback {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -524,7 +566,7 @@ body.menu-open {
   height: 100%;
   font-size: 1.3rem;
   color: white;
-}
+} */
 
 /* Avatar in dropdown */
 .profile-dropdown-avatar {

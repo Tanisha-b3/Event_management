@@ -28,7 +28,7 @@
   animation: lxm-zoom-in 0.2s ease-out;
 }
 
-/* @media (prefers-color-scheme: dark) {
+/* Disabled prefers-color-scheme - using data-theme instead
   .lxm-container {
     background-color: #111827;
   }
@@ -138,12 +138,10 @@ margin-bottom: 0.75rem;
   margin: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  .lxm-brand-title {
-    background: linear-gradient(135deg, #ffffff, #9ca3af);
-    -webkit-background-clip: text;
-    background-clip: text;
-  }
+.lxm-brand-title {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
 .lxm-subtitle {
@@ -152,11 +150,17 @@ margin-bottom: 0.75rem;
   margin-top: 0.25rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  .lxm-subtitle {
-    color: #9ca3af;
-  }
+[data-theme="dark"] .lxm-brand-title {
+  background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
 }
+
+[data-theme="dark"] .lxm-subtitle {
+  color: #9ca3af;
+}
+
+
 
 /* ============================================
    SOCIAL SECTION
@@ -180,10 +184,8 @@ margin-bottom: 0.75rem;
   z-index: 10;
 }
 
-@media (prefers-color-scheme: dark) {
-  .lxm-google-loader {
-    background-color: rgba(17, 24, 39, 0.8);
-  }
+[data-theme="dark"] .lxm-google-loader {
+  background-color: rgba(17, 24, 39, 0.8);
 }
 
 /* ============================================
@@ -202,7 +204,7 @@ margin-bottom: 0.75rem;
   background-color: #e5e7eb;
 }
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .lxm-divider-line {
     background-color: #374151;
   }
@@ -237,7 +239,7 @@ margin-bottom: 0.75rem;
   color: #374151;
 }
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .lxm-label {
     color: #d1d5db;
   }
@@ -307,7 +309,7 @@ margin-bottom: 0.75rem;
   color: #6b7280;
 }
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .lxm-password-toggle:hover {
     color: #d1d5db;
   }
@@ -350,7 +352,7 @@ margin-bottom: 0.75rem;
   color: #8b5cf6;
 }
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .lxm-method-toggle-btn {
     border-color: #374151;
     background: #1f2937;
@@ -407,7 +409,7 @@ margin-bottom: 0.75rem;
   color: #7c3aed;
 }
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .lxm-link-forgot {
     color: #a78bfa;
   }
@@ -424,7 +426,7 @@ margin-bottom: 0.75rem;
   color: #4b5563;
 }
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .lxm-link-change {
     color: #9ca3af;
   }
@@ -476,7 +478,7 @@ margin-bottom: 0.75rem;
   margin-top: 0.5rem;
 }
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .lxm-signup-text {
     color: #9ca3af;
   }
@@ -495,7 +497,7 @@ margin-bottom: 0.75rem;
   color: #7c3aed;
 }
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .lxm-signup-link {
     color: #a78bfa;
   }
@@ -524,7 +526,7 @@ margin-bottom: 0.75rem;
   color: #4b5563;
 }
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .lxm-back-btn {
     color: #9ca3af;
   }
@@ -545,7 +547,7 @@ margin-bottom: 0.75rem;
   margin-bottom: 0.25rem;
 }
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .lxm-otp-title {
     color: #f9fafb;
   }
@@ -556,7 +558,7 @@ margin-bottom: 0.75rem;
   color: #6b7280;
 }
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .lxm-otp-desc {
     color: #9ca3af;
   }
@@ -585,7 +587,7 @@ margin-bottom: 0.75rem;
   color: #6b7280;
 }
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .lxm-method-btn {
     border-color: #374151;
     color: #9ca3af;
@@ -602,7 +604,7 @@ margin-bottom: 0.75rem;
   color: #8b5cf6;
 }
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .lxm-method-active {
     background-color: rgba(139, 92, 246, 0.2);
     color: #a78bfa;
@@ -661,7 +663,7 @@ margin-bottom: 0.75rem;
   cursor: not-allowed;
 }
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .lxm-resend-btn {
     color: #a78bfa;
   }
@@ -698,7 +700,7 @@ margin-bottom: 0.75rem;
   animation: lxm-zoom-in 0.2s ease-out;
 }
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .lxm-dialog {
     background-color: #111827;
   }
@@ -711,7 +713,7 @@ margin-bottom: 0.75rem;
   margin-bottom: 1rem;
 }
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .lxm-dialog-title {
     color: #f9fafb;
   }
@@ -859,7 +861,7 @@ margin-bottom: 0.75rem;
   text-align: center;
 }
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .dialog-box {
     background-color: #1f2937;
   }
@@ -872,7 +874,7 @@ margin-bottom: 0.75rem;
   margin-bottom: 0.75rem;
 }
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .dialog-title {
     color: #f9fafb;
   }
@@ -885,7 +887,7 @@ margin-bottom: 0.75rem;
   line-height: 1.5;
 }
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .dialog-message {
     color: #9ca3af;
   }

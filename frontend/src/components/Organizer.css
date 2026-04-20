@@ -1,0 +1,424 @@
+/* OrganizerDashboard.css - Unique class names with 'odd__' prefix */
+
+/* Main Container */
+.odd__dashboard {
+  padding: 24px;
+  max-width: 1800px;
+  /* margin: 0 auto; */
+}
+
+/* Header Section */
+.odd__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.odd__title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0;
+  color: #1a1a1a;
+}
+
+.odd__createBtn {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.odd__createBtn:hover {
+  background-color: #1565c0;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+}
+
+.odd__btnIcon {
+  font-size: 1.25rem;
+}
+
+/* Stats Grid */
+.odd__statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.odd__statsGridItem {
+  width: 100%;
+}
+
+/* Stat Card Component */
+.odd__statCard {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  transition: all 0.2s ease;
+  height: 100%;
+}
+
+.odd__statCard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.odd__statContent {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.odd__statIconWrapper {
+  padding: 12px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.odd__statBg--primary {
+  background-color: #e3f2fd;
+}
+
+.odd__statBg--success {
+  background-color: #e8f5e9;
+}
+
+.odd__statBg--info {
+  background-color: #e0f7fa;
+}
+
+.odd__statBg--warning {
+  background-color: #fff3e0;
+}
+
+.odd__statIcon {
+  font-size: 1.5rem;
+}
+
+.odd__statIcon--primary {
+  color: #1976d2;
+}
+
+.odd__statIcon--success {
+  color: #4caf50;
+}
+
+.odd__statIcon--info {
+  color: #00acc1;
+}
+
+.odd__statIcon--warning {
+  color: #ff9800;
+}
+
+.odd__statInfo {
+  flex: 1;
+}
+
+.odd__statTitle {
+  font-size: 0.75rem;
+  color: #666;
+  margin: 0 0 4px 0;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.odd__statValue {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0 0 4px 0;
+  color: #1a1a1a;
+}
+
+.odd__statSubtitle {
+  font-size: 0.7rem;
+  color: #999;
+  margin: 0;
+}
+
+/* Chart Card */
+.odd__chartCard {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  margin-bottom: 32px;
+}
+
+.odd__chartCardContent {
+  padding: 24px;
+}
+
+.odd__chartTitle {
+  font-size: 1rem;
+  font-weight: bold;
+  margin: 0 0 16px 0;
+  color: #1a1a1a;
+}
+
+.odd__chartContainer {
+  height: 200px;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 0 16px;
+}
+
+.odd__chartBar {
+  flex: 1;
+  background-color: #1976d2;
+  border-radius: 4px;
+  min-height: 4px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.odd__chartBar:hover {
+  background-color: #1565c0;
+  transform: scaleY(1.02);
+}
+
+.odd__chartEmpty {
+  text-align: center;
+  padding: 32px 0;
+}
+
+.odd__chartEmptyText {
+  color: #999;
+  margin: 0;
+}
+
+/* Tooltip */
+.odd__tooltipWrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+}
+
+.odd__tooltipContent {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #1a1a1a;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 1000;
+  margin-bottom: 4px;
+  pointer-events: none;
+}
+
+/* Events Card */
+.odd__eventsCard {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.odd__eventsCardContent {
+  padding: 24px;
+}
+
+.odd__eventsTitle {
+  font-size: 1rem;
+  font-weight: bold;
+  margin: 0 0 16px 0;
+  color: #1a1a1a;
+}
+
+/* Table Styles */
+.odd__tableContainer {
+  overflow-x: auto;
+}
+
+.odd__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.odd__tableHeader {
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.odd__tableRow {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.odd__tableRow:hover {
+  background-color: #f5f5f5;
+}
+
+.odd__tableCell {
+  padding: 16px 12px;
+  font-size: 0.875rem;
+}
+
+.odd__tableCellLeft {
+  text-align: left;
+}
+
+.odd__tableCellCenter {
+  text-align: center;
+}
+
+.odd__eventTitle {
+  font-weight: 500;
+  margin: 0;
+  color: #1a1a1a;
+}
+
+/* Status Chip */
+.odd__statusChip {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.odd__statusChip--active {
+  background-color: #e8f5e9;
+  color: #4caf50;
+}
+
+.odd__statusChip--inactive {
+  background-color: #f5f5f5;
+  color: #999;
+}
+
+.odd__statusChip--draft {
+  background-color: #fff3e0;
+  color: #ff9800;
+}
+
+.odd__statusChip--cancelled {
+  background-color: #ffebee;
+  color: #f44336;
+}
+
+/* Views Container */
+.odd__viewsContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.odd__viewsIcon {
+  font-size: 1rem;
+  color: #666;
+}
+
+/* Empty State */
+.odd__emptyState {
+  text-align: center;
+  padding: 32px 0;
+}
+
+.odd__emptyText {
+  color: #999;
+  margin: 0 0 16px 0;
+}
+
+.odd__emptyBtn {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.odd__emptyBtn:hover {
+  background-color: #1565c0;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+}
+
+/* Skeleton Loading */
+.odd__skeletonContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+}
+
+.odd__skeletonItem {
+  height: 120px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: odd__skeletonLoading 1.5s infinite;
+  border-radius: 12px;
+}
+
+@keyframes odd__skeletonLoading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .odd__dashboard {
+    padding: 16px;
+  }
+
+  .odd__statsGrid {
+    gap: 16px;
+  }
+
+  .odd__header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .odd__createBtn {
+    justify-content: center;
+  }
+
+  .odd__chartContainer {
+    padding: 0;
+  }
+
+  .odd__tableCell {
+    padding: 12px 8px;
+    font-size: 0.75rem;
+  }
+
+  .odd__eventTitle {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .odd__statsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .odd__tableCell {
+    padding: 8px 4px;
+  }
+}

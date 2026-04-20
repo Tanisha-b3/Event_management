@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { apiClient } from '../utils/api';
 import './createEvent.css';
-import { FaImage, FaArrowLeft } from 'react-icons/fa';
+import { FaImage, FaArrowLeft, FaMagic } from 'react-icons/fa';
 import { getUserRole } from '../utils/auth';
 import { useNavigate } from 'react-router-dom';
 import { handleSuccess, handleError } from './utils';
-import { createEvent as createEventAction, updateEvent as updateEventAction } from '../store/slices/eventSlice';
+import { createEvent as createEventAction, updateEvent as updateEventAction, generateEventDescription } from '../store/slices/eventSlice';
 import CustomDropdown from './customDropdown';
 
 const CATEGORY_OPTIONS = [
@@ -69,7 +69,7 @@ const CreateEvent = ({ existingEvent, onCancel, onSuccess }) => {
   const dispatch = useDispatch();
 
   const { user } = useSelector((state) => state.auth);
-  const { loading: eventLoading, error: eventError } = useSelector((state) => state.events);
+  const { loading: eventLoading, error: eventError, generatedDescription } = useSelector((state) => state.events);
 
   const role = getUserRole();
   const [eventData, setEventData] = useState(INITIAL_STATE);
@@ -80,6 +80,7 @@ const CreateEvent = ({ existingEvent, onCancel, onSuccess }) => {
   const [file, setFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [generatingDesc, setGeneratingDesc] = useState(false);
 
   // Populate form if editing existing event
   useEffect(() => {
@@ -179,6 +180,35 @@ const CreateEvent = ({ existingEvent, onCancel, onSuccess }) => {
         URL.revokeObjectURL(imagePreview);
       }
       setImagePreview(previewUrl);
+    }
+  };
+
+  const handleGenerateDescription = async () => {
+    if (!eventData.title || !eventData.category || !eventData.date || !eventData.location) {
+      handleError('Please fill in title, category, date, and location first');
+      return;
+    }
+    
+    setGeneratingDesc(true);
+    try {
+      const result = await dispatch(generateEventDescription({
+        title: eventData.title,
+        category: eventData.category,
+        date: eventData.date,
+        location: eventData.location,
+        time: eventData.time,
+        ticketPrice: eventData.ticketPrice,
+        capacity: eventData.capacity
+      })).unwrap();
+      
+      if (result.description) {
+        setEventData(prev => ({ ...prev, description: result.description }));
+        handleSuccess('Description generated!');
+      }
+    } catch (err) {
+      handleError(err || 'Failed to generate description');
+    } finally {
+      setGeneratingDesc(false);
     }
   };
 
@@ -393,20 +423,7 @@ const CreateEvent = ({ existingEvent, onCancel, onSuccess }) => {
             {fieldErrors.location && <span className="field-error">{fieldErrors.location}</span>}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="description">Description</label>
-            <textarea
-              id="description"
-              name="description"
-              value={eventData.description}
-              onChange={handleChange}
-              placeholder="Describe your event..."
-              rows="5"
-              disabled={isSubmitting || uploadingImage}
-            />
-          </div>
-
-          <div className="form-group">
+           <div className="form-group">
             <label htmlFor="category">Category *</label>
             <CustomDropdown
               options={CATEGORY_OPTIONS}
@@ -429,6 +446,33 @@ const CreateEvent = ({ existingEvent, onCancel, onSuccess }) => {
               className="w-full"
             />
           </div>
+
+          <div className="form-group">
+            <label htmlFor="description">
+              Description
+              <button
+                type="button"
+                className="btn-ai-generate"
+                onClick={handleGenerateDescription}
+                disabled={generatingDesc || !eventData.title || !eventData.category || !eventData.date || !eventData.location}
+                title="Generate with AI"
+              >
+                <FaMagic className={generatingDesc ? 'spinning' : ''} />
+                {generatingDesc ? ' Generating...' : ' AI Generate'}
+              </button>
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              value={eventData.description}
+              onChange={handleChange}
+              placeholder="Describe your event or use AI to generate..."
+              rows="5"
+              disabled={isSubmitting || uploadingImage}
+            />
+          </div>
+
+         
 
           <div className="form-row">
             <div className="form-group">

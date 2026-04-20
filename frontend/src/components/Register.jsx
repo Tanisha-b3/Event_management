@@ -45,8 +45,7 @@ function Register() {
   
   // Set theme immediately on component render
   const savedTheme = localStorage.getItem('theme');
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const initialTheme = savedTheme === 'dark' || (!savedTheme && prefersDark) ? 'dark' : 'light';
+  const initialTheme = savedTheme === 'dark' ? 'dark' : 'light';
   document.documentElement.setAttribute('data-theme', initialTheme);
 
   const [formData, setFormData] = useState({
@@ -80,8 +79,7 @@ function Register() {
   // Set theme on mount
   useEffect(() => {
     const saved = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const isDark = saved === 'dark' || (!saved && prefersDark);
+    const isDark = saved === 'dark';
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
   }, []);
 

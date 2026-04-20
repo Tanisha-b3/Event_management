@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import {
@@ -16,29 +16,25 @@ import { FaArrowLeft } from 'react-icons/fa';
 const AdminTickets = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { mode: reduxMode } = useSelector((state) => state.theme);
   const userRole = useSelector((state) => state.auth.user?.role);
   const { allTickets, loading, error, adminPagination, adminBookingStatus, adminCancellationStatus } = useSelector((state) => state.tickets);
   const totalPages = adminPagination?.pages || 1;
   const { events } = useSelector((state) => state.events);
-  const isDark = reduxMode === 'dark' || localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  
+  const [isDark, setIsDark] = useState(() => document.documentElement.getAttribute('data-theme') === 'dark');
+  
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.getAttribute('data-theme') === 'dark');
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
+  }, []);
   
   // Cancel dialog state
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [cancellingTicket, setCancellingTicket] = useState(null);
-
-  const handleOpenCancelDialog = (ticket) => {
-    setCancellingTicket(ticket);
-    setCancelReason('');
-    setCancelDialogOpen(true);
-  };
-
-  const handleCloseCancelDialog = () => {
-    setCancelDialogOpen(false);
-    setCancellingTicket(null);
-    setCancelReason('');
-};
   
   const [page, setPage] = useState(1);
   const [selectedEvent, setSelectedEvent] = useState('');
@@ -53,25 +49,51 @@ const AdminTickets = () => {
     ticketType: 'General Admission',
     price: ''
   });
-
+  
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  
 
-  useEffect(() => {
-    if (userRole === 'admin' || userRole === 'organiser') {
-      dispatch(fetchAllTicketsAdmin({ page, limit: 20, eventId: selectedEvent || null }));
-      dispatch(fetchEvents({ page: 1, limit: 100 }));
-    }
-  }, [dispatch, userRole, page, selectedEvent]);
+    const formatDate = (date) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+  
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(price || 0);
+  };
 
-  useEffect(() => {
-    if (error) {
-      console.error('Ticket error:', error);
-    }
-  }, [error]);
-
-  const fetchUsers = async (email) => {
+  // Memoized event options to prevent unnecessary re-renders
+  const eventOptions = useMemo(() => {
+    return events.map(event => ({
+      value: event._id,
+      label: `${event.title} - ${formatDate(event.date)}`
+    }));
+  }, [events]);
+  
+  const handleOpenCancelDialog = (ticket) => {
+    setCancellingTicket(ticket);
+    setCancelReason('');
+    setCancelDialogOpen(true);
+  };
+  
+  const handleCloseCancelDialog = () => {
+    setCancelDialogOpen(false);
+    setCancellingTicket(null);
+    setCancelReason('');
+  };
+  
+  // Debounced user search to prevent excessive API calls
+  const fetchUsers = useCallback(async (email) => {
     if (!email || email.length < 2) {
       setUsers([]);
       setShowUserDropdown(false);
@@ -88,8 +110,8 @@ const AdminTickets = () => {
     } finally {
       setUsersLoading(false);
     }
-  };
-
+  }, []);
+  
   const handleSelectUser = (user) => {
     setNewBooking({
       ...newBooking,
@@ -99,7 +121,7 @@ const AdminTickets = () => {
     setShowUserDropdown(false);
     setUsers([]);
   };
-
+  
   const handleBookTicket = async () => {
     if (!newBooking.userEmail || !newBooking.eventId || !newBooking.quantity) {
       toast.error('Please fill all required fields');
@@ -127,44 +149,44 @@ const AdminTickets = () => {
         ticketType: 'General Admission',
         price: ''
       });
+      // Refresh tickets
+      dispatch(fetchAllTicketsAdmin({ page, limit: 20, eventId: selectedEvent || null }));
     } else {
       toast.error(result.payload || 'Failed to book ticket');
     }
   };
-
+  
   const handleCancelTicket = async () => {
     const result = await dispatch(adminCancelTicket({ ticketId: cancellingTicket._id, reason: cancelReason }));
     if (adminCancelTicket.fulfilled.match(result)) {
       toast.success('Ticket cancelled and user notified');
       handleCloseCancelDialog();
+      // Refresh tickets
+      dispatch(fetchAllTicketsAdmin({ page, limit: 20, eventId: selectedEvent || null }));
     } else {
       toast.error(result.payload || 'Failed to cancel ticket');
     }
   };
+  
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(price || 0);
-  };
-
-  // Stats calculations
-  const totalTickets = allTickets.length;
-  const activeTickets = allTickets.filter(t => !t.isCancelled).length;
-  const cancelledTickets = allTickets.filter(t => t.isCancelled).length;
-  const totalRevenue = allTickets.reduce((sum, t) => sum + (t.price * t.quantity), 0);
-
+  
+  // Memoized stats to prevent recalculation on every render
+  const stats = useMemo(() => {
+    const totalTickets = allTickets.length;
+    const activeTickets = allTickets.filter(t => !t.isCancelled).length;
+    const cancelledTickets = allTickets.filter(t => t.isCancelled).length;
+    const totalRevenue = allTickets.reduce((sum, t) => sum + (t.price * t.quantity), 0);
+    return { totalTickets, activeTickets, cancelledTickets, totalRevenue };
+  }, [allTickets]);
+  
+  // Fetch data with proper dependencies
+  useEffect(() => {
+    if (userRole === 'admin' || userRole === 'organiser') {
+      dispatch(fetchAllTicketsAdmin({ page, limit: 20, eventId: selectedEvent || null }));
+      dispatch(fetchEvents({ page: 1, limit: 100 }));
+    }
+  }, [dispatch, userRole, page, selectedEvent]);
+  
   if (userRole !== 'admin' && userRole !== 'organiser') {
     return (
       <div className={`admin-tickets ${isDark ? 'dark-theme' : 'light-theme'}`}>
@@ -182,39 +204,34 @@ const AdminTickets = () => {
       </div>
     );
   }
-
+  
   return (
     <div className={`admin-tickets ${isDark ? 'dark-theme' : 'light-theme'}`}>
       <div className="admin-container">
         {/* Back Button */}
         <button className="btn-back-k" onClick={() => navigate(-1)}>
-          
           <FaArrowLeft /> Back
         </button>
        
-
         {/* Main Content Card */}
         <div className="main-card">
           {/* Header Section */}
           <div className="card-header">
             <div className="header-left-k">
-              
-               
-              <h1 className="header-title-k ">Ticket Management</h1>
+              <h1 className="header-title-k">Ticket Management</h1>
               <p className="header-subtitle-k">Manage and monitor all ticket bookings</p>
             </div>
             <button className="btn-primary-k" onClick={() => setBookDialogOpen(true)}>
-             
               + Book Ticket
             </button>
           </div>
-
+          
           {/* Stats Cards */}
           <div className="stats-grid">
             <div className="stat-card stat-card-primary">
               <div className="stat-info">
                 <span className="stat-label">Total Tickets</span>
-                <span className="stat-value">{totalTickets}</span>
+                <span className="stat-value">{stats.totalTickets}</span>
               </div>
               <div className="stat-icon">🎫</div>
             </div>
@@ -222,7 +239,7 @@ const AdminTickets = () => {
             <div className="stat-card stat-card-success">
               <div className="stat-info">
                 <span className="stat-label">Active Tickets</span>
-                <span className="stat-value">{activeTickets}</span>
+                <span className="stat-value">{stats.activeTickets}</span>
               </div>
               <div className="stat-icon">✓</div>
             </div>
@@ -230,7 +247,7 @@ const AdminTickets = () => {
             <div className="stat-card stat-card-error">
               <div className="stat-info">
                 <span className="stat-label">Cancelled</span>
-                <span className="stat-value">{cancelledTickets}</span>
+                <span className="stat-value">{stats.cancelledTickets}</span>
               </div>
               <div className="stat-icon">✗</div>
             </div>
@@ -238,12 +255,12 @@ const AdminTickets = () => {
             <div className="stat-card stat-card-warning">
               <div className="stat-info">
                 <span className="stat-label">Total Revenue</span>
-                <span className="stat-value">{formatPrice(totalRevenue)}</span>
+                <span className="stat-value">{formatPrice(stats.totalRevenue)}</span>
               </div>
               <div className="stat-icon">💰</div>
             </div>
           </div>
-
+          
           {/* Filter Section */}
           <div className="filter-section">
             <div className="tabs-k">
@@ -272,10 +289,7 @@ const AdminTickets = () => {
                     }}
                     options={[
                       { value: '', label: 'All Events' },
-                      ...events.map(event => ({
-                        value: event._id,
-                        label: `${event.title} - ${formatDate(event.date)}`
-                      }))
+                      ...eventOptions
                     ]}
                     placeholder="Filter by Event"
                     searchable
@@ -289,7 +303,7 @@ const AdminTickets = () => {
               </div>
             )}
           </div>
-
+          
           {/* Tickets Table */}
           <div className="table-section">
             {loading ? (
@@ -378,9 +392,9 @@ const AdminTickets = () => {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                   </table>
                 </div>
-
+                
                 {/* Pagination */}
                 {totalPages > 1 && (
                   <div className="pagination">
@@ -389,27 +403,40 @@ const AdminTickets = () => {
                       disabled={page === 1}
                       onClick={() => setPage(p => Math.max(1, p - 1))}
                     >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M15 18l-6-6 6-6"/>
-                      </svg>
+                      ‹
                     </button>
-                    {[...Array(totalPages).keys()].map(i => (
-                      <button
-                        key={i + 1}
-                        className={`page-btn ${page === i + 1 ? 'active' : ''}`}
-                        onClick={() => setPage(i + 1)}
-                      >
-                        {i + 1}
-                      </button>
-                    ))}
+                    {[...Array(Math.min(totalPages, 7)).keys()].map(i => {
+                      let pageNum;
+                      if (totalPages <= 7) {
+                        pageNum = i + 1;
+                      } else if (page <= 4) {
+                        pageNum = i + 1;
+                        if (i === 6) pageNum = totalPages;
+                      } else if (page >= totalPages - 3) {
+                        pageNum = totalPages - 6 + i;
+                      } else {
+                        pageNum = page - 3 + i;
+                      }
+                      if (pageNum > totalPages) return null;
+                      if (i === 5 && pageNum < totalPages - 1 && totalPages > 7) {
+                        return <span key="ellipsis" className="page-ellipsis">...</span>;
+                      }
+                      return (
+                        <button
+                          key={pageNum}
+                          className={`page-btn ${page === pageNum ? 'active' : ''}`}
+                          onClick={() => setPage(pageNum)}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
                     <button 
                       className="page-btn"
                       disabled={page === totalPages}
                       onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                     >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M9 18l6-6-6-6"/>
-                      </svg>
+                      ›
                     </button>
                   </div>
                 )}
@@ -417,7 +444,7 @@ const AdminTickets = () => {
             )}
           </div>
         </div>
-
+        
         {/* Cancel Ticket Modal */}
         {cancelDialogOpen && (
           <div className="modal-overlay" onClick={handleCloseCancelDialog}>
@@ -454,7 +481,7 @@ const AdminTickets = () => {
             </div>
           </div>
         )}
-
+        
         {/* Book Ticket Modal */}
         {bookDialogOpen && (
           <div className="modal-overlay" onClick={() => setBookDialogOpen(false)}>
@@ -525,10 +552,7 @@ const AdminTickets = () => {
                   <CustomDropdown
                     value={newBooking.eventId}
                     onChange={(val) => setNewBooking({ ...newBooking, eventId: val })}
-                    options={events.map(event => ({
-                      value: event._id,
-                      label: `${event.title} - ${formatDate(event.date)}`
-                    }))}
+                    options={eventOptions}
                     placeholder="Select event"
                     searchable
                     size="md"
@@ -542,7 +566,7 @@ const AdminTickets = () => {
                       type="number"
                       className="form-input"
                       value={newBooking.quantity}
-                      onChange={(e) => setNewBooking({ ...newBooking, quantity: e.target.value })}
+                      onChange={(e) => setNewBooking({ ...newBooking, quantity: parseInt(e.target.value) || 1 })}
                       min="1"
                     />
                   </div>
@@ -576,11 +600,11 @@ const AdminTickets = () => {
                   Cancel
                 </button>
                 <button 
-                  className="btn-primary" 
+                  className="btn-primary-k" 
                   onClick={handleBookTicket} 
-disabled={adminBookingStatus === 'loading'}
-                  >
-                    {adminBookingStatus === 'loading' ? 'Booking...' : 'Book Ticket'}
+                  disabled={adminBookingStatus === 'loading'}
+                >
+                  {adminBookingStatus === 'loading' ? 'Booking...' : 'Book Ticket'}
                 </button>
               </div>
             </div>

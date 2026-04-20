@@ -1,0 +1,479 @@
+/* Discussion Forum Styles */
+.discussion-container {
+  padding: 16px 0;
+  /* background: linear-gradient(180deg, var(--ed-bg-light) 0%, #e2e8f0 100%); */
+  margin: 30px 0;
+  padding: 16px;
+}
+
+.discussion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.discussion-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.discussion-title h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary, #1e293b);
+}
+
+.discussion-count {
+  color: var(--text-secondary, #64748b);
+  font-size: 0.875rem;
+}
+
+.discussion-create-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.discussion-create-btn:hover {
+  background: #4f46e5;
+  transform: translateY(-1px);
+}
+
+/* Form Styles */
+.discussion-form {
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.discussion-input,
+.discussion-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  background: white;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.discussion-input:focus,
+.discussion-textarea:focus {
+  outline: none;
+  border-color: #6366f1;
+}
+
+.discussion-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.discussion-type-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.discussion-type-btn {
+  padding: 4px 12px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: var(--text-secondary, #64748b); 
+  border-radius: 16px;
+  font-size: 0.75rem;
+  text-transform: capitalize;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.discussion-type-btn.active {
+  background: #6366f1;
+  color: white;
+  border-color: #6366f1;
+}
+
+
+.discussion-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.discussion-cancel-btn {
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  color: var(--text-secondary, #64748b);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.discussion-cancel-btn:hover {
+  background: #f1f5f9;
+}
+
+.discussion-submit-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.discussion-submit-btn:hover {
+  background: #4f46e5;
+}
+
+/* Thread Styles */
+.discussion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.discussion-thread {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.discussion-thread:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.discussion-thread.pinned {
+  border-left: 4px solid #f59e0b;
+}
+
+.discussion-thread.locked {
+  opacity: 0.7;
+}
+
+.discussion-thread-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.discussion-pin-icon,
+.discussion-lock-icon {
+  font-size: 14px;
+  color: #f59e0b;
+}
+
+.discussion-lock-icon {
+  color: #ef4444;
+}
+
+.discussion-type-chip {
+  font-size: 0.75rem;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.discussion-type-chip--question {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.discussion-type-chip--announcement {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.discussion-type-chip--review {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.discussion-type-chip--general {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.discussion-author {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.discussion-date {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.discussion-thread-title {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.discussion-content {
+  color: #64748b;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+/* Actions & Comments */
+.discussion-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.discussion-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.875rem;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.discussion-action-btn:hover {
+  background: #f1f5f9;
+  color: #6366f1;
+}
+
+.discussion-action-btn.liked {
+  color: #ef4444;
+}
+
+.discussion-delete-btn:hover {
+  color: #ef4444;
+}
+
+.discussion-comments {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.discussion-comment {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.discussion-comment-avatar {
+  width: 32px;
+  height: 32px;
+  background: #6366f1;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.discussion-comment-content {
+  flex: 1;
+}
+
+.discussion-comment-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.discussion-comment-author {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.discussion-comment-date {
+  font-size: 0.75rem;
+}
+
+.discussion-comment-text {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #475569;
+}
+
+.discussion-reply {
+  margin-left: 24px;
+  padding: 8px 12px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  margin-top: 8px;
+  font-size: 0.875rem;
+}
+
+.discussion-reply strong {
+  font-weight: 500;
+}
+
+.discussion-reply-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.discussion-reply-form .discussion-input {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.discussion-send-btn {
+  padding: 10px 14px;
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.discussion-send-btn:hover {
+  background: #4f46e5;
+}
+
+/* Empty & Loading */
+.discussion-empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: #64748b;
+}
+
+.discussion-empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.discussion-first-btn {
+  margin-top: 16px;
+  padding: 10px 20px;
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.discussion-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.discussion-skeleton {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.discussion-skeleton-header {
+  height: 20px;
+  width: 60%;
+  background: #e2e8f0;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  animation: pulse 1.5s infinite;
+}
+
+.discussion-skeleton-content {
+  height: 60px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  animation: pulse 1.5s infinite;
+  animation-delay: 0.2s;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Dark Theme */
+[data-theme="dark"] .discussion-form {
+  background: #1e293b;
+}
+
+[data-theme="dark"] .discussion-input,
+[data-theme="dark"] .discussion-textarea {
+  background: #0f172a;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .discussion-type-btn {
+  background: #1e293b;
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .discussion-type-btn.active {
+  background: #6366f1;
+  color: white;
+}
+
+[data-theme="dark"] .discussion-cancel-btn {
+  background: #1e293b;
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .discussion-thread {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+[data-theme="dark"] .discussion-comment {
+  background: #0f172a;
+}
+
+[data-theme="dark"] .discussion-reply {
+  background: #1e293b;
+}
+
+[data-theme="dark"] .discussion-skeleton {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+[data-theme="dark"] .discussion-form-actions .discussion-cancel-btn {
+  background: #1e293b;
+  border-color: #334155;
+  color: #94a3b8;
+}

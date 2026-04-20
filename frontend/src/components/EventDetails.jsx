@@ -1,28 +1,29 @@
-import  React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchEventById, fetchMyEvents } from '../store/slices/eventSlice';
-import { 
-  FiCalendar, 
-  FiClock, 
-  FiMapPin, 
-  FiDollarSign, 
-  FiArrowLeft, 
-  FiCheck, 
+import {
+  FiCalendar,
+  FiClock,
+  FiMapPin,
+  FiDollarSign,
+  FiArrowLeft,
+  FiCheck,
   FiUsers,
   FiShoppingCart,
   FiHeart,
   FiShare2,
   FiEdit,
-  FiX
+  FiX,
 } from 'react-icons/fi';
 import './EventDetails.css';
 import Header from '../pages/header.jsx';
-import { apiClient } from '../utils/api';
 import { addToCartAsync, removeBookedItems } from '../store/slices/cartSlice';
 import { toast } from 'react-toastify';
 import image2 from '../assets/image3.jpg';
 import { addFavorite, removeFavorite } from '../store/slices/favoritesSlice';
+import DiscussionForum from './DiscussionForum.jsx';
+import { FaCommentAlt } from 'react-icons/fa';
 
 const EventDetails = () => {
   const { id } = useParams();
@@ -53,7 +54,8 @@ const EventDetails = () => {
   const [ticketCount, setTicketCount] = useState(1);
   const [isBooking, setIsBooking] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
-  const [selectedTicketType, setSelectedTicketType] = useState('general');
+  const [selectedTicketType, setSelectedTicketType] = useState(null);
+  const [ticketTypeError, setTicketTypeError] = useState('');
 
   // Get user role from localStorage as fallback
   const getUserRole = () => {
@@ -100,6 +102,9 @@ const EventDetails = () => {
     if (userRole === 'organiser' || userRole === 'admin') {
       dispatch(fetchMyEvents());
     }
+    // Reset selected ticket type when event changes
+    setSelectedTicketType(null);
+    setTicketTypeError('');
     // eslint-disable-next-line
   }, [id, state, dispatch]);
 
@@ -112,34 +117,76 @@ const EventDetails = () => {
     return favorites.some(fav => fav.eventId === (eventDetail._id || eventDetail.id));
   }, [favorites, eventDetail]);
 
-const getAvailableTickets = () => {
-  if (eventDetail.ticketTypes?.length > 0) {
-    const totalCapacity = eventDetail.ticketTypes.reduce(
-      (sum, t) => sum + (t.quantity || 0),
-      0
-    );
+  const getAvailableTickets = () => {
+    if (eventDetail.ticketTypes?.length > 0) {
+      // If a specific ticket type is selected, return its available quantity
+      if (selectedTicketType) {
+        const selectedTicket = eventDetail.ticketTypes.find(t => t.type === selectedTicketType || t.name === selectedTicketType);
+        if (selectedTicket) {
+          const total = selectedTicket.quantity || selectedTicket.total || 0;
+          const sold = selectedTicket.sold || 0;
+          return Math.max(0, total - sold);
+        }
+      }
+      
+      // Return total available across all ticket types
+      const totalCapacity = eventDetail.ticketTypes.reduce(
+        (sum, t) => sum + (t.quantity || t.total || 0),
+        0
+      );
+
+      return Math.max(
+        totalCapacity - (eventDetail.ticketsSold || 0),
+        0
+      );
+    }
 
     return Math.max(
-      totalCapacity - (eventDetail.ticketsSold || 0),
+      (eventDetail.capacity || 0) - (eventDetail.ticketsSold || 0),
       0
     );
-  }
-
-  return Math.max(
-    (eventDetail.capacity || 0) - (eventDetail.ticketsSold || 0),
-    0
-  );
-};
+  };
 
   const getTicketPrice = () => {
     if (eventDetail.ticketTypes && eventDetail.ticketTypes.length > 0) {
-      const selectedTicket = eventDetail.ticketTypes.find(t => t.type === selectedTicketType);
-      return selectedTicket?.price || eventDetail.ticketTypes[0]?.price || eventDetail.ticketPrice || 50;
+      if (selectedTicketType) {
+        const selectedTicket = eventDetail.ticketTypes.find(t => t.type === selectedTicketType || t.name === selectedTicketType);
+        if (selectedTicket) {
+          return selectedTicket.price || 0;
+        }
+      }
+      // Return first ticket type price as fallback
+      return eventDetail.ticketTypes[0]?.price || eventDetail.ticketPrice || 50;
     }
     return eventDetail.ticketPrice || 50;
   };
 
+  const getSelectedTicketAvailable = () => {
+    if (!selectedTicketType) return 0;
+    
+    const selectedTicket = eventDetail.ticketTypes?.find(t => t.type === selectedTicketType || t.name === selectedTicketType);
+    if (selectedTicket) {
+      const total = selectedTicket.quantity || selectedTicket.total || 0;
+      const sold = selectedTicket.sold || 0;
+      return Math.max(0, total - sold);
+    }
+    return 0;
+  };
+
+  const handleTicketTypeSelect = (ticketType) => {
+    setSelectedTicketType(ticketType);
+    setTicketTypeError('');
+    setTicketCount(1); // Reset count when ticket type changes
+  };
+
   const handleAddToCart = async () => {
+    // Validation: Check if ticket type is selected when multiple types exist
+    if (eventDetail.ticketTypes && eventDetail.ticketTypes.length > 0 && !selectedTicketType) {
+      setTicketTypeError('Please select a ticket type before adding to cart');
+      toast.error('Please select a ticket type');
+      return;
+    }
+
     if (!isAuthenticated) {
       toast.error('Please login to book tickets');
       navigate('/login', { state: { from: `/event/${id}` } });
@@ -152,22 +199,48 @@ const getAvailableTickets = () => {
       return;
     }
 
+    // Check if selected ticket type has enough quantity
+    if (selectedTicketType) {
+      const selectedAvailable = getSelectedTicketAvailable();
+      if (ticketCount > selectedAvailable) {
+        toast.error(`Only ${selectedAvailable} tickets available for ${selectedTicketType}`);
+        return;
+      }
+    }
+
     setIsBooking(true);
     try {
+      // Get ticket details for the selected type
+      let ticketName = 'General Admission';
+      let ticketPrice = getTicketPrice();
+      
+      if (selectedTicketType && eventDetail.ticketTypes) {
+        const selectedTicket = eventDetail.ticketTypes.find(t => t.type === selectedTicketType || t.name === selectedTicketType);
+        if (selectedTicket) {
+          ticketName = selectedTicket.name || selectedTicket.type;
+          ticketPrice = selectedTicket.price;
+        }
+      }
+
       const payload = {
         eventId: eventDetail._id || eventDetail.id,
         eventName: eventDetail.title,
         eventDate: eventDetail.date,
         eventLocation: eventDetail.location,
-        ticketType: selectedTicketType,
+        ticketType: selectedTicketType || 'general',
+        ticketTypeName: ticketName,
         quantity: ticketCount,
-        price: getTicketPrice()
+        price: ticketPrice
       };
 
       // Add to cart via Redux
       await dispatch(addToCartAsync(payload)).unwrap();
       
-      toast.success(`${ticketCount} ticket(s) added to cart!`);
+      toast.success(`${ticketCount} ${ticketName} ticket(s) added to cart!`);
+      
+      // Reset selection after adding to cart (optional)
+      // setSelectedTicketType(null);
+      // setTicketCount(1);
       
     } catch (err) {
       const message = err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to add to cart. Please try again.';
@@ -204,7 +277,6 @@ const getAvailableTickets = () => {
     }
   };
 
-
   const formatDate = (dateString) => {
     if (!dateString || dateString === 'N/A') return 'N/A';
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -231,7 +303,8 @@ const getAvailableTickets = () => {
 
   const handleTicketCountChange = (change) => {
     const newCount = ticketCount + change;
-    if (newCount > 0 && newCount <= getAvailableTickets()) {
+    const maxAvailable = selectedTicketType ? getSelectedTicketAvailable() : getAvailableTickets();
+    if (newCount > 0 && newCount <= maxAvailable) {
       setTicketCount(newCount);
     }
   };
@@ -429,8 +502,12 @@ const getAvailableTickets = () => {
                   <FiDollarSign />
                 </div>
                 <div className="evd-meta-info">
-                  <span className="evd-meta-label">Price</span>
-                  <span className="evd-meta-value">{formatCurrency(getTicketPrice())} / ticket</span>
+                  <span className="evd-meta-label">Price From</span>
+                  <span className="evd-meta-value">
+                    {eventDetail.ticketTypes?.length > 0 
+                      ? formatCurrency(Math.min(...eventDetail.ticketTypes.map(t => t.price)))
+                      : formatCurrency(getTicketPrice())}
+                  </span>
                 </div>
               </div>
               <div className="evd-meta-item evd-meta-highlight">
@@ -439,7 +516,11 @@ const getAvailableTickets = () => {
                 </div>
                 <div className="evd-meta-info">
                   <span className="evd-meta-label">Availability</span>
-                  <span className="evd-meta-value">{typeof eventDetail.availableTickets === 'number' ? eventDetail.availableTickets : getAvailableTickets()} of {eventDetail.capacity || 0} seats</span>
+                  <span className="evd-meta-value">
+                    {selectedTicketType 
+                      ? `${getSelectedTicketAvailable()} of ${eventDetail.ticketTypes?.find(t => t.type === selectedTicketType || t.name === selectedTicketType)?.quantity || 0}`
+                      : `${getAvailableTickets()} of ${eventDetail.capacity || 0}`} seats
+                  </span>
                 </div>
               </div>
             </div>
@@ -454,23 +535,41 @@ const getAvailableTickets = () => {
 
           {eventDetail.ticketTypes && eventDetail.ticketTypes.length > 0 && (
             <div className="evd-ticket-section">
-              <h3 className="evd-section-title">Ticket Types</h3>
+              <h3 className="evd-section-title">Select Ticket Type</h3>
+              {ticketTypeError && (
+                <div className="evd-ticket-error">
+                  <FiX /> {ticketTypeError}
+                </div>
+              )}
               <div className="evd-ticket-grid">
                 {eventDetail.ticketTypes.map((ticket, index) => {
-                  const total = ticket.total || ticket.quantity || 0;
+                  const total = ticket.quantity || ticket.total || 0;
                   const sold = ticket.sold || 0;
                   const available = Math.max(0, total - sold);
+                  const isSelected = selectedTicketType === (ticket.type || ticket.name);
+                  const ticketId = ticket.type || ticket.name;
+                  
                   return (
                     <div 
                       key={index} 
-                      className={`evd-ticket-card ${selectedTicketType === ticket.type ? 'evd-ticket-selected' : ''}`}
-                      onClick={() => setSelectedTicketType(ticket.type)}
+                      className={`evd-ticket-card ${isSelected ? 'evd-ticket-selected' : ''} ${available === 0 ? 'evd-ticket-soldout' : ''}`}
+                      onClick={() => available > 0 && handleTicketTypeSelect(ticketId)}
+                      style={{ cursor: available > 0 ? 'pointer' : 'not-allowed', opacity: available === 0 ? 0.5 : 1 }}
                     >
-                      <h4 className="evd-ticket-name">{ticket.name || ticket.type}</h4>
+                      <div className="evd-ticket-header">
+                        <h4 className="evd-ticket-name">{ticket.name || ticket.type || 'General'}</h4>
+                        {isSelected && <FiCheck className="evd-ticket-check" />}
+                      </div>
                       <p className="evd-ticket-price">{formatCurrency(ticket.price)}</p>
                       <p className="evd-ticket-availability">
-                        {available} tickets available
+                        {available === 0 ? 'Sold Out' : `${available} tickets available`}
                       </p>
+                      {ticket.description && (
+                        <p className="evd-ticket-description">{ticket.description}</p>
+                      )}
+                      {ticket.maxPerOrder && (
+                        <p className="evd-ticket-limit">Max {ticket.maxPerOrder} per order</p>
+                      )}
                     </div>
                   );
                 })}
@@ -516,6 +615,21 @@ const getAvailableTickets = () => {
               <div className="evd-booking-card">
                 <h3 className="evd-section-title">Book Your Tickets</h3>
 
+                {/* Show selected ticket info */}
+                {selectedTicketType && eventDetail.ticketTypes?.length > 0 && (
+                  <div className="evd-selected-ticket-info">
+                    <span className="evd-selected-ticket-badge">
+                      {eventDetail.ticketTypes.find(t => t.type === selectedTicketType || t.name === selectedTicketType)?.name || selectedTicketType}
+                    </span>
+                    <button 
+                      className="evd-change-ticket-btn"
+                      onClick={() => setSelectedTicketType(null)}
+                    >
+                      Change
+                    </button>
+                  </div>
+                )}
+
                 <div className="evd-ticket-selector">
                   <button 
                     className="evd-qty-btn" 
@@ -528,7 +642,7 @@ const getAvailableTickets = () => {
                   <button 
                     className="evd-qty-btn" 
                     onClick={() => handleTicketCountChange(1)}
-                    disabled={ticketCount >= getAvailableTickets()}
+                    disabled={ticketCount >= (selectedTicketType ? getSelectedTicketAvailable() : getAvailableTickets())}
                   >
                     +
                   </button>
@@ -544,9 +658,18 @@ const getAvailableTickets = () => {
                 <button 
                   className="evd-book-btn"
                   onClick={handleAddToCart}
-                  disabled={getAvailableTickets() === 0 || isBooking}
+                  disabled={
+                    getAvailableTickets() === 0 || 
+                    isBooking || 
+                    (eventDetail.ticketTypes?.length > 0 && !selectedTicketType)
+                  }
                 >
-                  <FiShoppingCart /> {isBooking ? 'Processing...' : 'Add to Cart'}
+                  <FiShoppingCart /> 
+                  {isBooking 
+                    ? 'Processing...' 
+                    : (eventDetail.ticketTypes?.length > 0 && !selectedTicketType 
+                      ? 'Select Ticket Type First' 
+                      : 'Add to Cart')}
                 </button>
 
                 {getAvailableTickets() === 0 && (
@@ -580,6 +703,11 @@ const getAvailableTickets = () => {
             ) : null}
           </div>
         </div>
+        {id && (
+          <div className="evd-section">
+            <DiscussionForum eventId={id} />
+          </div>
+        )}
       </div>
     </div>
   );

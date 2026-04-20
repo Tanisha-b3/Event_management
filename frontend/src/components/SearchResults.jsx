@@ -14,7 +14,15 @@ function SearchResults() {
   
   // Dark mode detection
   const { mode: reduxMode } = useSelector((state) => state.theme);
-  const isDark = reduxMode === 'dark' || localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const [isDark, setIsDark] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) return savedTheme === 'dark';
+    return reduxMode === 'dark';
+  });
+
+  useEffect(() => {
+    setIsDark(reduxMode === 'dark' || localStorage.getItem('theme') === 'dark');
+  }, [reduxMode]);
 
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
   const [category, setCategory] = useState(searchParams.get('category') || 'all');

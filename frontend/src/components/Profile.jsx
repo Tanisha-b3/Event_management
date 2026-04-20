@@ -243,10 +243,13 @@ console.log('Rendering profile with userData:', userData);
   return (
     <div className="profile-page">
       <div className="profile-container">
+         
         <div className="profile-header-section">
-          <button onClick={() => navigate(-1)} className="btn-back">
+         <button onClick={() => navigate(-1)} className="btn-back">
             <FaArrowLeft /> Back
           </button>
+          <br/>
+          {/* <br/> */}
           <h1>My Profile</h1>
           <div className="profile-actions">
             <button 

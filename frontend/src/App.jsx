@@ -16,6 +16,9 @@ import Profile from './components/Profile.jsx';
 import MyTickets from './components/tickets/tickets.jsx';
 import BookTicket from './components/tickets/TicketBook.jsx';
 import OrganizerDashboard from './components/Messages/Organiser.jsx';
+import OrganizerStatsDashboard from './components/OrganizerDashboard.jsx';
+import TrendingEvents from './components/TrendingEvents.jsx';
+import SwipeCards from './components/SwipeCards.jsx';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import Header from './pages/header.jsx';
 import LoadingSpinner from './components/LoadingSpinner.jsx';
@@ -64,6 +67,7 @@ const PublicRoute = ({ children }) => {
   return isAuthenticated ? <Navigate to="/dashboard" replace /> : children;
 };
 
+
 const AppLayout = ({ isAuthenticated }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -76,7 +80,7 @@ const AppLayout = ({ isAuthenticated }) => {
   // Local state for favorites pagination
   const [favPage, setFavPage] = useState(1);
   const [favPerPage, setFavPerPage] = useState(12);
-  
+
   // Load railOpen state from localStorage with default as false (closed)
   const [railOpen, setRailOpen] = useState(() => {
     try {
@@ -110,7 +114,7 @@ const AppLayout = ({ isAuthenticated }) => {
       if (favDebounceTimeout.current) clearTimeout(favDebounceTimeout.current);
     };
   }, [isAuthenticated, favPage, favPerPage, dispatch]);
-  
+
   const userRole = useSelector((state) => state.auth?.user?.role || 'booker');
   const [actionValue, setActionValue] = useState('search');
 
@@ -121,6 +125,11 @@ const AppLayout = ({ isAuthenticated }) => {
       dispatch(clearFavorites());
     }
   }, [isAuthenticated, dispatch]);
+
+  // Always scroll to top on route change
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  }, [location.pathname]);
 
   // Only show enhancements on specific routes
   const showEnhancements = isAuthenticated && 
@@ -186,6 +195,9 @@ const AppLayout = ({ isAuthenticated }) => {
           } 
         />
         <Route path="/organizer" element={<OrganizerDashboard />} />
+        <Route path="/organizer-stats" element={<OrganizerStatsDashboard />} />
+        <Route path="/trending" element={<TrendingEvents limit={10} key="trending" />} />
+        <Route path="/swipe" element={<SwipeCards />} />
         
         {/* Private Routes */}
         <Route

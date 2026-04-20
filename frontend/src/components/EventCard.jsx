@@ -21,6 +21,8 @@ import {
   Favorite,
   Share,
   ConfirmationNumber,
+  Visibility,
+  TrendingUp,
 } from '@mui/icons-material';
 import { addToCartLocal, addToCartAsync } from '../store/slices/cartSlice';
 import useAuth from '../store/hooks/useAuth';
@@ -47,6 +49,10 @@ const EventCard = ({
     category,
     price,
     ticketsAvailable,
+    views,
+    likes,
+    ticketsSold,
+    trendingScore,
   } = event;
 
   const formattedDate = new Date(date).toLocaleDateString('en-US', {
@@ -234,7 +240,16 @@ const EventCard = ({
           </Typography>
         )}
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 'auto' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mt: 'auto',
+            gap: 1,
+            flexWrap: 'wrap',
+          }}
+        >
           <Typography variant="h6" color="primary" fontWeight="bold">
             {price > 0 ? `$${price}` : 'Free'}
           </Typography>
@@ -247,7 +262,47 @@ const EventCard = ({
               variant="outlined"
             />
           )}
-        </Box>
+
+        {(views || likes || ticketsSold || trendingScore) && (
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mt: 1,
+              pt: 1,
+              borderTop: 1,
+              borderColor: 'divider',
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Visibility sx={{ fontSize: 14, color: 'text.secondary' }} />
+              <Typography variant="caption" color="text.secondary">
+                {views || 0}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Favorite sx={{ fontSize: 14, color: 'error.main' }} />
+              <Typography variant="caption" color="text.secondary">
+                {likes || 0}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <ConfirmationNumber sx={{ fontSize: 14, color: 'success.main' }} />
+              <Typography variant="caption" color="text.secondary">
+                {ticketsSold || 0}
+              </Typography>
+            </Box>
+            {trendingScore > 0 && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <TrendingUp sx={{ fontSize: 14, color: 'warning.main' }} />
+                <Typography variant="caption" color="warning.main" fontWeight="bold">
+                  {trendingScore.toFixed(1)}
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        )}
       </CardContent>
 
       {showActions && (

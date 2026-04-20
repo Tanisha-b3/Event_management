@@ -143,10 +143,10 @@ function HelpSupport() {
         </div>
 
         {/* Hero Section */}
-        <div className="hero-section">
-          <div className="hero-content">
-            <div className="hero-badge">
-              <FaStar className="badge-icon" />
+        <div className="hero-section-rl">
+          <div className="hero-content-rl">
+            <div className="hero-badge-kl">
+              <FaStar className="badge-icon-kl" />
               <span>24/7 Support Available</span>
             </div>
             <h2>How can we help you today?</h2>

@@ -33,6 +33,7 @@ const ManageEvent = ({
   activeTab,
   setActiveTab,
   toggleEventStatus,
+  updatingStatus = false,
   formatCurrency,
   attendeeSearch,
   setAttendeeSearch,
@@ -84,16 +85,18 @@ const ManageEvent = ({
   };
 
   const handleCancelTicket = async () => {
+    if (!cancellingTicket) return;
     setCancelLoading(true);
     try {
       await apiClient.delete(`/tickets/admin/${cancellingTicket._id || cancellingTicket.id}`,
         { data: { reason: cancelReason } });
       toast.success('Ticket cancelled and user notified');
       handleCloseCancelDialog();
-      // Refresh tickets/attendees
       if (selectedEvent) {
-        const { data } = await apiClient.get(`/events/${selectedEvent.id}/attendees`);
-        setTicketsData(data?.attendees || []);
+        try {
+          const { data } = await apiClient.get(`/events/${selectedEvent.id}/attendees`);
+          setTicketsData(data?.attendees || []);
+        } catch (e) { console.error('Failed to refresh attendees'); }
       }
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to cancel ticket');
@@ -104,13 +107,14 @@ const ManageEvent = ({
 
   useEffect(() => {
     if (!selectedEvent) return;
+    let cancelled = false;
     const fetchTickets = async () => {
       try {
         const { data } = await apiClient.get(`/events/${selectedEvent.id}/attendees`);
+        if (cancelled) return;
         const attendees = data?.attendees || [];
         setTicketsData(attendees);
 
-        // Aggregate sold counts per type
         const soldByType = attendees.reduce((acc, t) => {
           const qty = t.quantity || 1;
           const type = t.ticketType || 'General Admission';
@@ -129,16 +133,17 @@ const ManageEvent = ({
 
         const merged = [...baseTypes, ...extraTypes];
         setDerivedTicketTypes(merged.length ? merged : baseTypes);
+        setAttendeesError('');
       } catch (err) {
+        if (cancelled) return;
         console.error('Failed to fetch attendees/tickets', err);
         setTicketsData([]);
         setDerivedTicketTypes(selectedEvent?.ticketTypes || []);
-        setAttendeesError('Failed to load attendees');
-        toast.error('Failed to load attendees');
       }
     };
 
     fetchTickets();
+    return () => { cancelled = true; };
   }, [selectedEvent]);
 
   const capacity = selectedEvent?.capacity || 0;
@@ -275,7 +280,7 @@ const ManageEvent = ({
                 <div className="stat-value">
                   {selectedEvent.status.charAt(0).toUpperCase() + selectedEvent.status.slice(1)}
                 </div>
-                <button className="btn-small" onClick={toggleEventStatus}>
+                <button className="btn-small" onClick={toggleEventStatus} disabled={updatingStatus}>
                   {selectedEvent.status === 'active' ? (
                     <>
                       <FiPause className="icon" /> Pause Sales

@@ -37,6 +37,7 @@ class SocketService {
 
   connect() {
     if (this.socket?.connected) {
+      console.log('[SOCKET] Already connected');
       return this.socket;
     }
 
@@ -46,6 +47,7 @@ class SocketService {
 
     const token = localStorage.getItem('token');
     const userId = this._getUserId();
+    console.log('[SOCKET] Connecting with token:', token ? 'present' : 'missing', 'userId:', userId);
 
     this.socket = io(SOCKET_URL, {
       auth: { token, userId },
@@ -69,7 +71,8 @@ class SocketService {
     this.handlersRegistered = true;
 
     this.socket.on('connect', () => {
-      console.log('✅ Socket connected:', this.socket.id);
+      console.log('✅ [SOCKET] Connected:', this.socket.id);
+      console.log('✅ [SOCKET] Auth:', this.socket.auth);
       this.reconnectAttempts = 0;
       this.isReconnecting = false;
       this.flushEventQueue();
@@ -119,9 +122,14 @@ class SocketService {
       }
     });
 
+    // Catch-all listener to debug all incoming events
+    this.socket.onAny((eventName, ...args) => {
+      console.log('[SOCKET] Event received:', eventName, args);
+    });
+
     // Notification events
     this.socket.on('notification:new', (notification) => {
-      console.log('🔔 New notification received:', notification._id, notification.title);
+      console.log('🔔 [SOCKET] New notification received:', notification._id, notification.title);
       store.dispatch(addNotification(notification));
       this.showBrowserNotification(notification);
     });

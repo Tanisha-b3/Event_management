@@ -31,11 +31,16 @@ import './Settings.css';
 
 function Settings() {
   const navigate = useNavigate();
-  const { user } = useSelector((state) => state.auth);
+  const { user, initializing } = useSelector((state) => state.auth);
   const themeState = useSelector((state) => state.theme);
   const dispatch = useDispatch();
 
   const [imgError, setImgError] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [user?.avatar]);
 
   const [activeTab, setActiveTab] = useState('profile');
   const [saving, setSaving] = useState(false);
@@ -46,6 +51,8 @@ function Settings() {
     newPassword: '',
     confirmPassword: ''
   });
+
+
   const [settings, setSettings] = useState({
     name: '',
     email: '',
@@ -73,7 +80,7 @@ function Settings() {
   });
 
   useEffect(() => {
-    if (user) {
+    if (user && !isLoaded) {
       setSettings(prev => ({
         ...prev,
         name: user.name || '',
@@ -89,8 +96,9 @@ function Settings() {
         colorScheme: themeState.colorScheme,
         highContrast: themeState.highContrast,
       }));
+      setIsLoaded(true);
     }
-  }, [user, themeState.mode]);
+  }, [user, themeState.mode, isLoaded]);
 
   // Apply theme to document
   useEffect(() => {
@@ -181,8 +189,16 @@ function Settings() {
     { id: 'notifications', label: 'Notifications', icon: FaBell, description: 'Configure alert preferences' },
     { id: 'privacy', label: 'Privacy', icon: FaLock, description: 'Control your data visibility' },
     { id: 'appearance', label: 'Appearance', icon: FaPalette, description: 'Customize your experience' },
-  ];
-  console.log(settings)
+];
+  const avatarValue = user?.avatar || settings?.avatar;
+  console.log('user.avatar:', user?.avatar);
+  console.log('settings.avatar:', settings?.avatar);
+  const avatarUrl = avatarValue && avatarValue.trim() !== ''
+    ? avatarValue.startsWith('http')
+      ? avatarValue
+      : `${import.meta.env.VITE_BASE_URL}${avatarValue}`
+    : null;
+  console.log('avatarUrl:', avatarUrl);
 
   return (
     <div className="settings-container">
@@ -206,17 +222,16 @@ function Settings() {
           {/* Sidebar */}
           <div className="settings-sidebar">
             <div className="user-summary-k">
-             <div className="user-avatar-k">
-  {settings.avatar && !imgError ? (
+          <div className="user-avatar-k">
+  {avatarUrl && !imgError ? (
     <img
-      src={
-        settings.avatar ? `${import.meta.env.VITE_API_URL}/${settings.avatar}` : ''
-      }
-      alt={settings.name}
+      src={avatarUrl}
+      alt={settings.name || "User"}
+      className="avatar-img"
       onError={() => setImgError(true)}
     />
   ) : (
-    <FaUserCircle />
+    <FaUserCircle className="avatar-fallback-icon" />
   )}
 </div>
               <div className="user-info-k">

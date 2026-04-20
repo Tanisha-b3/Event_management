@@ -13,6 +13,7 @@ import ThemeToggle from '../components/ThemeToggle';
 import { logoutUser } from '../store/slices/authSlice';
 import { CartButton } from '../components/CartDrawer';
 import NotificationBell from '../components/NotificationBell';
+import { Swipe, TrendingUp } from '@mui/icons-material';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ const Header = () => {
   const [role, setRole] = useState('booker');
   const [isScrolled, setIsScrolled] = useState(false);
   const profileRef = useRef(null);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     setRole(getUserRole());
@@ -72,8 +74,18 @@ const Header = () => {
     { path: '/dashboard', icon: <FiHome />, label: 'Dashboard' },
     { path: '/discover', icon: <FiCalendar />, label: 'Events' },
     { path: '/my-tickets', icon: <FiTable />, label: 'Tickets' },
+   
   ];
 
+ if (role === 'booker') {
+  // Show Swipe only on mobile
+  if (window.innerWidth <= 768) {
+    navItems.push({ path: "/swipe", icon: <Swipe />, label: "Swipe" });
+  }
+
+  // Show Trending always
+  navItems.push({ path: "/trending", icon: <TrendingUp />, label: "Trending Events" });
+}
   if (role === 'admin' || role === 'organiser') {
     navItems.push({ path: '/admin-tickets', icon: <FiBook />, label: 'All Tickets' });
     navItems.push({ path: '/organizer', icon: <FiUser />, label: 'Organizer' });
@@ -89,7 +101,9 @@ const Header = () => {
     { path: '/profile',       icon: <FiUser />,        label: 'Profile' },
     { path: '/settings',      icon: <FiSettings />,    label: 'Settings' },
     { path: '/order-history', icon: <FiPackage />,     label: 'Order History' },
-    ...(isAdminOrOrganizer ? [{ path: '/analytics', icon: <FiBarChart2 />, label: 'Analytics' }] : []),
+    ...(isAdminOrOrganizer ? [{ path: '/organizer-stats', icon: <FiBarChart2 />, label: 'Organizer Stats' }] : []),
+    ...(isAdminOrOrganizer ? [{ text: 'Trending Events', icon: <TrendingUp />, label: 'Trending Events', path: '/trending' }] : []),
+    ...(isAdminOrOrganizer ? [{ text: 'Swipe Discovery', icon: <Swipe />, label: 'Swipe Discovery', path: '/swipe' }] : []),
     // { path: '/search',        icon: <FiSearch />,      label: 'Search' },
     { path: '/calendar',      icon: <FiCalendar />,    label: 'Calendar' },
     { path: '/messages',      icon: <FiMessageSquare />, label: 'Messages' },
@@ -121,7 +135,8 @@ const Header = () => {
   };
 
   const userAvatar = user ? getAvatarUrl(user) : null;
-  const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=6366f1&color=fff&bold=true`;
+  console.log('User Avatar URL:', userAvatar);
+  // const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=6366f1&color=fff&bold=true`;
 
   return (
     <>
@@ -174,23 +189,20 @@ const Header = () => {
                       aria-label="Open profile menu"
                       aria-expanded={profileMenuOpen}
                     >
-                     {userAvatar ? (
-  <img
-    src={userAvatar.startsWith('http') 
-      ? userAvatar 
-      : `${import.meta.env.VITE_API_URL}/${userAvatar}`
-    }
-    alt={user?.name}
-    className="avatar-img"
-    onError={(e) => {
-      e.target.style.display = "none";
-    }}
-  />
-) : null}
+                     {userAvatar && !imageError ? (
+    <img
+      src={userAvatar}
+      alt={user?.name}
+      className="avatar-img"
+      onError={() => setImageError(true)}
+    />
+  ) : (
+    <span className="avatar-fallback">
+      {user?.name?.charAt(0) || "👤"}
+    </span>
+  )}
 
-<span className="avatar-fallback">
-  {user?.name?.charAt(0) || "👤"}
-</span>
+
                     </button>
 
                     {profileMenuOpen && (
@@ -277,7 +289,7 @@ const Header = () => {
         >
           <div className="mobile-menu-header-k">
             <div className="mobile-user-info" onClick={() => handleNavigation('/profile')}>
-              <div className="mobile-user-avatar">
+              <div className="user-avatar-l">
                 {userAvatar ? (
                   <img src={userAvatar} alt={user?.name} className="avatar-img" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
                 ) : null}

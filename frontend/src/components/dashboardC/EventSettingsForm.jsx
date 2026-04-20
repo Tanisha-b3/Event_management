@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FiGlobe, FiLock, FiEdit, FiTrash2 } from 'react-icons/fi';
+import { FiGlobe, FiLock, FiEdit, FiTrash2, FiMessageCircle } from 'react-icons/fi';
 import { apiClient } from '../../utils/api';
 import { getUserRole } from '../../utils/auth';
 import { toast } from 'react-toastify';
@@ -16,6 +16,7 @@ const EventSettingsForm = ({
 }) => {
   const role = getUserRole();
   const canEdit = role === 'admin' || role === 'organiser';
+  const [generatingDesc, setGeneratingDesc] = useState(false);
 
   const toDateTimeLocal = (value) => {
     if (!value) return '';
@@ -45,6 +46,34 @@ const EventSettingsForm = ({
   const updateField = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setSelectedEvent(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleGenerateDescription = async () => {
+    if (!formData.title || !formData.category || !formData.date || !formData.location) {
+      toast.error('Please fill in title, category, date, and location first');
+      return;
+    }
+    setGeneratingDesc(true);
+    try {
+      const { data } = await apiClient.post('/events/ai/describe', {
+        title: formData.title,
+        category: formData.category,
+        date: formData.date,
+        location: formData.location,
+        ticketPrice: ticketTypes?.[0]?.price || 0,
+        capacity: ticketTypes?.[0]?.quantity || 100,
+      });
+      const generatedDesc = data.description || data.data?.description;
+      if (generatedDesc) {
+        updateField('description', generatedDesc);
+        toast.success('Description generated!');
+      }
+    } catch (err) {
+      const message = err.response?.data?.message || 'Failed to generate description';
+      toast.error(message);
+    } finally {
+      setGeneratingDesc(false);
+    }
   };
 
   const handleSave = async () => {
@@ -109,7 +138,21 @@ const EventSettingsForm = ({
         </div>
         
         <div className="form-group">
-          <label>Description</label>
+          <label>
+            Description
+            {canEdit && (
+              <button
+                type="button"
+                className="btn-ai-generate"
+                onClick={handleGenerateDescription}
+                disabled={generatingDesc || !formData.title || !formData.category || !formData.date || !formData.location}
+                title="Generate with AI"
+              >
+                <FiMessageCircle className={generatingDesc ? 'spinning' : ''} />
+                {generatingDesc ? ' Generating...' : ' Generate'}
+              </button>
+            )}
+          </label>
           <textarea 
             value={formData.description}
             onChange={(e) => updateField('description', e.target.value)}

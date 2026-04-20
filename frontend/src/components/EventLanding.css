@@ -247,7 +247,7 @@ em { font-style: italic; font-family: var(--font-display); color: var(--ep-gold-
   z-index: 0;
 }
 .hero-content { position: relative; z-index: 1; animation: fadeInUp 0.9s ease-out; }
-.hero-badge {
+.hero-badge-kl {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -268,8 +268,8 @@ em { font-style: italic; font-family: var(--font-display); color: var(--ep-gold-
   box-shadow: 0 0 8px var(--ep-green);
   animation: pulse 2s ease-in-out infinite;
 }
-.badge-icon { font-size: 0.75rem; }
-.hero-title {
+.badge-icon-kl { font-size: 0.75rem; }
+.hero-title-kl {
   font-family: var(--font-display);
   font-size: clamp(2.5rem, 5vw, 4.5rem);
   font-weight: 900;

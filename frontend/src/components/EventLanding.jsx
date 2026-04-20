@@ -147,7 +147,7 @@ const EventLanding = () => {
 
   const heroTexts = ['Discover Amazing Events', 'Find Your Next Experience', 'Create Unforgettable Memories', 'Connect With Your Tribe'];
 
-  useEffect(() => { dispatch(fetchEvents({ limit: 6, status: 'active' })); }, [dispatch]);
+  useEffect(() => { dispatch(fetchEvents({ limit: 6, filterType: 'active' })); }, [dispatch]);
   useEffect(() => { if (events?.length > 0) setFeaturedEvents(events.slice(0, 6)); }, [events]);
   useEffect(() => {
     const interval = setInterval(() => setHeroText(p => (p + 1) % heroTexts.length), 3500);
@@ -223,12 +223,17 @@ const EventLanding = () => {
     }
   ];
 
-  const upcomingHighlights = [
-    { title: 'Coachella Valley Music', date: 'Apr 11–20', location: 'Indio, CA', category: 'Music', sold: 94, image: image4 },
-    { title: 'AI & Future Summit', date: 'May 3', location: 'San Jose, CA', category: 'Tech', sold: 78, image: image10 },
-    { title: 'NYC Restaurant Week', date: 'Jun 15–30', location: 'New York, NY', category: 'Food', sold: 61, image: image3 },
-    { title: 'Contemporary Art Basel', date: 'Jul 8–12', location: 'Miami, FL', category: 'Art', sold: 45, image: image8 },
-  ];
+  const upcomingHighlights = featuredEvents.length > 0 ? featuredEvents.slice(0, 4).map(ev => ({
+      ...ev,
+      date: new Date(ev.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      sold: Math.min(100, Math.round(((ev.ticketsSold || 0) / (ev.capacity || 1)) * 100)),
+      image: ev.image || ev.imageName ? `http://localhost:5000/uploads/events/${ev.imageName || ev.image}` : null
+    })) : [
+      { title: 'Coachella Valley Music', date: 'Apr 11–20', location: 'Indio, CA', category: 'Music', sold: 94, image: image4 },
+      { title: 'AI & Future Summit', date: 'May 3', location: 'San Jose, CA', category: 'Tech', sold: 78, image: image10 },
+      { title: 'NYC Restaurant Week', date: 'Jun 15–30', location: 'New York, NY', category: 'Food', sold: 61, image: image3 },
+      { title: 'Contemporary Art Basel', date: 'Jul 8–12', location: 'Miami, FL', category: 'Art', sold: 45, image: image8 },
+    ];
 
   const howItWorks = [
     { step: '01', title: 'Create Your Profile', desc: 'Tell us your interests and location. Takes 60 seconds. No spam, ever.', icon: <FaUsers /> },
@@ -325,11 +330,11 @@ const EventLanding = () => {
       <section className="landing-hero">
         <div className="hero-bg-grid" aria-hidden="true" />
         <div className="hero-content">
-          <div className="hero-badge">
+          <div className="hero-badge-kl">
             <span className="badge-dot" />
-            <FaStar className="badge-icon" /> Trusted by 1.2M+ event enthusiasts
+            <FaStar className="badge-icon-kl" /> Trusted by 1.2M+ event enthusiasts
           </div>
-          <h1 className="hero-title">
+          <h1 className="hero-title-kl">
             Your Gateway to<br />
             <span className="hero-title-dynamic">
               <span key={heroText} className="hero-text-slide">{heroTexts[heroText]}</span>
@@ -466,10 +471,10 @@ const EventLanding = () => {
           ))}
         </div>
         <div className="events-grid">
-          {featured.map((event, i) => (
-            <div key={event.id} className="event-card-landing" style={{ animationDelay: `${i * 0.1}s` }}>
+          {(featuredEvents.length > 0 ? featuredEvents : featured).map((event, i) => (
+            <div key={event._id || event.id || i} className="event-card-landing" style={{ animationDelay: `${i * 0.1}s` }}>
               <div className="event-card-image">
-                <img src={event.image} alt={event.title} />
+                <img src={event.image || event.imageName ? `http://localhost:5000/uploads/events/${event.imageName || event.image}` : event.image} alt={event.title} />
                 <div className="event-card-badges">
                   <span className="category-badge">{CATEGORY_ICONS[event.category]} {event.category}</span>
                   <span className="hot-badge"><FaFire /> Trending</span>

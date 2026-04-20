@@ -214,6 +214,10 @@ const BookTicket = () => {
     } else if (!/^[\d\s+()-]{10,}$/.test(formData.phone)) {
       newErrors.phone = 'Please enter a valid phone number';
     }
+
+   else if (!/^\d{10}$/.test(formData.phone)) {
+  newErrors.phone = 'Phone number must be exactly 10 digits';
+}
     
     const totalTickets = calculateTotalTickets();
     if (totalTickets === 0) {
@@ -383,7 +387,7 @@ const BookTicket = () => {
   if (isSuccess) {
     return (
       <div className="booking-success">
-        <main className="success-container-kl">
+        <main className="success-container">
           <div className="success-card">
             <div className="success-icon-wrapper">
               <FaCheck className="success-icon" />
@@ -569,13 +573,19 @@ const BookTicket = () => {
                 <div className="form-group">
                   <label>Phone Number *</label>
                   <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    placeholder="Enter your phone number"
-                    className={errors.phone ? 'error' : ''}
-                  />
-                  {errors.phone && <span className="error-text">{errors.phone}</span>}
+  type="tel"
+  maxLength={10}
+  pattern="[0-9]{10}"
+  value={formData.phone}
+  onChange={(e) => {
+    // Only allow digits and max 10
+    const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+    setFormData({ ...formData, phone: val });
+  }}
+  placeholder="Enter 10-digit phone number"
+  className={errors.phone ? 'error' : ''}
+/>
+{errors.phone && <span className="error-text">{errors.phone}</span>}
                 </div>
               </div>
             </div>
