@@ -1,6 +1,12 @@
 // backend/utils/logger.js
 import winston from 'winston';
 import path from 'path';
+import fs from 'fs';
+
+const logsDir = path.join('logs');
+if (!fs.existsSync(logsDir)) {
+  fs.mkdirSync(logsDir, { recursive: true });
+}
 
 const logFormat = winston.format.printf(({ level, message, timestamp, ...meta }) => {
   let metaString = Object.keys(meta).length ? JSON.stringify(meta) : '';
