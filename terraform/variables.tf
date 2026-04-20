@@ -85,3 +85,27 @@ variable "ssh_public_key" {
   type        = string
   default     = ""
 }
+
+variable "instance_type" {
+  default = "t2.micro"
+}
+
+variable "key_name" {}
+
+variable "repo_url" {
+  default = "https://github.com/Tanisha-b3/Event_management.git"
+}
+
+# Backend ENV
+variable "mongo_uri" {}
+variable "jwt_secret" {}
+variable "access_token_secret" {}
+variable "refresh_token_secret" {}
+variable "google_client_id" {}
+variable "client_secret" {}
+variable "email" {}
+variable "twilio_sid" {}
+variable "twilio_token" {}
+variable "twilio_number" {}
+variable "groq_api_key" {}
+variable "VITE_GOOGLE_CLIENT_ID" {}
