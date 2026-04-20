@@ -30,14 +30,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Ensure logs directory exists
-if (process.env.NODE_ENV === 'development') {
+// if (process.env.NODE_ENV === 'development') {
 
-  const logsDir = path.join('logs');
+//   const logsDir = path.join('logs');
 
-  if (!fs.existsSync(logsDir)) {
-    fs.mkdirSync(logsDir, { recursive: true });
-  }
-}
+//   if (!fs.existsSync(logsDir)) {
+//     fs.mkdirSync(logsDir, { recursive: true });
+//   }
+// }
 
 // Initialize app
 const app = express();
