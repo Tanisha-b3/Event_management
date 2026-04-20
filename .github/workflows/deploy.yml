@@ -1,62 +1,166 @@
-name: Deploy MERN App
+name: Deploy Frontend & Backend
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
   workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'deploy'
+        type: choice
+        options:
+          - deploy
+          - destroy
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+  BACKEND_IMAGE: event-backend
+  FRONTEND_IMAGE: event-frontend
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
-  deploy:
+  build:
+    name: Build Images
     runs-on: ubuntu-latest
-    environment: Production
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tags }}
 
     steps:
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            echo "🚀 Deploying..."
+          aws-region: ${{ env.AWS_REGION }}
 
-            cd Event_management || git clone https://github.com/Tanisha-b3/Event_management.git
-            cd Event_management
-            git pull origin main
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
 
-            # BACKEND
-            cd backend
-            npm install
+      - name: Set image tag
+        id: meta
+        run: |
+          IMAGE_TAG=$(echo ${{ github.sha }} | cut -c1-7)
+          echo "tags=${{ env.ECR_REGISTRY }}/${{ env.BACKEND_IMAGE }}:$IMAGE_TAG,${{ env.ECR_REGISTRY }}/${{ env.FRONTEND_IMAGE }}:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-            cat <<EOT > .env
-            MONGO_URI=${{ secrets.MONGO_URI }}
-            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
-            CLIENT_SECRET=${{ secrets.CLIENT_SECRET }}
-            REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}
-            ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}
-            JWT_SECRET=${{ secrets.JWT_SECRET }}
-            EMAIL=${{ secrets.EMAIL }}
-            TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}
-            TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}
-            TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}
-            FRONTEND_URL=http://${{ secrets.EC2_HOST }}
-            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
-            EOT
+      - name: Build Backend
+        working-directory: ./backend
+        run: |
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.BACKEND_IMAGE }}:$IMAGE_TAG .
 
-            pm2 restart backend || pm2 start server.js --name backend
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: |
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.FRONTEND_IMAGE }}:$IMAGE_TAG .
 
-            # FRONTEND
-            cd ../frontend
-            npm install
+      - name: Push Backend
+        run: |
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.BACKEND_IMAGE }}:$IMAGE_TAG
 
-            cat <<EOT > .env
-            VITE_API_URL=/api
-            VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}
-            EOT
+      - name: Push Frontend
+        run: |
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.FRONTEND_IMAGE }}:$IMAGE_TAG
 
-            npm run build
+  deploy:
+    name: Deploy to ECS
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'deploy')
 
-            sudo rm -rf /var/www/html/*
-            sudo cp -r dist/* /var/www/html/
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            sudo systemctl restart nginx
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
 
-            echo "✅ Done"
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set image tag
+        run: |
+          echo "IMAGE_TAG=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_ENV
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: backend-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definitions/backend-taskdef.json
+          container-name: backend
+          image: ${{ env.ECR_REGISTRY }}/${{ env.BACKEND_IMAGE }}:${{ env.IMAGE_TAG }}
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: frontend-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definitions/frontend-taskdef.json
+          container-name: frontend
+          image: ${{ env.ECR_REGISTRY }}/${{ env.FRONTEND_IMAGE }}:${{ env.IMAGE_TAG }}
+
+      - name: Deploy Backend to Amazon ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.backend-task-def.outputs.task-definition }}
+          service: backend-service
+          cluster: event-cluster
+          wait-for-minutes: 5
+
+      - name: Deploy Frontend to Amazon ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.frontend-task-def.outputs.task-definition }}
+          service: frontend-service
+          cluster: event-cluster
+          wait-for-minutes: 5
+
+  destroy:
+    name: Destroy ECS Services
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Delete ECS Services
+        run: |
+          aws ecs delete-service --cluster event-cluster --service backend-service --force
+          aws ecs delete-service --cluster event-cluster --service frontend-service --force
+
+  destroy-on-failure:
+    name: Destroy on Failure
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: failure() && github.event_name == 'push'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Delete ECS Services on Failure
+        run: |
+          aws ecs delete-service --cluster event-cluster --service backend-service --force || true
+          aws ecs delete-service --cluster event-cluster --service frontend-service --force || true
