@@ -290,6 +290,44 @@
   border-color: var(--primary-300);
 }
 
+/* Expired Ticket */
+.ticket-card.ticket-expired {
+  opacity: 0.75;
+  background: rgba(245, 245, 245, 0.95);
+}
+
+.ticket-card.ticket-expired::before {
+  background: linear-gradient(90deg, #94a3b8, #64748b);
+}
+
+.ticket-card.ticket-expired:hover {
+  transform: none;
+  box-shadow: var(--shadow-xl);
+}
+
+.ticket-expired-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: linear-gradient(135deg, #64748b, #475569);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 8px rgba(100, 116, 139, 0.4);
+}
+
+[data-theme="dark"] .ticket-card.ticket-expired {
+  background: rgba(30, 41, 59, 0.95);
+}
+
+[data-theme="dark"] .ticket-expired-badge {
+  background: linear-gradient(135deg, #475569, #334155);
+}
+
 /* Ticket Header */
 .ticket-header {
   display: flex;

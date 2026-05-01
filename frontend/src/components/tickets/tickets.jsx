@@ -141,6 +141,15 @@ const MyTickets = () => {
     return Number.isNaN(date.getTime()) ? '—' : date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const isTicketExpired = (eventDate) => {
+    if (!eventDate) return false;
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const eventDateTime = new Date(eventDate);
+    eventDateTime.setHours(0, 0, 0, 0);
+    return eventDateTime < now;
+  };
+
   if (!isAuthenticated) {
     return null; // Will redirect via useEffect
   }
@@ -200,19 +209,22 @@ const MyTickets = () => {
                 const title = ticket.eventTitle || ticket.eventName || 'Ticket Details';
                 const location = ticket.eventLocation || ticket.location || '—';
                 const isCancelling = cancellationStatus === 'loading' && ticketToCancel?._id === ticket._id;
+                const isExpired = isTicketExpired(ticket.eventDate);
 
                 return (
-                  <div key={key} className="ticket-card">
+                  <div key={key} className={`ticket-card ${isExpired ? 'ticket-expired' : ''}`}>
                     <div className="ticket-header">
                       <FaTicketAlt className="ticket-icon" />
                       <h2 title={title}>{title.length > 50 ? `${title.substring(0, 50)}...` : title}</h2>
-                      <button 
-                        className="btn-cancel"
-                        onClick={() => openCancelModal(ticket)}
-                        disabled={isCancelling}
-                      >
-                        <FaTrash /> {isCancelling ? 'Cancelling...' : 'Cancel'}
-                      </button>
+                      {!isExpired && !ticket.isCancelled && (
+                        <button 
+                          className="btn-cancel"
+                          onClick={() => openCancelModal(ticket)}
+                          disabled={isCancelling}
+                        >
+                          <FaTrash /> {isCancelling ? 'Cancelling...' : 'Cancel'}
+                        </button>
+                      )}
                     </div>
                     
                     <div className="ticket-details">
@@ -250,6 +262,13 @@ const MyTickets = () => {
                     {ticket.isCancelled && (
                       <div className="ticket-cancelled-badge">
                         Cancelled
+                      </div>
+                    )}
+                    
+                    {/* Show expired badge if event has passed */}
+                    {isExpired && !ticket.isCancelled && (
+                      <div className="ticket-expired-badge">
+                        Expired
                       </div>
                     )}
                   </div>

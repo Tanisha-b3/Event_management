@@ -4,6 +4,8 @@
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 1.5rem;
+  position: relative;
+  z-index: 1;
 }
 
 @media (min-width: 768px) {
@@ -77,6 +79,8 @@
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 2;
 }
 
 @media (min-width: 768px) {
@@ -218,6 +222,8 @@
 .settings-content {
   flex: 1;
   padding: 1.5rem;
+  position: relative;
+  z-index: 5;
 }
 
 @media (min-width: 768px) {
@@ -607,6 +613,8 @@ input:checked + .toggle-slider:before {
   border-radius: 0.75rem;
   cursor: pointer;
   transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
 }
 
 .theme-option:hover {
@@ -720,6 +728,8 @@ input:checked + .toggle-slider:before {
   padding-top: 2rem;
   border-top: 2px solid #e5e7eb;
   text-align: center;
+  position: relative;
+  z-index: 10;
 }
 
 .save-button {
@@ -734,6 +744,8 @@ input:checked + .toggle-slider:before {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  position: relative;
+  z-index: 11;
 }
 
 .save-button:hover:not(:disabled) {

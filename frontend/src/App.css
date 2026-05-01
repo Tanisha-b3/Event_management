@@ -22,6 +22,18 @@
   flex-direction: column;
 }
 
+
+/* Force text color in toastify based on theme */
+.Toastify__toast--default,
+.Toastify__toast-body {
+  color: inherit;
+}
+
+[data-theme='dark'] .Toastify__toast,
+[data-theme='dark'] .Toastify__toast-body {
+  color: #ffffff;
+}
+
 /* Loading State */
 .app-loading {
   display: flex;

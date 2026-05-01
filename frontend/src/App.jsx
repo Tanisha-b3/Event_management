@@ -422,6 +422,7 @@ const AppLayout = ({ isAuthenticated }) => {
 
 const App = () => {
   const { isAuthenticated, token } = useSelector((state) => state.auth);
+  const { mode } = useSelector((state) => state.theme);
 
   useEffect(() => {
     if (isAuthenticated && token) {
@@ -442,20 +443,28 @@ const App = () => {
         <AppLayout isAuthenticated={isAuthenticated} />
       </BrowserRouter>
       
-      {/* Toast Container with higher z-index */}
+      {/* Toast Container with higher z-index and dark mode support */}
       <ToastContainer 
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        style={{ zIndex: 999999 }}
-        toastStyle={{ zIndex: 999999 }}
-      />
+  position="top-right"
+  autoClose={5000}
+  hideProgressBar={false}
+  newestOnTop={false}
+  closeOnClick
+  rtl={false}
+  pauseOnFocusLoss
+  draggable
+  pauseOnHover
+  theme={mode === 'dark' ? 'dark' : 'light'}
+  style={{ zIndex: 999999 }}
+  toastStyle={{ 
+    borderRadius: '8px',
+    boxShadow: mode === 'dark' 
+      ? '0 4px 12px rgba(0,0,0,0.6)' 
+      : '0 4px 12px rgba(0,0,0,0.1)',
+    color: mode === 'dark' ? '#ffffff' : '#000000',
+    backgroundColor: mode === 'dark' ? '#1e1e1e' : '#ffffff',
+  }}
+/>
     </GoogleOAuthProvider>
   );
 };

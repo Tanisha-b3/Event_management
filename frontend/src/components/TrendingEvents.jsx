@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -403,6 +403,18 @@ const TrendingEvents = ({ limit = 10 }) => {
   const navigate = useNavigate();
   const { trendingEvents, loading, error } = useSelector((state) => state.events);
 
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+
+  const activeTrendingEvents = useMemo(() => {
+    return (trendingEvents || []).filter(event => {
+      if (!event.date) return false;
+      const eventDate = new Date(event.date);
+      eventDate.setHours(0, 0, 0, 0);
+      return eventDate >= now;
+    });
+  }, [trendingEvents, now]);
+
   useEffect(() => {
     dispatch(fetchTrendingEvents());
   }, [dispatch]);
@@ -453,12 +465,12 @@ const TrendingEvents = ({ limit = 10 }) => {
           <div className="te__error">Failed to load events. Please try again later.</div>
         )}
 
-        {!loading && !error && trendingEvents?.length === 0 && (
+        {!loading && !error && activeTrendingEvents?.length === 0 && (
           <div className="te__empty">No trending events yet</div>
         )}
 
-        {!loading && !error && trendingEvents?.length > 0 && (
-          trendingEvents.slice(0, limit).map((event, index) => (
+        {!loading && !error && activeTrendingEvents?.length > 0 && (
+          activeTrendingEvents.slice(0, limit).map((event, index) => (
             <TrendingCard
               key={event._id}
               event={event}

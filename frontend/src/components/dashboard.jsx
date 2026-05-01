@@ -589,9 +589,16 @@ console.log('Dashboard render - selectedEvent:', selectedEvent);
   }, [dispatch, currentPage, eventsPerPage, activeCategory, debouncedSearchTerm, locationSearchTerm, filterType, userRole, showMyEventsOnly]);
 
   const currentEvents = useMemo(() => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    
     const events = showMyEventsOnly && (userRole === 'organiser' || userRole === 'admin')
       ? (myEvents || []) : (reduxEvents || []);
-    return events.filter(e => e && (e._id || e.id)).map(event => ({
+    return events.filter(e => e && (e._id || e.id) && e.date).filter(event => {
+      const eventDate = new Date(event.date);
+      eventDate.setHours(0, 0, 0, 0);
+      return eventDate >= now;
+    }).map(event => ({
       ...event,
       id: event._id || event.id,
       attendees: event.attendees || event.ticketsSold || 0,

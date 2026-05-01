@@ -484,7 +484,16 @@ const Discover = () => {
   useEffect(() => { setCurrentPage(1); }, [debouncedSearchTerm, debouncedLocationFilter, selectedCategory, priceRange, sortBy, eventsPerPage]);
 
   const filteredEvents = useMemo(() => {
-    let filtered = [...reduxEvents];
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    
+    let filtered = [...reduxEvents].filter(event => {
+      if (!event.date) return false;
+      const eventDate = new Date(event.date);
+      eventDate.setHours(0, 0, 0, 0);
+      return eventDate >= now;
+    });
+    
     if (debouncedSearchTerm) {
       const s = debouncedSearchTerm.toLowerCase();
       filtered = filtered.filter(e =>
