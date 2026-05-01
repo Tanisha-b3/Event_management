@@ -143,10 +143,10 @@
 /* ── Section ──────────────────────────────────────────────────── */
 .te__section {
   margin-top: 30px;
-  margin: 20px;
+  margin-left: 50px;
   font-family: var(--font-sans);
   width: 100%;
-  max-width: 1500px;
+  max-width: 1600px;
   display: block;
   position: relative;
   z-index: 1;
@@ -688,11 +688,92 @@
 }
 
 /* ── Responsive ───────────────────────────────────────────────── */
+@media (max-width: 380px) {
+  .te__section {
+    margin-left: 12px;
+    margin-right: 12px;
+  }
+  
+  .te__grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+    padding: 6px;
+  }
+
+  .te__card {
+    min-width: 100%;
+    min-height: 320px;
+  }
+
+  .te__heading { 
+    font-size: 1.125rem; 
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .te__headingSubtext {
+    font-size: 0.75rem;
+  }
+
+  .te__imageWrap { 
+    height: 180px; 
+  }
+
+  .te__title {
+    font-size: 0.95rem;
+  }
+
+  .te__metaItem {
+    font-size: 0.8rem;
+  }
+
+  .te__price {
+    font-size: 1.1rem;
+  }
+
+  .te__trendBanner {
+    font-size: 0.7rem;
+    padding: 0.6rem 0.875rem;
+  }
+
+  .te__rankingNote {
+    font-size: 0.65rem;
+    flex-direction: column;
+    text-align: center;
+    padding: 0.75rem;
+  }
+}
+
+@media (min-width: 381px) and (max-width: 480px) {
+  .te__section {
+    margin-left: 16px;
+    margin-right: 16px;
+  }
+
+  .te__grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+    max-width: 100%;
+  }
+
+  .te__heading { 
+    font-size: 1.25rem; 
+  }
+
+  .te__imageWrap { 
+    height: 190px; 
+  }
+
+  .te__title {
+    font-size: 1rem;
+  }
+}
+
 @media (max-width: 640px) {
   .te__grid {
     grid-template-columns: 1fr;
     gap: var(--space-4);
-    max-width: 350px;
+    max-width: 420px;
   }
 
   .te__heading { 
@@ -717,9 +798,44 @@
   }
 }
 
-@media (min-width: 641px) and (max-width: 1024px) {
+@media (min-width: 641px) and (max-width: 768px) {
+  .te__section {
+    margin-left: 24px;
+  }
+  
+  .te__grid { 
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+  }
+  
+  .te__card {
+    min-height: 340px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
   .te__grid { 
     grid-template-columns: repeat(2, 1fr); 
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1440px) {
+  .te__grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-5);
+  }
+}
+
+@media (min-width: 1441px) {
+  .te__grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-6);
+  }
+  
+  .te__section {
+    max-width: 1800px;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
