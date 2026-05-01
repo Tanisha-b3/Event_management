@@ -933,22 +933,19 @@ console.log('Dashboard render - selectedEvent:', selectedEvent);
               animate="animate"
             >
               {/* Search + Location */}
-              <div className="search">
+              <div className="flex flex-wrap gap-4 items-center mb-4">
                 {/* Search input */}
                 <motion.div
-                  className={`search-container-k ${isSearchFocused ? 'focused' : ''}`}
+                  className={`flex items-center gap-2.5 bg-white dark:bg-slate-800 border rounded-lg px-4 h-[42px] flex-1 min-w-[240px] max-w-[360px] transition-all duration-200 ${
+                    isSearchFocused ? 'border-amber-500' : 'border-slate-200 dark:border-slate-600'
+                  }`}
                   animate={{
                     boxShadow: isSearchFocused
                       ? '0 0 0 3px rgba(245,158,11,0.18)'
                       : '0 0 0 0px rgba(245,158,11,0)',
                   }}
-                  style={{ flex: '1 1 240px', maxWidth: 360 }}
                 >
-                  <motion.span
-                    animate={{ scale: isSearchFocused ? 1.15 : 1, color: isSearchFocused ? 'var(--clr-primary)' : 'var(--clr-text-3)' }}
-                  >
-                    {/* <FiSearch className="search-icon" /> */}
-                  </motion.span>
+                 
                   <input
                     type="text"
                     placeholder="Search events…"
@@ -956,12 +953,12 @@ console.log('Dashboard render - selectedEvent:', selectedEvent);
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onFocus={() => setIsSearchFocused(true)}
                     onBlur={() => setIsSearchFocused(false)}
-                    className="search-input-kl"
+                    className="border-none bg-transparent font-sans text-sm text-slate-900 dark:text-white outline-none w-full placeholder:text-slate-400"
                   />
                   <AnimatePresence>
                     {searchTerm && (
                       <motion.button
-                        className="search-clear"
+                        className="bg-none border-none cursor-pointer text-slate-400 text-lg p-0 leading-none transition-colors hover:text-slate-600 dark:hover:text-white"
                         onClick={() => setSearchTerm('')}
                         initial={{ opacity: 0, scale: 0.7 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -976,7 +973,7 @@ console.log('Dashboard render - selectedEvent:', selectedEvent);
                 </motion.div>
 
                 {/* Location */}
-                <div style={{ flex: '1 1 220px', maxWidth: 280 }}>
+                <div className="flex-1 min-w-[220px] max-w-[280px]">
                   <Location
                     onSearch={setLocationSearchTerm}
                     placeholder="Search by city…"
