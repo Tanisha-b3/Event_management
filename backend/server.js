@@ -7,7 +7,7 @@ import path from 'path';
 import { requestLogger, errorLogger } from './middleware/requestLogger.js';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import { apiLimiter } from './middleware/rateLimiter.js';
+import { apiLimiter, notificationsLimiter } from './middleware/rateLimiter.js';
 import http from 'http';
 
 import authRoutes from './routes/auth.js';
@@ -95,7 +95,7 @@ app.use('/api/', apiLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/tickets', ticketRoutes);
-app.use('/api/notifications', notificationRoutes);
+app.use('/api/notifications', notificationsLimiter, notificationRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/favorites', favoritesRoutes);
 app.use('/api/users', userRoutes);
