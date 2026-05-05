@@ -22,6 +22,9 @@ router.get('/featured', async (req, res) => {
     
     let query = {};
     
+    // Exclude past events by default
+    query.date = { $gte: new Date() };
+    
     // Filter by category if provided
     if (category && category !== 'all') {
       query.category = category;

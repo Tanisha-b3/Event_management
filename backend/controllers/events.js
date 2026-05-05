@@ -99,7 +99,7 @@ const getEvents = async (req, res) => {
       query.location = { $regex: location.trim(), $options: 'i' };
     }
     
-    // Apply date filters
+    // Apply date filters (default: exclude past events)
     const now = new Date();
     
     if (filterType === 'upcoming') {
@@ -107,6 +107,9 @@ const getEvents = async (req, res) => {
     } else if (filterType === 'past') {
       query.date = { $lt: now };
     } else if (filterType === 'active') {
+      query.date = { $gte: now };
+    } else {
+      // Default: only show upcoming events
       query.date = { $gte: now };
     }
     
