@@ -629,6 +629,51 @@ const updateEvent = async (req, res) => {
       emitToUser(event.createdBy, 'notification:new', notification);
     }
 
+    // Notify users who have favorited events in the same category
+    const category = event.category;
+    if (category) {
+      const usersWithFavoritesInCategory = await Favorite.aggregate([
+        {
+          $lookup: {
+            from: 'events',
+            localField: 'event',
+            foreignField: '_id',
+            as: 'eventData'
+          }
+        },
+        { $unwind: '$eventData' },
+        { $match: { 'eventData.category': category } },
+        {
+          $group: {
+            _id: '$user'
+          }
+        }
+      ]);
+
+      const organizerUserId = event.createdBy?.toString();
+      const userIdsToNotify = usersWithFavoritesInCategory
+        .map(f => f._id.toString())
+        .filter(id => id !== organizerUserId);
+
+      const uniqueUserIds = [...new Set(userIdsToNotify)];
+
+      for (const userId of uniqueUserIds.slice(0, 50)) {
+        try {
+          const notification = new Notification({
+            userId: new mongoose.Types.ObjectId(userId),
+            type: 'new_event',
+            title: 'New Event Available! 🎉',
+            message: `A new "${category}" event "${event.title}" is now live. Get your tickets!`,
+            data: { eventId: event._id, link: `/event/${event._id}` }
+          });
+          await notification.save();
+          emitToUser(userId, 'notification:new', notification);
+        } catch (emitErr) {
+          console.error('Failed to emit notification to user:', userId);
+        }
+      }
+    }
+
     res.json({
       success: true,
       message: 'Event approved successfully',
