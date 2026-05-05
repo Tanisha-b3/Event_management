@@ -22,6 +22,8 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { faHeart as faHeartRegular } from '@fortawesome/free-regular-svg-icons';
 import { fetchEvents } from '../store/slices/eventSlice';
+
+const BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:5000';
 import { addFavorite } from '../store/slices/favoritesSlice';
 import { addToCartAsync } from '../store/slices/cartSlice';
 import useAuth from '../store/hooks/useAuth';
@@ -367,7 +369,7 @@ const SwipeCards = () => {
         price: card.ticketPrice || 0,
         quantity: 1,
         eventDate: card.date instanceof Date ? card.date.toISOString() : new Date(card.date).toISOString(),
-        eventImage: card.image || card.imageName ? `http://localhost:5000/uploads/events/${card.imageName || card.image}` : null,
+        eventImage: card.image || card.imageName ? `${BASE_URL}/uploads/events/${card.imageName || card.image}` : null,
         eventLocation: card.location,
       })).unwrap();
 

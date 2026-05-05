@@ -53,14 +53,15 @@ const getImageUrl = (event) => {
       return img;
     }
 
+    const BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:5000';
     // Path like 'uploads/events/filename.jpg'
     if (img.includes('uploads')) {
-      return `http://localhost:5000/${img}`;
+      return `${BASE_URL}/${img}`;
     }
 
     // Just filename
     if (img.includes('.')) {
-      return `http://localhost:5000/uploads/events/${img}`;
+      return `${BASE_URL}/uploads/events/${img}`;
     }
   }
 
