@@ -1,7 +1,7 @@
-require('dotenv').config();
-const mongoose = require('mongoose');
-const User = require('../models/User');
-const Event = require('../models/Events');
+import 'dotenv/config';
+import mongoose from 'mongoose';
+import User from '../models/User.js';
+import Event from '../models/Events.js';
 
 const MONGO_URI = process.env.MONGO_URI;
 
@@ -628,6 +628,531 @@ const seedEvents = [
     ticketTypes: [
       { name: 'Entry', price: 55, quantity: 400, available: 400 }
     ]
+  },
+  {
+    title: 'Startup Pitch Night',
+    description: 'Watch emerging startups pitch to top VCs and angel investors.',
+    date: daysFromNow(3),
+    location: 'San Francisco, CA',
+    category: 'Business',
+    capacity: 200,
+    ticketPrice: 25,
+    status: 'active',
+    organizer: 'SF Founders',
+    image: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd',
+    time: '6:00 PM - 9:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'General Admission', price: 25, quantity: 200, available: 200 }
+    ]
+  },
+  {
+    title: 'Indie Film Festival',
+    description: 'Three-day showcase of independent films from emerging filmmakers.',
+    date: daysFromNow(31),
+    location: 'Austin, TX',
+    category: 'Entertainment',
+    capacity: 350,
+    ticketPrice: 60,
+    status: 'upcoming',
+    organizer: 'Austin Indie Films',
+    image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba',
+    time: '10:00 AM - 11:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Day Pass', price: 35, quantity: 150, available: 150 },
+      { name: 'Festival Pass', price: 60, quantity: 200, available: 200 }
+    ]
+  },
+  {
+    title: 'Photography Masterclass',
+    description: 'Learn professional photography techniques from award-winning photographers.',
+    date: daysFromNow(13),
+    location: 'New York, NY',
+    category: 'Education',
+    capacity: 40,
+    ticketPrice: 199,
+    status: 'active',
+    organizer: 'Photo Academy',
+    image: 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e',
+    time: '10:00 AM - 4:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Masterclass', price: 199, quantity: 40, available: 40 }
+    ]
+  },
+  {
+    title: 'Wine & Cheese Tasting',
+    description: 'Premium wine pairing with artisanal cheeses from local producers.',
+    date: daysFromNow(6),
+    location: 'Napa Valley, CA',
+    category: 'Food',
+    capacity: 60,
+    ticketPrice: 85,
+    status: 'active',
+    organizer: 'Napa Valley Wines',
+    image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3',
+    time: '2:00 PM - 5:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Tasting Pass', price: 85, quantity: 60, available: 60 }
+    ]
+  },
+  {
+    title: 'Dog Show Championship',
+    description: 'Annual purebred dog show with competitions and demonstrations.',
+    date: daysFromNow(36),
+    location: 'Orlando, FL',
+    category: 'Sports',
+    capacity: 800,
+    ticketPrice: 30,
+    status: 'upcoming',
+    organizer: 'AKC Florida',
+    image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb',
+    time: '9:00 AM - 6:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'General Admission', price: 30, quantity: 800, available: 800 }
+    ]
+  },
+  {
+    title: 'VR Gaming Expo',
+    description: 'Experience the latest in virtual reality gaming and technology.',
+    date: daysFromNow(27),
+    location: 'Los Angeles, CA',
+    category: 'Gaming',
+    capacity: 600,
+    ticketPrice: 45,
+    status: 'active',
+    organizer: 'VR Events Inc',
+    image: 'https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac',
+    time: '11:00 AM - 8:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Expo Pass', price: 45, quantity: 600, available: 600 }
+    ]
+  },
+  {
+    title: 'Fashion Week Preview',
+    description: 'Exclusive runway show featuring emerging designers and trends.',
+    date: daysFromNow(41),
+    location: 'Miami, FL',
+    category: 'Art',
+    capacity: 250,
+    ticketPrice: 150,
+    status: 'upcoming',
+    organizer: 'Miami Fashion Week',
+    image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae',
+    time: '7:00 PM - 11:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Runway Show', price: 150, quantity: 250, available: 250 }
+    ]
+  },
+  {
+    title: 'Sustainability Conference',
+    description: 'Learn about green initiatives, renewable energy, and eco-friendly practices.',
+    date: daysFromNow(34),
+    location: 'Denver, CO',
+    category: 'Conference',
+    capacity: 400,
+    ticketPrice: 175,
+    status: 'upcoming',
+    organizer: 'Green Future Org',
+    image: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e',
+    time: '9:00 AM - 5:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Conference Pass', price: 175, quantity: 400, available: 400 }
+    ]
+  },
+  {
+    title: 'Latin Dance Night',
+    description: 'Salsa, bachata, and merengue dancing with live DJ and lessons.',
+    date: daysFromNow(4),
+    location: 'Los Angeles, CA',
+    category: 'Music',
+    capacity: 300,
+    ticketPrice: 20,
+    status: 'active',
+    organizer: 'LA Dance Crew',
+    image: 'https://images.unsplash.com/photo-1504609813442-a8924e83f76e',
+    time: '9:00 PM - 2:00 AM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Entry', price: 20, quantity: 300, available: 300 }
+    ]
+  },
+  {
+    title: 'Robot Competition',
+    description: 'Watch student-built robots compete in exciting challenges.',
+    date: daysFromNow(48),
+    location: 'Boston, MA',
+    category: 'Technology',
+    capacity: 500,
+    ticketPrice: 25,
+    status: 'upcoming',
+    organizer: 'RoboLeague',
+    image: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e',
+    time: '10:00 AM - 6:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Spectator', price: 25, quantity: 500, available: 500 }
+    ]
+  },
+  {
+    title: 'Open Mic Comedy',
+    description: 'Laugh with up-and-coming comedians at this weekly open mic.',
+    date: daysFromNow(2),
+    location: 'Chicago, IL',
+    category: 'Entertainment',
+    capacity: 150,
+    ticketPrice: 15,
+    status: 'active',
+    organizer: 'Windy City Comedy',
+    image: 'https://images.unsplash.com/photo-1527224857830-43a7acc85260',
+    time: '8:00 PM - 11:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Entry', price: 15, quantity: 150, available: 150 }
+    ]
+  },
+  {
+    title: 'Farmers Market Festival',
+    description: 'Fresh local produce, crafts, and family activities every weekend.',
+    date: daysFromNow(8),
+    location: 'Seattle, WA',
+    category: 'Food',
+    capacity: 1000,
+    ticketPrice: 0,
+    status: 'active',
+    organizer: 'Seattle Markets',
+    image: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9',
+    time: '9:00 AM - 3:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Free Entry', price: 0, quantity: 1000, available: 1000 }
+    ]
+  },
+  {
+    title: 'Tech Job Fair',
+    description: 'Connect with top tech companies hiring for open positions.',
+    date: daysFromNow(37),
+    location: 'San Jose, CA',
+    category: 'Business',
+    capacity: 800,
+    ticketPrice: 0,
+    status: 'upcoming',
+    organizer: 'Tech Careers Hub',
+    image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87',
+    time: '10:00 AM - 4:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Free Admission', price: 0, quantity: 800, available: 800 }
+    ]
+  },
+  {
+    title: 'Kayaking Adventure',
+    description: 'Guided kayaking tour through scenic waterways and nature reserves.',
+    date: daysFromNow(12),
+    location: 'Miami, FL',
+    category: 'Sports',
+    capacity: 30,
+    ticketPrice: 65,
+    status: 'active',
+    organizer: 'Miami Outdoor Adventures',
+    image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5',
+    time: '8:00 AM - 12:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Tour', price: 65, quantity: 30, available: 30 }
+    ]
+  },
+  {
+    title: 'Board Game Marathon',
+    description: '24-hour board game marathon with tournaments and prizes.',
+    date: daysFromNow(44),
+    location: 'Columbus, OH',
+    category: 'Gaming',
+    capacity: 200,
+    ticketPrice: 20,
+    status: 'upcoming',
+    organizer: 'Board Game Geeks',
+    image: 'https://images.unsplash.com/photo-1610890716271-e2fe045a6003',
+    time: '12:00 PM - 12:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Marathon Pass', price: 20, quantity: 200, available: 200 }
+    ]
+  },
+  {
+    title: 'Pottery Workshop',
+    description: 'Hands-on pottery making with professional ceramic artists.',
+    date: daysFromNow(9),
+    location: 'Portland, OR',
+    category: 'Art',
+    capacity: 20,
+    ticketPrice: 75,
+    status: 'active',
+    organizer: 'Portland Arts Studio',
+    image: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261',
+    time: '2:00 PM - 5:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Workshop', price: 75, quantity: 20, available: 20 }
+    ]
+  },
+  {
+    title: 'Meditation Retreat',
+    description: 'Peaceful meditation weekend with guided sessions and nature walks.',
+    date: daysFromNow(52),
+    location: 'Asheville, NC',
+    category: 'Health',
+    capacity: 40,
+    ticketPrice: 250,
+    status: 'upcoming',
+    organizer: 'Zen Retreats',
+    image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773',
+    time: '8:00 AM - 5:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Retreat Pass', price: 250, quantity: 40, available: 40 }
+    ]
+  },
+  {
+    title: 'Science Fair 2026',
+    description: 'Student projects showcasing innovative science and technology.',
+    date: daysFromNow(39),
+    location: 'Washington, DC',
+    category: 'Education',
+    capacity: 600,
+    ticketPrice: 10,
+    status: 'upcoming',
+    organizer: 'Science Foundation',
+    image: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d',
+    time: '9:00 AM - 6:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'General Admission', price: 10, quantity: 600, available: 600 }
+    ]
+  },
+  {
+    title: 'Racing Championship',
+    description: 'Professional auto racing with high-speed action and entertainment.',
+    date: daysFromNow(53),
+    location: 'Las Vegas, NV',
+    category: 'Sports',
+    capacity: 5000,
+    ticketPrice: 100,
+    status: 'upcoming',
+    organizer: 'Vegas Racing League',
+    image: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7',
+    time: '12:00 PM - 6:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'General Admission', price: 100, quantity: 4000, available: 4000 },
+      { name: 'Pit Pass', price: 200, quantity: 1000, available: 1000 }
+    ]
+  },
+  {
+    title: 'Live Podcast Recording',
+    description: 'Watch your favorite podcast recorded live with audience interaction.',
+    date: daysFromNow(5),
+    location: 'Brooklyn, NY',
+    category: 'Entertainment',
+    capacity: 200,
+    ticketPrice: 30,
+    status: 'active',
+    organizer: 'Podcast Live NYC',
+    image: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618',
+    time: '7:00 PM - 10:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Live Recording', price: 30, quantity: 200, available: 200 }
+    ]
+  },
+  {
+    title: 'Craft Beer Festival',
+    description: 'Sample over 100 craft beers from local and international breweries.',
+    date: daysFromNow(21),
+    location: 'Denver, CO',
+    category: 'Food',
+    capacity: 700,
+    ticketPrice: 50,
+    status: 'active',
+    organizer: 'Denver Beer Fest',
+    image: 'https://images.unsplash.com/photo-1571613316887-6f8d5cbf7ef7',
+    time: '2:00 PM - 8:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Tasting Pass', price: 50, quantity: 700, available: 700 }
+    ]
+  },
+  {
+    title: 'Mountain Climbing Workshop',
+    description: 'Learn essential climbing skills from expert mountaineers.',
+    date: daysFromNow(46),
+    location: 'Boulder, CO',
+    category: 'Sports',
+    capacity: 25,
+    ticketPrice: 180,
+    status: 'upcoming',
+    organizer: 'Rocky Mountain Climbers',
+    image: 'https://images.unsplash.com/photo-1522163182402-834f871fd851',
+    time: '6:00 AM - 6:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Workshop', price: 180, quantity: 25, available: 25 }
+    ]
+  },
+  {
+    title: 'Anime Convention',
+    description: 'Meet voice actors, cosplay contest, and exclusive merch.',
+    date: daysFromNow(57),
+    location: 'Atlanta, GA',
+    category: 'Entertainment',
+    capacity: 3000,
+    ticketPrice: 45,
+    status: 'upcoming',
+    organizer: 'AnimeFest Southeast',
+    image: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f',
+    time: '10:00 AM - 9:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Day Pass', price: 45, quantity: 2000, available: 2000 },
+      { name: 'Weekend Pass', price: 80, quantity: 1000, available: 1000 }
+    ]
+  },
+  {
+    title: 'Jazz Brunch Live',
+    description: 'Smooth jazz with gourmet brunch in an elegant setting.',
+    date: daysFromNow(7),
+    location: 'New Orleans, LA',
+    category: 'Music',
+    capacity: 120,
+    ticketPrice: 55,
+    status: 'active',
+    organizer: 'NOLA Jazz Club',
+    image: 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f',
+    time: '11:00 AM - 2:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Brunch + Show', price: 55, quantity: 120, available: 120 }
+    ]
+  },
+  {
+    title: 'Digital Marketing Workshop',
+    description: 'Master SEO, social media, and content marketing strategies.',
+    date: daysFromNow(14),
+    location: 'Austin, TX',
+    category: 'Education',
+    capacity: 50,
+    ticketPrice: 125,
+    status: 'active',
+    organizer: 'Digital Pro Academy',
+    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f',
+    time: '9:00 AM - 4:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Workshop Pass', price: 125, quantity: 50, available: 50 }
+    ]
+  },
+  {
+    title: 'Drone Racing League',
+    description: 'High-speed drone races with First Person View streaming.',
+    date: daysFromNow(26),
+    location: 'Dallas, TX',
+    category: 'Gaming',
+    capacity: 400,
+    ticketPrice: 35,
+    status: 'active',
+    organizer: 'Drone Sports League',
+    image: 'https://images.unsplash.com/photo-1506947411487-a56738267384',
+    time: '2:00 PM - 9:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Spectator Pass', price: 35, quantity: 400, available: 400 }
+    ]
+  },
+  {
+    title: 'Silent Disco Party',
+    description: 'Dance to three DJs simultaneously with wireless headphones.',
+    date: daysFromNow(4),
+    location: 'San Diego, CA',
+    category: 'Music',
+    capacity: 500,
+    ticketPrice: 25,
+    status: 'active',
+    organizer: 'SD Party Crew',
+    image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745',
+    time: '9:00 PM - 2:00 AM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Entry', price: 25, quantity: 500, available: 500 }
+    ]
+  },
+  {
+    title: 'Sustainable Fashion Show',
+    description: 'Eco-friendly clothing designs from sustainable brands.',
+    date: daysFromNow(33),
+    location: 'San Francisco, CA',
+    category: 'Art',
+    capacity: 250,
+    ticketPrice: 40,
+    status: 'upcoming',
+    organizer: 'Green Fashion Week',
+    image: 'https://images.unsplash.com/photo-1558171813-4c088753af8f',
+    time: '6:00 PM - 9:00 PM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Show Entry', price: 40, quantity: 250, available: 250 }
+    ]
+  },
+  {
+    title: 'Night Sky Telescope Viewing',
+    description: 'Guided stargazing with professional telescopes and astronomers.',
+    date: daysFromNow(10),
+    location: 'Sedona, AZ',
+    category: 'Education',
+    capacity: 40,
+    ticketPrice: 45,
+    status: 'active',
+    organizer: 'Desert Astronomy Club',
+    image: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a',
+    time: '9:00 PM - 12:00 AM',
+    imageName: '',
+    views: Math.floor(Math.random() * 1000),
+    ticketTypes: [
+      { name: 'Stargazing Pass', price: 45, quantity: 40, available: 40 }
+    ]
   }
 ];
 
@@ -652,15 +1177,13 @@ const run = async () => {
       }
     }
 
-    // Create events
+    // Clear and create events fresh
+    await Event.deleteMany({});
+    console.log('Cleared all events');
+    
     for (const eventData of seedEvents) {
-      const existingEvent = await Event.findOne({ title: eventData.title });
-      if (!existingEvent) {
-        const createdEvent = await Event.create(eventData);
-        console.log(`Created event ${createdEvent.title} on ${createdEvent.date.toISOString()}`);
-      } else {
-        console.log(`Event already exists: ${eventData.title}`);
-      }
+      const createdEvent = await Event.create(eventData);
+      console.log(`Created event ${createdEvent.title} on ${createdEvent.date.toISOString()}`);
     }
 
     console.log('Seeding completed successfully!');

@@ -15,17 +15,20 @@ const BookTicket = () => {
   const fromCart = location.state?.fromCart || false;
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  
+
   const { bookingStatus, error } = useSelector((state) => state.tickets);
   const { user, isAuthenticated } = useSelector((state) => state.auth);
-  
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    selectedTickets: []
+    selectedTickets: [],
+    cardNumber: '',
+    expiry: '',
+    cvv: ''
   });
-  
+
   const [isSuccess, setIsSuccess] = useState(false);
   const [bookingId, setBookingId] = useState('');
   const [errors, setErrors] = useState({});
@@ -34,49 +37,32 @@ const BookTicket = () => {
   const [processingBooking, setProcessingBooking] = useState(false);
   const [bookedEvents, setBookedEvents] = useState([]);
 
-  // Helper function to normalize event data (fix duplicate/nested structure)
+  // Normalize event data (handle nested/duplicate structure)
   const normalizeEventData = (eventData) => {
-
-    // console.log('Normalizing event data:', eventData);
     if (!eventData) return null;
-    
-    // If event has nested structure, extract the proper data
-    const normalized = {};
-    
-    // Get the innermost event data if it's nested
+
     let sourceData = eventData;
-    while (sourceData._id && sourceData._id !== sourceData.id && sourceData.id !== sourceData._id) {
-      if (sourceData.event) {
-        sourceData = sourceData.event;
-      } else if (sourceData.data) {
-        sourceData = sourceData.data;
-      } else {
-        break;
-      }
+    while (sourceData.event || sourceData.data) {
+      if (sourceData.event) sourceData = sourceData.event;
+      else if (sourceData.data) sourceData = sourceData.data;
+      else break;
     }
-    
-    // Extract properties from source
-    normalized._id = sourceData._id || sourceData.id;
-    normalized.id = sourceData.id || sourceData._id;
-    normalized.title = sourceData.title || '';
-    normalized.location = sourceData.location || '';
-    normalized.category = sourceData.category || '';
-    normalized.capacity = sourceData.capacity || 0;
-    normalized.imageName = sourceData.imageName || '';
-    normalized.imageName =  sourceData.imageName || '';
-    normalized.image = sourceData.image || '';
-    normalized.tickets = sourceData.tickets || [];
-    
-    // Handle date properly
-    if (sourceData.date) {
-      normalized.date = sourceData.date;
-      normalized.formattedDate = new Date(sourceData.date).toLocaleDateString();
-    } else {
-      normalized.date = null;
-      normalized.formattedDate = 'Date TBD';
-    }
-    
-    return normalized;
+
+    return {
+      _id: sourceData._id || sourceData.id,
+      id: sourceData.id || sourceData._id,
+      title: sourceData.title || '',
+      location: sourceData.location || '',
+      category: sourceData.category || '',
+      capacity: sourceData.capacity || 0,
+      imageName: sourceData.imageName || '',
+      image: sourceData.image || '',
+      tickets: sourceData.tickets || [],
+      date: sourceData.date || null,
+      formattedDate: sourceData.date
+        ? new Date(sourceData.date).toLocaleDateString()
+        : 'Date TBD',
+    };
   };
 
   // Pre-fill user data if logged in
@@ -86,12 +72,12 @@ const BookTicket = () => {
         ...prev,
         name: user.name || prev.name,
         email: user.email || prev.email,
-        phone: user.phone || prev.phone
+        phone: user.phone || prev.phone,
       }));
     }
   }, [user]);
 
-  // Handle errors
+  // Handle redux booking errors
   useEffect(() => {
     if (error) {
       toast.error(error);
@@ -101,65 +87,75 @@ const BookTicket = () => {
     }
   }, [error, dispatch]);
 
-  // Initialize tickets from cart items or event prop
+  // Initialize tickets from cart or event prop
   useEffect(() => {
     if (fromCart && cartItems && cartItems.length > 0) {
       const groupedByEvent = cartItems.reduce((acc, item) => {
-        console.log('Processing cart item:', item);
-        if (!acc[item.eventId]) {
-          acc[item.eventId] = {
+        const eventId = item.eventId?._id || item.eventId || item.event?._id || item.id;
+        const eventTitle = item.eventName || item.event?.title;
+
+        if (!acc[eventId]) {
+          acc[eventId] = {
             event: {
-              _id: item.eventId,
-              id: item.eventId,
-              title: item.eventName,
-              date: item.eventDate,
-              location: item.eventLocation,
-              image: item.eventImage,
-              tickets: []
+              _id: eventId,
+              id: eventId,
+              title: eventTitle,
+              date: item.eventDate || item.event?.date,
+              location: item.eventLocation || item.event?.location,
+              image: item.eventImage || item.event?.imageName,
+              tickets: [],
             },
-            items: []
+            items: [],
           };
         }
-        acc[item.eventId].items.push(item);
-        acc[item.eventId].event.tickets.push({
+        acc[eventId].items.push(item);
+        acc[eventId].event.tickets.push({
           type: item.ticketType,
           price: item.price,
           quantity: item.availableQuantity || 100,
-          originalQuantity: item.quantity
+          originalQuantity: item.quantity,
+          eventTitle,
+          eventDate: item.eventDate || item.event?.date,
+          eventLocation: item.eventLocation || item.event?.location,
         });
         return acc;
       }, {});
-      
+
       const eventsList = Object.values(groupedByEvent);
       if (eventsList.length > 0) {
-        const firstEvent = eventsList[0];
-        const selectedTickets = firstEvent.event.tickets.map(ticket => {
-          const cartItem = firstEvent.items.find(item => item.ticketType === ticket.type);
-          return {
-            type: ticket.type,
-            price: ticket.price,
-            quantity: cartItem ? cartItem.quantity : 0,
-            maxQuantity: ticket.quantity
-          };
-        });
-        
-        setFormData(prev => ({
-          ...prev,
-          selectedTickets
-        }));
         setAllBookings(eventsList);
+
+        const allTickets = [];
+        eventsList.forEach((booking) => {
+          booking.event.tickets.forEach((ticket) => {
+            const cartItem = booking.items.find(item => item.ticketType === ticket.type);
+            allTickets.push({
+              type: ticket.type,
+              price: ticket.price,
+              quantity: cartItem ? cartItem.quantity : ticket.originalQuantity || 0,
+              maxQuantity: ticket.quantity,
+              eventId: booking.event._id,
+              cartItemId: cartItem?._id || cartItem?.id,
+              eventTitle: ticket.eventTitle || booking.event.title,
+              eventDate: ticket.eventDate || booking.event.date,
+              eventLocation: ticket.eventLocation || booking.event.location,
+            });
+          });
+        });
+
+        setFormData(prev => ({ ...prev, selectedTickets: allTickets }));
       }
     } else if (event) {
       const normalizedEvent = normalizeEventData(event);
-      if (normalizedEvent && normalizedEvent.tickets) {
+      if (normalizedEvent?.tickets) {
         setFormData(prev => ({
           ...prev,
           selectedTickets: normalizedEvent.tickets.map(ticket => ({
             type: ticket.type,
             price: ticket.price,
             quantity: 0,
-            maxQuantity: ticket.quantity
-          }))
+            maxQuantity: ticket.quantity,
+          })),
         }));
       }
     }
@@ -168,159 +164,172 @@ const BookTicket = () => {
   const handleTicketChange = (index, value) => {
     const quantity = parseInt(value) || 0;
     const maxQuantity = formData.selectedTickets[index]?.maxQuantity;
-    
-    if (quantity <= maxQuantity && quantity >= 0) {
-      const updatedTickets = [...formData.selectedTickets];
-      updatedTickets[index].quantity = quantity;
-      setFormData({ ...formData, selectedTickets: updatedTickets });
-      
-      if (errors.tickets) {
-        const newErrors = { ...errors };
-        delete newErrors.tickets;
-        setErrors(newErrors);
-      }
+
+    if (quantity < 0 || quantity > maxQuantity) return;
+
+    const updatedTickets = [...formData.selectedTickets];
+    updatedTickets[index] = { ...updatedTickets[index], quantity };
+    setFormData(prev => ({ ...prev, selectedTickets: updatedTickets }));
+
+    if (fromCart && allBookings.length > 0) {
+      const ticket = updatedTickets[index];
+      const updatedBookings = allBookings.map(booking => {
+        if (booking.event._id !== ticket.eventId && booking.event.id !== ticket.eventId) return booking;
+        return {
+          ...booking,
+          event: {
+            ...booking.event,
+            tickets: booking.event.tickets.map(t =>
+              t.type === ticket.type ? { ...t, originalQuantity: quantity } : t
+            ),
+          },
+          items: booking.items.map(item =>
+            item.ticketType === ticket.type ? { ...item, quantity } : item
+          ),
+        };
+      });
+      setAllBookings(updatedBookings);
+    }
+
+    if (errors.tickets) {
+      setErrors(prev => { const e = { ...prev }; delete e.tickets; return e; });
     }
   };
 
-  const calculateTotal = () => {
-    return formData.selectedTickets.reduce(
-      (sum, ticket) => sum + (ticket.price * ticket.quantity), 0
-    ).toFixed(2);
-  };
+  const calculateTotal = () =>
+    formData.selectedTickets
+      .reduce((sum, t) => sum + t.price * t.quantity, 0)
+      .toFixed(2);
 
-  const calculateTotalTickets = () => {
-    return formData.selectedTickets.reduce(
-      (sum, ticket) => sum + ticket.quantity, 0
-    );
-  };
+  const calculateTotalTickets = () =>
+    formData.selectedTickets.reduce((sum, t) => sum + t.quantity, 0);
 
+  // ── Validation ──────────────────────────────────────────────────────────────
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.name.trim()) {
       newErrors.name = 'Full name is required';
     } else if (formData.name.length < 3) {
       newErrors.name = 'Name must be at least 3 characters';
     }
-    
+
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
     }
-    
+
+    // Single, unified phone validation
     if (!formData.phone?.trim()) {
       newErrors.phone = 'Phone number is required';
-    } else if (!/^[\d\s+()-]{10,}$/.test(formData.phone)) {
-      newErrors.phone = 'Please enter a valid phone number';
+    } else if (!/^\d{10}$/.test(formData.phone)) {
+      newErrors.phone = 'Phone number must be exactly 10 digits';
     }
 
-   else if (!/^\d{10}$/.test(formData.phone)) {
-  newErrors.phone = 'Phone number must be exactly 10 digits';
-}
-    
-    const totalTickets = calculateTotalTickets();
-    if (totalTickets === 0) {
+    if (calculateTotalTickets() === 0) {
       newErrors.tickets = 'Please select at least one ticket';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  // ── Submit ──────────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-    
+
+    if (!validateForm()) return;
+
     if (!isAuthenticated) {
       toast.warning('Please login to complete your booking');
       navigate('/login', { state: { from: location.pathname, formData, cartItems, fromCart } });
       return;
     }
-    
+
     const selectedTickets = formData.selectedTickets.filter(t => t.quantity > 0);
     if (selectedTickets.length === 0) {
       setErrors({ tickets: 'Please select at least one ticket' });
       return;
     }
-    
+
     setProcessingBooking(true);
-    
+
     try {
-      if (fromCart && allBookings.length > 0) {
+      if (fromCart) {
+        // ── Cart flow ──────────────────────────────────────────────────────
+        const ticketsByEvent = selectedTickets.reduce((acc, ticket) => {
+          if (!acc[ticket.eventId]) {
+            acc[ticket.eventId] = {
+              eventName: ticket.eventTitle,
+              eventDate: ticket.eventDate,
+              eventLocation: ticket.eventLocation,
+              tickets: [],
+            };
+          }
+          acc[ticket.eventId].tickets.push(ticket);
+          return acc;
+        }, {});
+
         const allTicketPromises = [];
         const bookedEventsList = [];
         const cartItemIdsToRemove = [];
-        
-        for (const booking of allBookings) {
+
+        for (const [eventId, eventData] of Object.entries(ticketsByEvent)) {
           const eventBookings = [];
-          
-          for (const ticket of booking.event.tickets) {
-            const cartItem = booking.items.find(item => item.ticketType === ticket.type);
-            const quantity = cartItem?.quantity || 0;
-            if (quantity > 0) {
+
+          for (const ticket of eventData.tickets) {
+            if (ticket.quantity > 0) {
               const ticketData = {
-                eventId: booking.event._id,
-                eventName: booking.event.title,
-                eventDate: booking.event.date,
-                eventLocation: booking.event.location,
+                eventId,
+                eventName: eventData.eventName,
+                eventDate: eventData.eventDate,
+                eventLocation: eventData.eventLocation,
                 ticketType: ticket.type,
-                quantity: quantity,
+                quantity: ticket.quantity,
                 price: ticket.price,
               };
-              const promise = dispatch(bookTicket(ticketData)).unwrap();
-              allTicketPromises.push(promise);
-              eventBookings.push({ ticketType: ticket.type, quantity, price: ticket.price });
-              
-              const cartItemFound = booking.items.find(item => item.ticketType === ticket.type);
-              if (cartItemFound) {
-                cartItemIdsToRemove.push(cartItemFound.id);
-              }
+              allTicketPromises.push(dispatch(bookTicket(ticketData)).unwrap());
+              eventBookings.push({ ticketType: ticket.type, quantity: ticket.quantity, price: ticket.price });
+
+              // Collect cart item IDs to remove
+              if (ticket.cartItemId) cartItemIdsToRemove.push(ticket.cartItemId);
             }
           }
-          
+
           if (eventBookings.length > 0) {
-            bookedEventsList.push({
-              eventName: booking.event.title,
-              bookings: eventBookings
-            });
+            bookedEventsList.push({ eventName: eventData.eventName, bookings: eventBookings });
           }
         }
-        
+
         if (allTicketPromises.length > 0) {
           const results = await Promise.all(allTicketPromises);
-          const allBookingIds = results.map(r => r.ticket?.bookingId).filter(id => id).join(', ');
+          const allBookingIds = results.map(r => r.ticket?.bookingId).filter(Boolean).join(', ');
           setBookingId(allBookingIds);
           setBookedEvents(bookedEventsList);
           setIsSuccess(true);
-          
+
           if (cartItemIdsToRemove.length > 0) {
             dispatch(removeBookedItems(cartItemIdsToRemove));
           } else {
             dispatch(clearCartLocal());
           }
-          
-          try {
-            await apiClient.delete('/cart/clear');
-          } catch (e) {
-            console.log('Cart already cleared on server');
-          }
-          
+
+          try { await apiClient.delete('/cart/clear'); } catch (_) {}
+
           dispatch(fetchCart({ page: 1, limit: 10 }));
           toast.success(`${allTicketPromises.length} ticket(s) booked successfully!`);
         } else {
           toast.error('No tickets selected for booking');
           setProcessingBooking(false);
         }
-        
+
       } else if (event) {
+        // ── Single-event flow ──────────────────────────────────────────────
         const normalizedEvent = normalizeEventData(event);
         const bookingPromises = [];
         const eventBookings = [];
-        
+
         for (const ticket of selectedTickets) {
           const ticketData = {
             eventId: normalizedEvent._id || normalizedEvent.id,
@@ -331,14 +340,13 @@ const BookTicket = () => {
             quantity: ticket.quantity,
             price: ticket.price,
           };
-          
           bookingPromises.push(dispatch(bookTicket(ticketData)).unwrap());
           eventBookings.push({ ticketType: ticket.type, quantity: ticket.quantity, price: ticket.price });
         }
-        
+
         if (bookingPromises.length > 0) {
           const results = await Promise.all(bookingPromises);
-          const allBookingIds = results.map(r => r.ticket?.bookingId).filter(id => id).join(', ');
+          const allBookingIds = results.map(r => r.ticket?.bookingId).filter(Boolean).join(', ');
           setBookingId(allBookingIds);
           setBookedEvents([{ eventName: normalizedEvent.title, bookings: eventBookings }]);
           setIsSuccess(true);
@@ -349,6 +357,7 @@ const BookTicket = () => {
           toast.error('No tickets selected for booking');
           setProcessingBooking(false);
         }
+
       } else {
         toast.error('No event data found');
         setProcessingBooking(false);
@@ -360,15 +369,13 @@ const BookTicket = () => {
     }
   };
 
+  // ── Derived state ───────────────────────────────────────────────────────────
   const getCurrentEvent = () => {
-    if (fromCart && allBookings.length > 0) {
-      return allBookings[currentEventIndex].event;
-    }
+    if (fromCart && allBookings.length > 0) return allBookings[currentEventIndex].event;
     return normalizeEventData(event);
   };
 
   const currentEvent = getCurrentEvent();
-  console.log('Current Event Data:', currentEvent);
 
   if (!currentEvent && !fromCart) {
     return (
@@ -384,9 +391,10 @@ const BookTicket = () => {
     );
   }
 
+  // ── Success screen ──────────────────────────────────────────────────────────
   if (isSuccess) {
     return (
-      <div className="booking-success">
+      <div className="booking-success-k">
         <main className="success-container">
           <div className="success-card">
             <div className="success-icon-wrapper">
@@ -396,12 +404,12 @@ const BookTicket = () => {
             <p>Your tickets have been booked successfully.</p>
             <div className="booking-info">
               <p><strong>Booking ID(s):</strong> {bookingId}</p>
-              {bookedEvents.map((bookedEvent, idx) => (
+              {bookedEvents.map((be, idx) => (
                 <div key={idx} className="booked-event-details">
-                  <p><strong>Event:</strong> {bookedEvent.eventName}</p>
-                  {bookedEvent.bookings.map((booking, bidx) => (
+                  <p><strong>Event:</strong> {be.eventName}</p>
+                  {be.bookings.map((b, bidx) => (
                     <p key={bidx}>
-                      <strong>Tickets:</strong> {booking.quantity} x {booking.ticketType} @ ${booking.price}
+                      <strong>Tickets:</strong> {b.quantity} × {b.ticketType} @ ${b.price}
                     </p>
                   ))}
                 </div>
@@ -409,16 +417,10 @@ const BookTicket = () => {
               <p><strong>Total Amount:</strong> ${calculateTotal()}</p>
             </div>
             <div className="success-actions">
-              <button 
-                className="btn-primary"
-                onClick={() => navigate('/my-tickets')}
-              >
+              <button className="btn-primary" onClick={() => navigate('/my-tickets')}>
                 View My Tickets
               </button>
-              <button 
-                className="btn-secondary-k"
-                onClick={() => navigate('/dashboard')}
-              >
+              <button className="btn-secondary" onClick={() => navigate('/dashboard')}>
                 Back to Dashboard
               </button>
             </div>
@@ -428,46 +430,41 @@ const BookTicket = () => {
     );
   }
 
+  // ── Main form ───────────────────────────────────────────────────────────────
   return (
     <div className="booking-container">
       <main className="booking-main">
-        <button className="btn-back" onClick={() => navigate('/dashboard')}>
+        <button className="btn-back-k" onClick={() => navigate('/dashboard')}>
           <FaChevronLeft /> Back to Dashboard
         </button>
-        
+
         <div className="booking-header-k">
           <h1>Book Your Tickets</h1>
           <p className="booking-subtitle">
-            {fromCart && allBookings.length > 1 
-              ? `Event ${currentEventIndex + 1} of ${allBookings.length}: ${currentEvent?.title}`
-              : `Secure your spot for ${currentEvent?.title}`
-            }
+            {fromCart && allBookings.length > 0
+              ? `Booking for ${allBookings.length} event(s)`
+              : `Secure your spot for ${currentEvent?.title}`}
           </p>
         </div>
-        
+
         {errors.submit && (
-          <div className="error-message submit-error">
-            {errors.submit}
-          </div>
+          <div className="error-message submit-error">{errors.submit}</div>
         )}
-        
+
         <div className="booking-details">
           <div className="event-summary">
-            {/* <div className="event-image-k">
-              {/* <img 
-                src={currentEvent?.image ? `${import.meta.vite.env.VITE_API_URL}/images/${currentEvent.image}` : currentEvent.image} 
-                alt={currentEvent?.title || 'Event Image'} 
-              /> */}
-            {/* </div> */}
             <div className="event-info">
               <h2>{currentEvent?.title}</h2>
               <div className="event-meta">
                 <span>
-                  <FaCalendarAlt /> 
-                  {currentEvent?.formattedDate || (currentEvent?.date ? new Date(currentEvent.date).toLocaleDateString() : 'Date TBD')}
+                  <FaCalendarAlt />
+                  {currentEvent?.formattedDate ||
+                    (currentEvent?.date
+                      ? new Date(currentEvent.date).toLocaleDateString()
+                      : 'Date TBD')}
                 </span>
                 <span>
-                  <FaMapMarkerAlt /> 
+                  <FaMapMarkerAlt />
                   {currentEvent?.location || 'Location TBD'}
                 </span>
               </div>
@@ -476,16 +473,22 @@ const BookTicket = () => {
               )}
             </div>
           </div>
-          
+
           <form onSubmit={handleSubmit}>
+            {/* ── Ticket selection ── */}
             <div className="ticket-selection-section">
               <h3><FaTicketAlt /> Select Tickets</h3>
               {errors.tickets && <div className="error-message">{errors.tickets}</div>}
-              
+
               <div className="ticket-types">
                 {formData.selectedTickets?.map((ticket, index) => (
                   <div key={index} className={`ticket-option ${ticket.quantity > 0 ? 'selected' : ''}`}>
                     <div className="ticket-info">
+                      {fromCart && ticket.eventTitle && (
+                        <p className="ticket-event-name" style={{ color: '#666', fontSize: '12px', marginBottom: '4px' }}>
+                          {ticket.eventTitle}
+                        </p>
+                      )}
                       <h4>{ticket.type}</h4>
                       <p className="ticket-price">${ticket.price?.toFixed(2)}</p>
                       <p className="ticket-availability">{ticket.maxQuantity} tickets available</p>
@@ -493,14 +496,12 @@ const BookTicket = () => {
                     <div className="ticket-quantity">
                       <label>Quantity:</label>
                       <div className="quantity-controls">
-                        <button 
+                        <button
                           type="button"
                           className="quantity-btn"
                           onClick={() => handleTicketChange(index, ticket.quantity - 1)}
                           disabled={ticket.quantity === 0}
-                        >
-                          -
-                        </button>
+                        >-</button>
                         <input
                           type="number"
                           min="0"
@@ -508,39 +509,36 @@ const BookTicket = () => {
                           value={ticket.quantity || 0}
                           onChange={(e) => handleTicketChange(index, e.target.value)}
                         />
-                        <button 
+                        <button
                           type="button"
                           className="quantity-btn"
                           onClick={() => handleTicketChange(index, ticket.quantity + 1)}
-                          disabled={ticket.quantity === ticket.maxQuantity}
-                        >
-                          +
-                        </button>
+                          disabled={ticket.quantity >= ticket.maxQuantity}
+                        >+</button>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-            
+
+            {/* ── Booking summary ── */}
             <div className="booking-summary">
               <div className="summary-details">
                 <h3>Booking Summary</h3>
                 <div className="summary-row">
-                  <span>Tickets:</span>
-                  <span>{calculateTotalTickets()}</span>
+                  <span>Tickets:</span><span>{calculateTotalTickets()}</span>
                 </div>
                 <div className="summary-row">
-                  <span>Subtotal:</span>
-                  <span>${calculateTotal()}</span>
+                  <span>Subtotal:</span><span>${calculateTotal()}</span>
                 </div>
                 <div className="summary-row total">
-                  <span>Total:</span>
-                  <span>${calculateTotal()}</span>
+                  <span>Total:</span><span>${calculateTotal()}</span>
                 </div>
               </div>
             </div>
-            
+
+            {/* ── Attendee info ── */}
             <div className="attendee-info-section">
               <h3><FaUser /> Attendee Information</h3>
               <div className="form-row">
@@ -549,68 +547,67 @@ const BookTicket = () => {
                   <input
                     type="text"
                     value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="Enter your full name"
                     className={errors.name ? 'error' : ''}
-                    disabled={isAuthenticated && user?.name}
+                    disabled={!!(isAuthenticated && user?.name)}
                   />
                   {errors.name && <span className="error-text">{errors.name}</span>}
                 </div>
-                
+
                 <div className="form-group">
                   <label>Email Address *</label>
                   <input
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="Enter your email"
                     className={errors.email ? 'error' : ''}
-                    disabled={isAuthenticated && user?.email}
+                    disabled={!!(isAuthenticated && user?.email)}
                   />
                   {errors.email && <span className="error-text">{errors.email}</span>}
                 </div>
-                
+
                 <div className="form-group">
                   <label>Phone Number *</label>
                   <input
-  type="tel"
-  maxLength={10}
-  pattern="[0-9]{10}"
-  value={formData.phone}
-  onChange={(e) => {
-    // Only allow digits and max 10
-    const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
-    setFormData({ ...formData, phone: val });
-  }}
-  placeholder="Enter 10-digit phone number"
-  className={errors.phone ? 'error' : ''}
-/>
-{errors.phone && <span className="error-text">{errors.phone}</span>}
+                    type="tel"
+                    maxLength={10}
+                    value={formData.phone}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+                      setFormData({ ...formData, phone: val });
+                    }}
+                    placeholder="Enter 10-digit phone number"
+                    className={errors.phone ? 'error' : ''}
+                  />
+                  {errors.phone && <span className="error-text">{errors.phone}</span>}
                 </div>
               </div>
             </div>
-            
+
+            {/* ── Payment (demo) ── */}
             <div className="payment-section">
               <h3><FaCreditCard /> Payment Information</h3>
               <div className="payment-methods">
                 <div className="payment-demo">
-                  <p>💳 Demo Mode - No actual payment will be processed</p>
-                  <p className="demo-note">This is a demonstration. In production, integrate with Stripe, PayPal, or other payment gateways.</p>
+                  <p>💳 Demo Mode — No actual payment will be processed</p>
+                  <p className="demo-note">
+                    This is a demonstration. In production, integrate with Stripe, PayPal, or other payment gateways.
+                  </p>
                 </div>
               </div>
             </div>
-            
-            <button 
-              type="submit" 
+
+            <button
+              type="submit"
               className="btn-confirm"
               disabled={bookingStatus === 'loading' || processingBooking}
             >
               {bookingStatus === 'loading' || processingBooking ? (
-                <>Processing... <span className="spinner-small"></span></>
+                <>Processing… <span className="spinner-small" /></>
               ) : (
-                fromCart && allBookings.length > 1 && currentEventIndex + 1 < allBookings.length
-                  ? `Confirm & Continue • $${calculateTotal()}`
-                  : `Confirm Booking • $${calculateTotal()}`
+                `Confirm Booking • $${calculateTotal()}`
               )}
             </button>
           </form>
