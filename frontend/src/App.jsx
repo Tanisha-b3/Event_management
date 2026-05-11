@@ -179,6 +179,14 @@ const AppLayout = ({ isAuthenticated }) => {
         {/* Public Routes */}
         <Route path="/" element={<EventLanding />} />
         <Route 
+          path="/auth" 
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          } 
+        />
+        <Route 
           path="/login" 
           element={
             <PublicRoute>
@@ -191,6 +199,14 @@ const AppLayout = ({ isAuthenticated }) => {
           element={
             <PublicRoute>
               <Register />
+            </PublicRoute>
+          } 
+        />
+        <Route 
+          path="/admin-login" 
+          element={
+            <PublicRoute>
+              <Login defaultRole="admin" />
             </PublicRoute>
           } 
         />

@@ -41,7 +41,9 @@ import { apiClient } from '../utils/api';
 import socketService from '../utils/socketService';
 import './Login.css';
 
-function Login() {
+function Login({ defaultRole = 'booker' }) {
+  const isAdminLogin = defaultRole === 'admin';
+
   // 2FA State
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [tempToken, setTempToken] = useState('');
@@ -53,6 +55,7 @@ function Login() {
   const [resendTimer, setResendTimer] = useState(0);
   const [userEmailForOtp, setUserEmailForOtp] = useState('');
   const [userPhoneForOtp, setUserPhoneForOtp] = useState('');
+  const [userRoleForOtp, setUserRoleForOtp] = useState(''); // Track user role
   
   // Change Password Dialog State
   const [changePwdOpen, setChangePwdOpen] = useState(false);
@@ -185,7 +188,7 @@ function Login() {
            formData.password.length >= 6;
   }, [formData, isValidEmail]);
 
-  // Handle login with password first, then OTP
+  // Handle login with password first, then OTP (admin bypass)
   const handleLogin = async (e) => {
     if (e) {
       e.preventDefault();
@@ -225,16 +228,42 @@ function Login() {
       });
       
       if (response.data.success) {
-        // Password is correct, now send OTP
-        setTempToken(response.data.tempToken);
-        setUserEmailForOtp(response.data.user.email);
-        setUserPhoneForOtp(response.data.user.phone || '');
+        const user = response.data.user;
+        setUserEmailForOtp(user.email);
+        setUserPhoneForOtp(user.phone || '');
+        setUserRoleForOtp(user.role || '');
         
-        // Send OTP based on user's preferred method or default to email
-        await sendOtpToUser(response.data.user.email, response.data.user.phone);
-        
-        setShowOtpInput(true);
-        toast.info(`OTP sent to your ${otpMethod}`);
+        // CHECK IF USER IS ADMIN - BYPASS OTP
+        if (user.role === 'admin' || isAdminLogin) {
+          // Admin bypasses OTP - complete login directly
+          console.log('Admin user detected - bypassing OTP');
+          
+          if (!response.data.token) {
+            setDialog({ open: true, title: 'Login Error', message: 'Token not received from server' });
+            return;
+          }
+          
+          localStorage.setItem('token', response.data.token);
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+          
+          dispatch(setToken(response.data.token));
+          dispatch(setUser(response.data.user));
+          
+          socketService.reconnectWithAuth(response.data.token);
+          socketService.emitAuthLogin(response.data.user);
+          
+          toast.success('Admin login successful!');
+          navigate('/dashboard');
+        } else {
+          // Regular user - require OTP
+          setTempToken(response.data.tempToken);
+          
+          // Send OTP based on user's preferred method or default to email
+          await sendOtpToUser(user.email, user.phone);
+          
+          setShowOtpInput(true);
+          toast.info(`OTP sent to your ${otpMethod}`);
+        }
       } else {
         setDialog({ 
           open: true, 
@@ -374,7 +403,7 @@ function Login() {
     setFormData(prev => ({ ...prev, password: '' }));
   };
 
-  // Handle demo login (bypass OTP for demo)
+  // Handle demo login
   const handleDemoLogin = async () => {
     if (isSubmittingRef.current) return;
     
@@ -404,7 +433,7 @@ function Login() {
     }
   };
 
-  // Handle Google OAuth success (bypass OTP for Google)
+  // Handle Google OAuth success
   const handleGoogleSuccess = async (credentialResponse) => {
     if (isSubmittingRef.current) return;
     
@@ -562,42 +591,46 @@ function Login() {
           <div className="login-header">
             <span className="eyebrow">
               <FiCheckCircle className="eyebrow-icon" />
-              Welcome back
+              {isAdminLogin ? 'Admin Portal' : 'Welcome back'}
             </span>
-            <h1>Sign in</h1>
-            <p className="login-subtitle">Use your account to continue to your dashboard.</p>
+            <h1>{isAdminLogin ? 'Admin Sign In' : 'Sign in'}</h1>
+            <p className="login-subtitle">{isAdminLogin ? 'Sign in to manage events and users.' : 'Use your account to continue to your dashboard.'}</p>
           </div>
 
           {/* Google Login */}
-          <div className="social-login-section">
-            <div className="social-caption">Continue with Google</div>
-            <div className={`google-login-wrapper ${isGoogleLoading ? 'loading' : ''}`}>
-              {isGoogleLoading && (
-                <div className="google-loading-overlay">
-                  <FiLoader className="spinner" />
-                </div>
-              )}
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={handleGoogleError}
-                width="100%"
-                theme="outline"
-                size="large"
-                text="signin_with"
-                shape="rectangular"
-                logo_alignment="left"
-              />
+          {!isAdminLogin && (
+            <div className="social-login-section">
+              <div className="social-caption">Continue with Google</div>
+              <div className={`google-login-wrapper ${isGoogleLoading ? 'loading' : ''}`}>
+                {isGoogleLoading && (
+                  <div className="google-loading-overlay">
+                    <FiLoader className="spinner" />
+                  </div>
+                )}
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  width="100%"
+                  theme="outline"
+                  size="large"
+                  text="signin_with"
+                  shape="rectangular"
+                  logo_alignment="left"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Divider */}
-          <div className="divider">
-            <span className="divider-line" />
-            <span className="divider-text">OR</span>
-            <span className="divider-line" />
-          </div>
+          {!isAdminLogin && (
+            <div className="divider">
+              <span className="divider-line" />
+              <span className="divider-text">OR</span>
+              <span className="divider-line" />
+            </div>
+          )}
 
-          {/* Login Form - Password First, then OTP */}
+          {/* Login Form - Password First, then OTP (Admin bypass) */}
           {!showOtpInput ? (
             <form 
               ref={formRef} 
@@ -670,25 +703,27 @@ function Login() {
               </div>
 
               {/* Forgot/Change Password Links */}
-              <div className="form-meta" style={{ display: 'flex', gap: '1.5rem', justifyContent: 'space-between', alignItems: 'center' }}>
-                <button 
-                  type="button" 
-                  className="forgot-btn" 
-                  onClick={handleForgotPassword}
-                  disabled={isSubmittingRef.current}
-                >
-                  Forgot password?
-                </button>
-                <button
-                  type="button"
-                  className="change-pwd-btn"
-                  onClick={handleOpenChangePwd}
-                  disabled={isSubmittingRef.current}
-                  style={{ color: 'var(--primary-500)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
-                >
-                  Change password
-                </button>
-              </div>
+              {!isAdminLogin && (
+                <div className="form-meta" style={{ display: 'flex', gap: '1.5rem', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <button 
+                    type="button" 
+                    className="forgot-btn" 
+                    onClick={handleForgotPassword}
+                    disabled={isSubmittingRef.current}
+                  >
+                    Forgot password?
+                  </button>
+                  <button
+                    type="button"
+                    className="change-pwd-btn"
+                    onClick={handleOpenChangePwd}
+                    disabled={isSubmittingRef.current}
+                    style={{ color: 'var(--primary-500)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+                  >
+                    Change password
+                  </button>
+                </div>
+              )}
 
               {/* Submit Button */}
               <button 
@@ -699,26 +734,30 @@ function Login() {
                 {isLoading ? (
                   <>
                     <FiLoader className="spinner" />
-                    <span>Verifying...</span>
+                    <span>{isAdminLogin ? 'Signing in...' : 'Verifying...'}</span>
                   </>
                 ) : (
                   <>
-                    <span>Continue</span>
+                    <span>{isAdminLogin ? 'Sign In' : 'Continue'}</span>
                     <FiArrowRight className="btn-icon" />
                   </>
                 )}
               </button>
 
-              {/* Demo Login Button */}
-            
-
               {/* Sign Up Link */}
-              <p className="login-links">
-                Don&apos;t have an account? <Link to="/register">Create one</Link>
-              </p>
+              {!isAdminLogin && (
+                <p className="login-links">
+                  Don&apos;t have an account? <Link to="/register">Create one</Link>
+                </p>
+              )}
+              {isAdminLogin && (
+                <p className="login-links">
+                  <Link to="/login">Back to user login</Link>
+                </p>
+              )}
             </form>
           ) : (
-            /* OTP Verification Form */
+            /* OTP Verification Form - Only shown for non-admin users */
             <form className="login-form" onSubmit={handleVerifyOtp}>
               {/* Back Button */}
               <button

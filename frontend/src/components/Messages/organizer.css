@@ -28,6 +28,7 @@
   border-bottom: 2px solid var(--border-primary, #e2e8f0);
   flex-wrap: wrap;
   gap: 1rem;
+  font-size: medium;
 }
 
 [data-theme="dark"] .organiser-header {

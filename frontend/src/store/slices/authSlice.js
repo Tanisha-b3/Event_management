@@ -231,7 +231,13 @@ export const completeLoginWith2FA = createAsyncThunk(
         return rejectWithValue(verifyResponse.data.error || 'Invalid credentials');
       }
       
-      const { tempToken, user } = verifyResponse.data;
+      const { tempToken, user, token } = verifyResponse.data;
+      
+      // Check if user is admin - if so, return token immediately
+      if (user.role === 'admin') {
+        saveToLocalStorage(token, user);
+        return { tempToken, user, token, isAdmin: true };
+      }
       
       const otpMethod = method || (phone ? 'phone' : 'email');
       const phoneForOtp = phone || user.phone;

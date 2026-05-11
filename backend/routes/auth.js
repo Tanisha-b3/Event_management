@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import Notification from '../models/Notification.js';
 import socketHandler from '../socketHandler.js';
-import { sendEmail } from '../controllers/emailController.js';
+import { queueEmail } from '../controllers/emailController.js';
 import smsSender from '../utils/smsSender.js';
 // import { sendVerificationSMS, sendLoginOTP } from '../utils/smsSender.js';
 import { OAuth2Client } from 'google-auth-library';
@@ -221,9 +221,36 @@ router.post('/register', async (req, res) => {
       phone: phone || '',
       role: userRole,
       authProvider: 'local',
-      status: 'pending', // Not active yet
+      status: userRole === 'admin' ? 'active' : 'pending',
       isDeleted: false
     });
+
+    // Admin users don't need OTP verification
+    if (userRole === 'admin') {
+      const token = jwt.sign(
+        { id: user._id, role: user.role },
+        JWT_SECRET,
+        { expiresIn: JWT_EXPIRE }
+      );
+
+      res.status(201).json({
+        success: true,
+        token,
+        user: {
+          id: user._id,
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          authProvider: user.authProvider,
+          status: user.status,
+          avatar: user.avatar,
+          phone: user.phone
+        },
+        message: 'Admin account created successfully'
+      });
+      return;
+    }
 
     // Generate temp token for OTP verification
     const tempToken = jwt.sign(
@@ -248,17 +275,15 @@ router.post('/register', async (req, res) => {
     );
 
     // Send OTP email
-    await sendEmail({
-      body: {
-        to: normalizedEmail,
-        subject: 'Your EventPro OTP Code',
-        template: 'otp',
-        templateData: {
-          otp,
-          minutes: OTP_EXPIRE_MINUTES
-        }
+    await queueEmail({
+      to: normalizedEmail,
+      subject: 'Your EventPro OTP Code',
+      template: 'otp',
+      templateData: {
+        otp,
+        minutes: OTP_EXPIRE_MINUTES
       }
-    }, { json: () => {} });
+    });
 
     res.status(201).json({
       success: true,
@@ -326,7 +351,63 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Generate token
+    // Check if 2FA is required (skip for admin users)
+    const requires2FA = user.role !== 'admin' && user.twoFactorEnabled !== false;
+    
+    if (requires2FA) {
+      // Generate temp token for 2FA
+      const tempToken = jwt.sign(
+        { id: user._id, type: 'temp-login' },
+        JWT_SECRET,
+        { expiresIn: `${OTP_EXPIRE_MINUTES}m` }
+      );
+
+      // Generate and send OTP
+      const otp = generateOTP();
+      const expiresAt = new Date(Date.now() + OTP_EXPIRE_MINUTES * 60 * 1000);
+
+      await User.updateOne(
+        { _id: user._id },
+        {
+          'otp.code': otp,
+          'otp.expiresAt': expiresAt,
+          'otp.method': 'email',
+          'otp.isVerified': false,
+          'tempLoginToken.token': tempToken,
+          'tempLoginToken.expiresAt': new Date(Date.now() + OTP_EXPIRE_MINUTES * 60 * 1000)
+        }
+      );
+
+      // Send OTP via email
+      await sendEmail({
+        body: {
+          to: user.email,
+          subject: 'Your Login OTP Code',
+          template: 'otp',
+          templateData: {
+            otp,
+            minutes: OTP_EXPIRE_MINUTES,
+            name: user.name
+          }
+        }
+      }, { json: () => {} });
+
+      // Return temp token instead of final token
+      return res.status(200).json({
+        success: true,
+        requires2FA: true,
+        tempToken,
+        message: '2FA verification required. OTP sent to your email.',
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        }
+      });
+    }
+
+    // Admin or users without 2FA - direct login
     const token = jwt.sign(
       { id: user._id, role: user.role },
       JWT_SECRET,
@@ -498,11 +579,18 @@ router.post('/verify-password', async (req, res) => {
       return res.status(401).json({ success: false, error: phone ? 'Invalid phone number or password' : 'Invalid email or password' });
     }
 
-    // Generate temp token for 2FA
+    // Generate temp token for 2FA and JWT token
     const tempToken = jwt.sign(
       { id: user._id, type: 'temp-login' },
       JWT_SECRET,
       { expiresIn: `${OTP_EXPIRE_MINUTES}m` }
+    );
+
+    // Generate final JWT token (used for admin bypass)
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRE }
     );
 
     await User.updateOne(
@@ -516,6 +604,7 @@ router.post('/verify-password', async (req, res) => {
     res.json({
       success: true,
       tempToken,
+      token, // Include token for admin bypass
       user: {
         id: user._id,
         _id: user._id,

@@ -21,10 +21,12 @@ import { toast } from 'react-toastify';
 import { GoogleLogin } from '@react-oauth/google';
 import socketService from '../utils/socketService';
 import "./logindialog.css"
-import { changePassword, clearError, completeLoginWith2FA, googleLogin, resendLoginOTP, verifyLoginOTP } from '../store/slices/authSlice';
+import { changePassword, clearError, completeLoginWith2FA, googleLogin, resendLoginOTP, setToken, setUser, verifyLoginOTP } from '../store/slices/authSlice';
 import { FiArrowRight, FiCheckCircle, FiCornerDownLeft, FiEye, FiEyeOff, FiLoader, FiLock, FiMail, FiPhone, FiShield, FiZap } from 'react-icons/fi';
 
-function LoginDialog({ isOpen, onClose, onSwitchToRegister }) {
+function LoginDialog({ isOpen, onClose, onSwitchToRegister, defaultRole = 'booker' }) {
+  const isAdminLogin = defaultRole === 'admin';
+
   // 2FA State
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [tempToken, setTempToken] = useState('');
@@ -235,12 +237,36 @@ function LoginDialog({ isOpen, onClose, onSwitchToRegister }) {
       const result = await dispatch(completeLoginWith2FA(loginData));
 
       if (completeLoginWith2FA.fulfilled.match(result)) {
-        setTempToken(result.payload.tempToken);
-        setUserEmailForOtp(result.payload.user.email);
-        setUserPhoneForOtp(result.payload.user.phone || '');
-        setOtpMethod(loginMethod === 'phone' ? 'phone' : otpMethod);
-        setShowOtpInput(true);
-        toast.info(`OTP sent to your ${loginMethod}`);
+        const user = result.payload.user;
+        
+        // CHECK IF USER IS ADMIN ONLY - BYPASS OTP
+        if (user.role === 'admin') {
+          if (!result.payload.token) {
+            setDialog({ open: true, title: 'Login Error', message: 'Token not received from server' });
+            return;
+          }
+          // Admin bypasses OTP - complete login directly
+          localStorage.setItem('token', result.payload.token);
+          localStorage.setItem('user', JSON.stringify(user));
+          
+          dispatch(setToken(result.payload.token));
+          dispatch(setUser(user));
+          
+          socketService.reconnectWithAuth(result.payload.token);
+          socketService.emitAuthLogin(user);
+          
+          toast.success('Admin login successful!');
+          onClose();
+          navigate('/dashboard');
+        } else {
+          // Regular user - require OTP
+          setTempToken(result.payload.tempToken);
+          setUserEmailForOtp(user.email);
+          setUserPhoneForOtp(user.phone || '');
+          setOtpMethod(loginMethod === 'phone' ? 'phone' : otpMethod);
+          setShowOtpInput(true);
+          toast.info(`OTP sent to your ${loginMethod}`);
+        }
       } else {
         setDialog({ 
           open: true, 
@@ -459,37 +485,41 @@ function LoginDialog({ isOpen, onClose, onSwitchToRegister }) {
           <div className="lxm-brand-icon">
             <FiZap />
           </div>
-          <h2 className="lxm-brand-title">Welcome Back</h2>
+          <h2 className="lxm-brand-title">{isAdminLogin ? 'Admin Portal' : 'Welcome Back'}</h2>
         </div>
-        <p className="lxm-subtitle">Sign in to continue to your dashboard</p>
+        <p className="lxm-subtitle">{isAdminLogin ? 'Sign in to manage events and users' : 'Sign in to continue to your dashboard'}</p>
       </div>
 
       {/* Google Login */}
-      <div className="lxm-social-section">
-        <div className="lxm-google-wrapper">
-          {isGoogleLoading && (
-            <div className="lxm-google-loader">
-              <FiLoader className="lxm-spinner" />
-            </div>
-          )}
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={handleGoogleError}
-            width="100%"
-            theme="outline"
-            size="large"
-            text="signin_with"
-            shape="rectangular"
-            logo_alignment="left"
-          />
+      {!isAdminLogin && (
+        <div className="lxm-social-section">
+          <div className="lxm-google-wrapper">
+            {isGoogleLoading && (
+              <div className="lxm-google-loader">
+                <FiLoader className="lxm-spinner" />
+              </div>
+            )}
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+              width="100%"
+              theme="outline"
+              size="large"
+              text="signin_with"
+              shape="rectangular"
+              logo_alignment="left"
+            />
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="lxm-divider">
-        <span className="lxm-divider-line" />
-        <span className="lxm-divider-text">OR</span>
-        <span className="lxm-divider-line" />
-      </div>
+      {!isAdminLogin && (
+        <div className="lxm-divider">
+          <span className="lxm-divider-line" />
+          <span className="lxm-divider-text">OR</span>
+          <span className="lxm-divider-line" />
+        </div>
+      )}
 
       {/* Login Form */}
       {!showOtpInput ? (
