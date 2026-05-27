@@ -112,7 +112,7 @@ const EventLanding = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { featuredEvents, featuredLoading } = useSelector((state) => state.events);
-
+const [drawerOpen, setDrawerOpen] = useState(false);
   const [heroText, setHeroText] = useState(0);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [showRegisterDialog, setShowRegisterDialog] = useState(false);
@@ -302,26 +302,78 @@ const EventLanding = () => {
       <OrbsBg />
 
       {/* ── NAV ── */}
-      <nav className={`landing-nav ${navScrolled ? 'nav-scrolled' : ''}`}>
-        <div className="app-title-container-k">
-          <h1 className="app-title-k">EventPro</h1>
-          <div className="app-badge-k">EP</div>
-        </div>
-        <div className="landing-nav-links">
-          <a href="#features">Features</a>
-          <a href="#events">Events</a>
-          <a href="#how">How It Works</a>
-          <a href="#pricing">Pricing</a>
-          <a href="#testimonials">Reviews</a>
-          <a href="#faq">FAQ</a>
-        </div>
-        <div className="landing-nav-actions">
-          <button className="btn-login" onClick={handleOpenLogin}>Login</button>
-          <button className="btn-register" onClick={handleOpenRegister}>
-            <FaRocket /> Get Started
-          </button>
-        </div>
-      </nav>
+     <nav className={`landing-nav ${navScrolled ? 'nav-scrolled' : ''}`}>
+  <div className="app-title-container-k">
+    <h1 className="app-title-k">EventPro</h1>
+    <div className="app-badge-k">EP</div>
+  </div>
+
+  {/* Desktop links */}
+  <div className="landing-nav-links">
+    <a href="#features">Features</a>
+    <a href="#events">Events</a>
+    <a href="#how">How It Works</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#testimonials">Reviews</a>
+    <a href="#faq">FAQ</a>
+  </div>
+
+  <div className="landing-nav-actions">
+    <button className="btn-login" onClick={handleOpenLogin}>Login</button>
+    <button className="btn-register" onClick={handleOpenRegister}>
+      <FaRocket /> <span className="btn-reg-text">Get Started</span>
+    </button>
+    {/* Hamburger */}
+    <button
+      className={`nav-hamburger ${drawerOpen ? 'open' : ''}`}
+      onClick={() => setDrawerOpen(o => !o)}
+      aria-label="Open menu"
+    >
+      <span /><span /><span />
+    </button>
+  </div>
+
+  {/* Overlay */}
+  <div
+    className={`nav-drawer-overlay ${drawerOpen ? 'visible' : ''}`}
+    onClick={() => setDrawerOpen(false)}
+  />
+
+  {/* Drawer */}
+  <div className={`nav-drawer ${drawerOpen ? 'open' : ''}`}>
+    <div className="nav-drawer-header">
+      <div className="nav-drawer-logo">
+        <h1 className="app-title-k">EventPro</h1>
+        <div className="app-badge-k">EP</div>
+      </div>
+      {/* <button className="nav-drawer-close" onClick={() => setDrawerOpen(false)}>✕</button> */}
+    </div>
+
+    <div className="nav-drawer-links">
+      {[
+        ['#features', 'Features'],
+        ['#events',   'Events'],
+        ['#how',      'How It Works'],
+        ['#pricing',  'Pricing'],
+        ['#testimonials', 'Reviews'],
+        ['#faq',      'FAQ'],
+      ].map(([href, label]) => (
+        <a key={href} href={href} onClick={() => setDrawerOpen(false)}>
+          {label} <FaChevronRight />
+        </a>
+      ))}
+    </div>
+
+    <div className="nav-drawer-actions">
+      <button className="btn-login" onClick={() => { setDrawerOpen(false); handleOpenLogin(); }}>
+        Login
+      </button>
+      <button className="btn-register" onClick={() => { setDrawerOpen(false); handleOpenRegister(); }}>
+        <FaRocket /> Get Started
+      </button>
+    </div>
+  </div>
+</nav>
 
       {/* ── TICKER ── */}
       <div className="ticker-container"><Ticker /></div>
