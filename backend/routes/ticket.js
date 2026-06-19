@@ -12,7 +12,7 @@ const { auth, authorizeRoles } = authMiddleware;
 const { emitToUser } = socketHandler;
 
 // --- EMAIL CONTROLLER ---
-import { sendEmail } from '../controllers/emailController.js';
+// import { sendEmail } from '../controllers/emailController.js';
 // --- END EMAIL CONTROLLER ---
 
 // Admin: Get all tickets (for any event)
@@ -182,27 +182,27 @@ router.post('/admin/book', auth, authorizeRoles('organiser', 'admin'), async (re
     );
 
     // Send ticket confirmation email
-    try {
-      await sendEmail({
-        body: {
-          to: req.user.email,
-          subject: `Your Ticket for ${eventName || event.title}`,
-          template: 'ticket_purchase',
-          templateData: {
-            userName: req.user.name || req.user.email,
-            eventName: eventName || event.title,
-            eventDate: eventDate || event.date,
-            eventLocation: eventLocation || event.location,
-            ticketType: ticketType || 'General Admission',
-            quantity: qty,
-            bookingId,
-            price: ticketPrice
-          }
-        }
-      }, { json: () => {} });
-    } catch (e) {
-      console.error('Ticket email error:', e);
-    }
+    // try {
+    //   await sendEmail({
+    //     body: {
+    //       to: req.user.email,
+    //       subject: `Your Ticket for ${eventName || event.title}`,
+    //       template: 'ticket_purchase',
+    //       templateData: {
+    //         userName: req.user.name || req.user.email,
+    //         eventName: eventName || event.title,
+    //         eventDate: eventDate || event.date,
+    //         eventLocation: eventLocation || event.location,
+    //         ticketType: ticketType || 'General Admission',
+    //         quantity: qty,
+    //         bookingId,
+    //         price: ticketPrice
+    //       }
+    //     }
+    //   }, { json: () => {} });
+    // } catch (e) {
+    //   console.error('Ticket email error:', e);
+    // }
 
     res.status(201).json({ success: true, ticket, event });
   } catch (err) {
@@ -319,27 +319,27 @@ router.post('/', auth, authorizeRoles('booker', 'organiser', 'admin'), async (re
       { eventId, ticketId: ticket._id, link: `/my-tickets` }
     );
 
-     try {
-      await sendEmail({
-        body: {
-          to: req.user.email,
-          subject: `Your Ticket for ${eventName || event.title}`,
-          template: 'ticket_purchase',
-          templateData: {
-            userName: req.user.name || req.user.email,
-            eventName: eventName || event.title,
-            eventDate: eventDate || event.date,
-            eventLocation: eventLocation || event.location,
-            ticketType: ticketType || 'General Admission',
-            quantity: qty,
-            bookingId,
-            price: ticketPrice
-          }
-        }
-      }, { json: () => {} });
-    } catch (e) {
-      console.error('Ticket email error:', e);
-    }
+     // try {
+    //   await sendEmail({
+    //     body: {
+    //       to: req.user.email,
+    //       subject: `Your Ticket for ${eventName || event.title}`,
+    //       template: 'ticket_purchase',
+    //       templateData: {
+    //         userName: req.user.name || req.user.email,
+    //         eventName: eventName || event.title,
+    //         eventDate: eventDate || event.date,
+    //         eventLocation: eventLocation || event.location,
+    //         ticketType: ticketType || 'General Admission',
+    //         quantity: qty,
+    //         bookingId,
+    //         price: ticketPrice
+    //       }
+    //     }
+    //   }, { json: () => {} });
+    // } catch (e) {
+    //   console.error('Ticket email error:', e);
+    // }
 
     res.status(201).json({ success: true, ticket, event });
   } catch (err) {

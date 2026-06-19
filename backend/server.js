@@ -14,7 +14,7 @@ import authRoutes from './routes/auth.js';
 import eventRoutes from './routes/events.js';
 import ticketRoutes from './routes/ticket.js';
 import notificationRoutes from './routes/notifications.js';
-import emailRoutes from './routes/email.js';
+// import emailRoutes from './routes/email.js';
 import cartRoutes from './routes/cart.js';
 import favoritesRoutes from './routes/favorites.js';
 import userRoutes from './routes/users.js';
@@ -22,7 +22,7 @@ import messageRoutes from './routes/messages.js';
 import discussionRoutes from './routes/discussions.js';
 
 import socketHandler from './socketHandler.js';
-import cron from './services/eventReminderScheduler.js';
+// import cron from './services/eventReminderScheduler.js';
 
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -101,7 +101,7 @@ app.use('/api/favorites', favoritesRoutes);
 app.use('/api/users', userRoutes);
 app.use("/api/messages", messageRoutes);
 app.use('/api/discussions', discussionRoutes);
-app.use('/api/email', emailRoutes);
+// app.use('/api/email', emailRoutes);
 
 
 // Serve frontend in production
@@ -119,7 +119,7 @@ app.use(errorLogger);
 
 
 
-import { initQueue } from './jobs/queue.js';
+// import { initQueue } from './jobs/queue.js';
 
 mongoose.connect(process.env.MONGO_URI)
   .then(async () => {
@@ -128,8 +128,8 @@ mongoose.connect(process.env.MONGO_URI)
     server.listen(PORT, async () => {
       console.log(`Server running on port ${PORT}`);
       console.log('WebSocket server initialized');
-      cron.startReminderScheduler(60 * 60 * 1000);
-      await initQueue();
+      // cron.startReminderScheduler(60 * 60 * 1000);
+      // await initQueue();
     });
   })
   .catch(err => {

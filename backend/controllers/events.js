@@ -6,7 +6,7 @@ import User from '../models/User.js';
 import Notification from '../models/Notification.js';
 
 import socketHandler from '../socketHandler.js';
-import { sendEmail } from './emailController.js';
+// import { sendEmail } from './emailController.js';
 
 import aiService from '../services/aiService.js';
 const { emitToUser, emitToAll } = socketHandler;
@@ -339,24 +339,24 @@ export const createEvent = async (req, res) => {
     }
 
     // Send event confirmation email to organizer
-    try {
-      await sendEmail({
-        body: {
-          to: req.user.email,
-          subject: `Your Event "${eventData.title}" is Ready!`,
-          template: 'event_confirmation',
-          templateData: {
-            eventName: eventData.title,
-            eventDate: eventData.date,
-            eventLocation: eventData.location,
-            price: eventData.ticketPrice,
-            availableTickets: eventData.capacity - (eventData.ticketsSold || 0)
-          }
-        }
-      }, { json: () => {} });
-    } catch (emailErr) {
-      console.error('Event confirmation email error:', emailErr.message);
-    }
+    // try {
+    //   await sendEmail({
+    //     body: {
+    //       to: req.user.email,
+    //       subject: `Your Event "${eventData.title}" is Ready!`,
+    //       template: 'event_confirmation',
+    //       templateData: {
+    //         eventName: eventData.title,
+    //         eventDate: eventData.date,
+    //         eventLocation: eventData.location,
+    //         price: eventData.ticketPrice,
+    //         availableTickets: eventData.capacity - (eventData.ticketsSold || 0)
+    //       }
+    //     }
+    //   }, { json: () => {} });
+    // } catch (emailErr) {
+    //   console.error('Event confirmation email error:', emailErr.message);
+    // }
 
     res.status(201).json({
       success: true,

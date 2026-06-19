@@ -1,7 +1,7 @@
 import { connect } from 'net';
 import pkg from 'bullmq';
 const { Queue, Worker } = pkg;
-import { queueEmail } from '../controllers/emailController.js';
+// import { queueEmail } from '../controllers/emailController.js';
 
 const connection = {
   host: process.env.REDIS_HOST || '127.0.0.1',
@@ -42,12 +42,12 @@ export const initQueue = async () => {
       async (job) => {
         console.log(`Processing job ${job.id} of type ${job.name}`);
         const handlers = {
-          sendEmail: async (job) => {
-            console.log(`Sending email to ${job.data.to}`);
-            await queueEmail(job.data);
-            console.log(`Email sent to ${job.data.to}`);
-            return { status: 'sent' };
-          },
+          // sendEmail: async (job) => {
+          //   console.log(`Sending email to ${job.data.to}`);
+          //   await queueEmail(job.data);
+          //   console.log(`Email sent to ${job.data.to}`);
+          //   return { status: 'sent' };
+          // },
           generateReport: async (job) => {
             console.log(`Generating report for user ${job.data.userId}`);
             await new Promise((resolve) => setTimeout(resolve, 1000));

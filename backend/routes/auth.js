@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import Notification from '../models/Notification.js';
 import socketHandler from '../socketHandler.js';
-import { queueEmail } from '../controllers/emailController.js';
+// import { queueEmail } from '../controllers/emailController.js';
 import smsSender from '../utils/smsSender.js';
 // import { sendVerificationSMS, sendLoginOTP } from '../utils/smsSender.js';
 import { OAuth2Client } from 'google-auth-library';
@@ -275,15 +275,15 @@ router.post('/register', async (req, res) => {
     );
 
     // Send OTP email
-    await queueEmail({
-      to: normalizedEmail,
-      subject: 'Your EventPro OTP Code',
-      template: 'otp',
-      templateData: {
-        otp,
-        minutes: OTP_EXPIRE_MINUTES
-      }
-    });
+    // await queueEmail({
+    //   to: normalizedEmail,
+    //   subject: 'Your EventPro OTP Code',
+    //   template: 'otp',
+    //   templateData: {
+    //     otp,
+    //     minutes: OTP_EXPIRE_MINUTES
+    //   }
+    // });
 
     res.status(201).json({
       success: true,
@@ -379,18 +379,18 @@ router.post('/login', async (req, res) => {
       );
 
       // Send OTP via email
-      await sendEmail({
-        body: {
-          to: user.email,
-          subject: 'Your Login OTP Code',
-          template: 'otp',
-          templateData: {
-            otp,
-            minutes: OTP_EXPIRE_MINUTES,
-            name: user.name
-          }
-        }
-      }, { json: () => {} });
+      // await sendEmail({
+      //   body: {
+      //     to: user.email,
+      //     subject: 'Your Login OTP Code',
+      //     template: 'otp',
+      //     templateData: {
+      //       otp,
+      //       minutes: OTP_EXPIRE_MINUTES,
+      //       name: user.name
+      //     }
+      //   }
+      // }, { json: () => {} });
 
       // Return temp token instead of final token
       return res.status(200).json({
